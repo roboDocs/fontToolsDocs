@@ -1,0 +1,681 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fontTools.misc.loggingTools &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fontTools.misc.loggingTools</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; fontTools.misc.loggingTools.py -- tools for interfacing with the Python</span>
+<span class="sd">logging package.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.py23</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">timeit</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">wraps</span>
+<span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="k">try</span><span class="p">:</span>
+	<span class="kn">from</span> <span class="nn">logging</span> <span class="k">import</span> <span class="n">PercentStyle</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+	<span class="n">PercentStyle</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<span class="c1"># default logging level used by Timer class</span>
+<span class="n">TIME_LEVEL</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span>
+
+<span class="c1"># per-level format strings used by the default formatter</span>
+<span class="c1"># (the level name is not printed for INFO and DEBUG messages)</span>
+<span class="n">DEFAULT_FORMATS</span> <span class="o">=</span> <span class="p">{</span>
+	<span class="s2">&quot;*&quot;</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">%(levelname)s</span><span class="s2">: </span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">,</span>
+	<span class="s2">&quot;INFO&quot;</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">,</span>
+	<span class="s2">&quot;DEBUG&quot;</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">,</span>
+	<span class="p">}</span>
+
+
+<div class="viewcode-block" id="LevelFormatter"><a class="viewcode-back" href="../../../misc/loggingTools.html#fontTools.misc.loggingTools.LevelFormatter">[docs]</a><span class="k">class</span> <span class="nc">LevelFormatter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot; Formatter class which optionally takes a dict of logging levels to</span>
+<span class="sd">	format strings, allowing to customise the log records appearance for</span>
+<span class="sd">	specific levels.</span>
+<span class="sd">	The &#39;*&#39; key identifies the default format string.</span>
+
+<span class="sd">	&gt;&gt;&gt; import sys</span>
+<span class="sd">	&gt;&gt;&gt; handler = logging.StreamHandler(sys.stdout)</span>
+<span class="sd">	&gt;&gt;&gt; formatter = LevelFormatter(</span>
+<span class="sd">	...     fmt={</span>
+<span class="sd">	...         &#39;*&#39;:     &#39;[%(levelname)s] %(message)s&#39;,</span>
+<span class="sd">	...         &#39;DEBUG&#39;: &#39;%(name)s [%(levelname)s] %(message)s&#39;,</span>
+<span class="sd">	...         &#39;INFO&#39;:  &#39;%(message)s&#39;,</span>
+<span class="sd">	...     })</span>
+<span class="sd">	&gt;&gt;&gt; handler.setFormatter(formatter)</span>
+<span class="sd">	&gt;&gt;&gt; log = logging.getLogger(&#39;test&#39;)</span>
+<span class="sd">	&gt;&gt;&gt; log.setLevel(logging.DEBUG)</span>
+<span class="sd">	&gt;&gt;&gt; log.addHandler(handler)</span>
+<span class="sd">	&gt;&gt;&gt; log.debug(&#39;this uses a custom format string&#39;)</span>
+<span class="sd">	test [DEBUG] this uses a custom format string</span>
+<span class="sd">	&gt;&gt;&gt; log.info(&#39;this also uses a custom format string&#39;)</span>
+<span class="sd">	this also uses a custom format string</span>
+<span class="sd">	&gt;&gt;&gt; log.warning(&quot;this one uses the default format string&quot;)</span>
+<span class="sd">	[WARNING] this one uses the default format string</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">datefmt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;%&quot;</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">style</span> <span class="o">!=</span> <span class="s1">&#39;%&#39;</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+				<span class="s2">&quot;only &#39;%&#39; percent style is supported in both python 2 and 3&quot;</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">fmt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">fmt</span> <span class="o">=</span> <span class="n">DEFAULT_FORMATS</span>
+		<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fmt</span><span class="p">,</span> <span class="n">basestring</span><span class="p">):</span>
+			<span class="n">default_format</span> <span class="o">=</span> <span class="n">fmt</span>
+			<span class="n">custom_formats</span> <span class="o">=</span> <span class="p">{}</span>
+		<span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fmt</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
+			<span class="n">custom_formats</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">fmt</span><span class="p">)</span>
+			<span class="n">default_format</span> <span class="o">=</span> <span class="n">custom_formats</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;fmt must be a str or a dict of str: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">fmt</span><span class="p">)</span>
+		<span class="nb">super</span><span class="p">(</span><span class="n">LevelFormatter</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">default_format</span><span class="p">,</span> <span class="n">datefmt</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">default_format</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fmt</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">custom_formats</span> <span class="o">=</span> <span class="p">{}</span>
+		<span class="k">for</span> <span class="n">level</span><span class="p">,</span> <span class="n">fmt</span> <span class="ow">in</span> <span class="n">custom_formats</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+			<span class="n">level</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">_checkLevel</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">custom_formats</span><span class="p">[</span><span class="n">level</span><span class="p">]</span> <span class="o">=</span> <span class="n">fmt</span>
+
+<div class="viewcode-block" id="LevelFormatter.format"><a class="viewcode-back" href="../../../misc/loggingTools.html#fontTools.misc.loggingTools.LevelFormatter.format">[docs]</a>	<span class="k">def</span> <span class="nf">format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">custom_formats</span><span class="p">:</span>
+			<span class="n">fmt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">custom_formats</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">levelno</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_format</span><span class="p">)</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fmt</span> <span class="o">!=</span> <span class="n">fmt</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_fmt</span> <span class="o">=</span> <span class="n">fmt</span>
+				<span class="c1"># for python &gt;= 3.2, _style needs to be set if _fmt changes</span>
+				<span class="k">if</span> <span class="n">PercentStyle</span><span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">_style</span> <span class="o">=</span> <span class="n">PercentStyle</span><span class="p">(</span><span class="n">fmt</span><span class="p">)</span>
+		<span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">LevelFormatter</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">record</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="configLogger"><a class="viewcode-back" href="../../../misc/loggingTools.html#fontTools.misc.loggingTools.configLogger">[docs]</a><span class="k">def</span> <span class="nf">configLogger</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot; Do basic configuration for the logging system. This is more or less</span>
+<span class="sd">	the same as logging.basicConfig with some additional options and defaults.</span>
+
+<span class="sd">	The default behaviour is to create a StreamHandler which writes to</span>
+<span class="sd">	sys.stderr, set a formatter using the DEFAULT_FORMATS strings, and add</span>
+<span class="sd">	the handler to the top-level library logger (&quot;fontTools&quot;).</span>
+
+<span class="sd">	A number of optional keyword arguments may be specified, which can alter</span>
+<span class="sd">	the default behaviour.</span>
+
+<span class="sd">	logger    Specifies the logger name or a Logger instance to be configured.</span>
+<span class="sd">	          (it defaults to &quot;fontTools&quot; logger). Unlike basicConfig, this</span>
+<span class="sd">	          function can be called multiple times to reconfigure a logger.</span>
+<span class="sd">	          If the logger or any of its children already exists before the</span>
+<span class="sd">	          call is made, they will be reset before the new configuration</span>
+<span class="sd">	          is applied.</span>
+<span class="sd">	filename  Specifies that a FileHandler be created, using the specified</span>
+<span class="sd">	          filename, rather than a StreamHandler.</span>
+<span class="sd">	filemode  Specifies the mode to open the file, if filename is specified</span>
+<span class="sd">	          (if filemode is unspecified, it defaults to &#39;a&#39;).</span>
+<span class="sd">	format    Use the specified format string for the handler. This argument</span>
+<span class="sd">	          also accepts a dictionary of format strings keyed by level name,</span>
+<span class="sd">	          to allow customising the records appearance for specific levels.</span>
+<span class="sd">	          The special &#39;*&#39; key is for &#39;any other&#39; level.</span>
+<span class="sd">	datefmt   Use the specified date/time format.</span>
+<span class="sd">	level     Set the logger level to the specified level.</span>
+<span class="sd">	stream    Use the specified stream to initialize the StreamHandler. Note</span>
+<span class="sd">	          that this argument is incompatible with &#39;filename&#39; - if both</span>
+<span class="sd">	          are present, &#39;stream&#39; is ignored.</span>
+<span class="sd">	handlers  If specified, this should be an iterable of already created</span>
+<span class="sd">	          handlers, which will be added to the logger. Any handler</span>
+<span class="sd">	          in the list which does not have a formatter assigned will be</span>
+<span class="sd">	          assigned the formatter created in this function.</span>
+<span class="sd">	filters   If specified, this should be an iterable of already created</span>
+<span class="sd">	          filters, which will be added to the handler(s), if the latter</span>
+<span class="sd">	          do(es) not already have filters assigned.</span>
+<span class="sd">	propagate All loggers have a &quot;propagate&quot; attribute initially set to True,</span>
+<span class="sd">	          which determines whether to continue searching for handlers up</span>
+<span class="sd">	          the logging hierarchy. By default, this arguments sets the</span>
+<span class="sd">	          &quot;propagate&quot; attribute to False.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="c1"># using kwargs to enforce keyword-only arguments in py2.</span>
+	<span class="n">handlers</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;handlers&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">handlers</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="k">if</span> <span class="s2">&quot;stream&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="s2">&quot;filename&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;stream&#39; and &#39;filename&#39; should not be &quot;</span>
+							 <span class="s2">&quot;specified together&quot;</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">if</span> <span class="s2">&quot;stream&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">or</span> <span class="s2">&quot;filename&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;stream&#39; or &#39;filename&#39; should not be &quot;</span>
+							 <span class="s2">&quot;specified together with &#39;handlers&#39;&quot;</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">handlers</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">filename</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;filename&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+		<span class="n">mode</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;filemode&quot;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">filename</span><span class="p">:</span>
+			<span class="n">h</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">stream</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;stream&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+			<span class="n">h</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span>
+		<span class="n">handlers</span> <span class="o">=</span> <span class="p">[</span><span class="n">h</span><span class="p">]</span>
+	<span class="c1"># By default, the top-level library logger is configured.</span>
+	<span class="n">logger</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;logger&quot;</span><span class="p">,</span> <span class="s2">&quot;fontTools&quot;</span><span class="p">)</span>
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">logger</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">basestring</span><span class="p">):</span>
+		<span class="c1"># empty &quot;&quot; or None means the &#39;root&#39; logger</span>
+		<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+	<span class="c1"># before (re)configuring, reset named logger and its children (if exist)</span>
+	<span class="n">_resetExistingLoggers</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">logger</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+	<span class="c1"># use DEFAULT_FORMATS if &#39;format&#39; is None</span>
+	<span class="n">fs</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;format&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+	<span class="n">dfs</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;datefmt&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+	<span class="c1"># XXX: &#39;%&#39; is the only format style supported on both py2 and 3</span>
+	<span class="n">style</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;style&quot;</span><span class="p">,</span> <span class="s1">&#39;%&#39;</span><span class="p">)</span>
+	<span class="n">fmt</span> <span class="o">=</span> <span class="n">LevelFormatter</span><span class="p">(</span><span class="n">fs</span><span class="p">,</span> <span class="n">dfs</span><span class="p">,</span> <span class="n">style</span><span class="p">)</span>
+	<span class="n">filters</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;filters&quot;</span><span class="p">,</span> <span class="p">[])</span>
+	<span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">handlers</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">h</span><span class="o">.</span><span class="n">formatter</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">h</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">fmt</span><span class="p">)</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">h</span><span class="o">.</span><span class="n">filters</span><span class="p">:</span>
+			<span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filters</span><span class="p">:</span>
+				<span class="n">h</span><span class="o">.</span><span class="n">addFilter</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+		<span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">logger</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;root&quot;</span><span class="p">:</span>
+		<span class="c1"># stop searching up the hierarchy for handlers</span>
+		<span class="n">logger</span><span class="o">.</span><span class="n">propagate</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;propagate&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+	<span class="c1"># set a custom severity level</span>
+	<span class="n">level</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;level&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">level</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">kwargs</span><span class="p">:</span>
+		<span class="n">keys</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+		<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unrecognised argument(s): </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">keys</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_resetExistingLoggers</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot; Reset the logger named &#39;parent&#39; and all its children to their initial</span>
+<span class="sd">	state, if they already exist in the current configuration.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">root</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">root</span>
+	<span class="c1"># get sorted list of all existing loggers</span>
+	<span class="n">existing</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">manager</span><span class="o">.</span><span class="n">loggerDict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+	<span class="k">if</span> <span class="n">parent</span> <span class="o">==</span> <span class="s2">&quot;root&quot;</span><span class="p">:</span>
+		<span class="c1"># all the existing loggers are children of &#39;root&#39;</span>
+		<span class="n">loggers_to_reset</span> <span class="o">=</span> <span class="p">[</span><span class="n">parent</span><span class="p">]</span> <span class="o">+</span> <span class="n">existing</span>
+	<span class="k">elif</span> <span class="n">parent</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">existing</span><span class="p">:</span>
+		<span class="c1"># nothing to do</span>
+		<span class="k">return</span>
+	<span class="k">elif</span> <span class="n">parent</span> <span class="ow">in</span> <span class="n">existing</span><span class="p">:</span>
+		<span class="n">loggers_to_reset</span> <span class="o">=</span> <span class="p">[</span><span class="n">parent</span><span class="p">]</span>
+		<span class="c1"># collect children, starting with the entry after parent name</span>
+		<span class="n">i</span> <span class="o">=</span> <span class="n">existing</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+		<span class="n">prefixed</span> <span class="o">=</span> <span class="n">parent</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span>
+		<span class="n">pflen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">prefixed</span><span class="p">)</span>
+		<span class="n">num_existing</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">existing</span><span class="p">)</span>
+		<span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">num_existing</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">existing</span><span class="p">[</span><span class="n">i</span><span class="p">][:</span><span class="n">pflen</span><span class="p">]</span> <span class="o">==</span> <span class="n">prefixed</span><span class="p">:</span>
+				<span class="n">loggers_to_reset</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">existing</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+			<span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+	<span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">loggers_to_reset</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;root&quot;</span><span class="p">:</span>
+			<span class="n">root</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">)</span>
+			<span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">root</span><span class="o">.</span><span class="n">handlers</span><span class="p">[:]:</span>
+				<span class="n">root</span><span class="o">.</span><span class="n">removeHandler</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+			<span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">root</span><span class="o">.</span><span class="n">filters</span><span class="p">[:]:</span>
+				<span class="n">root</span><span class="o">.</span><span class="n">removeFilters</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+			<span class="n">root</span><span class="o">.</span><span class="n">disabled</span> <span class="o">=</span> <span class="kc">False</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">logger</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">manager</span><span class="o">.</span><span class="n">loggerDict</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+			<span class="n">logger</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span>
+			<span class="n">logger</span><span class="o">.</span><span class="n">handlers</span> <span class="o">=</span> <span class="p">[]</span>
+			<span class="n">logger</span><span class="o">.</span><span class="n">filters</span> <span class="o">=</span> <span class="p">[]</span>
+			<span class="n">logger</span><span class="o">.</span><span class="n">propagate</span> <span class="o">=</span> <span class="kc">True</span>
+			<span class="n">logger</span><span class="o">.</span><span class="n">disabled</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+<div class="viewcode-block" id="Timer"><a class="viewcode-back" href="../../../misc/loggingTools.html#fontTools.misc.loggingTools.Timer">[docs]</a><span class="k">class</span> <span class="nc">Timer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot; Keeps track of overall time and split/lap times.</span>
+
+<span class="sd">	&gt;&gt;&gt; import time</span>
+<span class="sd">	&gt;&gt;&gt; timer = Timer()</span>
+<span class="sd">	&gt;&gt;&gt; time.sleep(0.01)</span>
+<span class="sd">	&gt;&gt;&gt; print(&quot;First lap:&quot;, timer.split())</span>
+<span class="sd">	First lap: ...</span>
+<span class="sd">	&gt;&gt;&gt; time.sleep(0.02)</span>
+<span class="sd">	&gt;&gt;&gt; print(&quot;Second lap:&quot;, timer.split())</span>
+<span class="sd">	Second lap: ...</span>
+<span class="sd">	&gt;&gt;&gt; print(&quot;Overall time:&quot;, timer.time())</span>
+<span class="sd">	Overall time: ...</span>
+
+<span class="sd">	Can be used as a context manager inside with-statements.</span>
+
+<span class="sd">	&gt;&gt;&gt; with Timer() as t:</span>
+<span class="sd">	...     time.sleep(0.01)</span>
+<span class="sd">	&gt;&gt;&gt; print(&quot;%0.3f seconds&quot; % t.elapsed)</span>
+<span class="sd">	0... seconds</span>
+
+<span class="sd">	If initialised with a logger, it can log the elapsed time automatically</span>
+<span class="sd">	upon exiting the with-statement.</span>
+
+<span class="sd">	&gt;&gt;&gt; import logging</span>
+<span class="sd">	&gt;&gt;&gt; log = logging.getLogger(&quot;fontTools&quot;)</span>
+<span class="sd">	&gt;&gt;&gt; configLogger(level=&quot;DEBUG&quot;, format=&quot;%(message)s&quot;, stream=sys.stdout)</span>
+<span class="sd">	&gt;&gt;&gt; with Timer(log, &#39;do something&#39;):</span>
+<span class="sd">	...     time.sleep(0.01)</span>
+<span class="sd">	Took ... to do something</span>
+
+<span class="sd">	The same Timer instance, holding a reference to a logger, can be reused</span>
+<span class="sd">	in multiple with-statements, optionally with different messages or levels.</span>
+
+<span class="sd">	&gt;&gt;&gt; timer = Timer(log)</span>
+<span class="sd">	&gt;&gt;&gt; with timer():</span>
+<span class="sd">	...     time.sleep(0.01)</span>
+<span class="sd">	elapsed time: ...s</span>
+<span class="sd">	&gt;&gt;&gt; with timer(&#39;redo it&#39;, level=logging.INFO):</span>
+<span class="sd">	...     time.sleep(0.02)</span>
+<span class="sd">	Took ... to redo it</span>
+
+<span class="sd">	It can also be used as a function decorator to log the time elapsed to run</span>
+<span class="sd">	the decorated function.</span>
+
+<span class="sd">	&gt;&gt;&gt; @timer()</span>
+<span class="sd">	... def test1():</span>
+<span class="sd">	...    time.sleep(0.01)</span>
+<span class="sd">	&gt;&gt;&gt; @timer(&#39;run test 2&#39;, level=logging.INFO)</span>
+<span class="sd">	... def test2():</span>
+<span class="sd">	...    time.sleep(0.02)</span>
+<span class="sd">	&gt;&gt;&gt; test1()</span>
+<span class="sd">	Took ... to run &#39;test1&#39;</span>
+<span class="sd">	&gt;&gt;&gt; test2()</span>
+<span class="sd">	Took ... to run test 2</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="c1"># timeit.default_timer choses the most accurate clock for each platform</span>
+	<span class="n">_time</span> <span class="o">=</span> <span class="n">timeit</span><span class="o">.</span><span class="n">default_timer</span>
+	<span class="n">default_msg</span> <span class="o">=</span> <span class="s2">&quot;elapsed time: </span><span class="si">%(time).3f</span><span class="s2">s&quot;</span>
+	<span class="n">default_format</span> <span class="o">=</span> <span class="s2">&quot;Took </span><span class="si">%(time).3f</span><span class="s2">s to </span><span class="si">%(msg)s</span><span class="s2">&quot;</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">start</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;msg&#39;</span><span class="p">,</span> <span class="s1">&#39;level&#39;</span><span class="p">):</span>
+				<span class="k">if</span> <span class="nb">locals</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+					<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+						<span class="s2">&quot;&#39;</span><span class="si">%s</span><span class="s2">&#39; can&#39;t be specified without a &#39;logger&#39;&quot;</span> <span class="o">%</span> <span class="n">arg</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logger</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="n">level</span> <span class="k">if</span> <span class="n">level</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">TIME_LEVEL</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">msg</span> <span class="o">=</span> <span class="n">msg</span>
+
+<div class="viewcode-block" id="Timer.reset"><a class="viewcode-back" href="../../../misc/loggingTools.html#fontTools.misc.loggingTools.Timer.reset">[docs]</a>	<span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; Reset timer to &#39;start_time&#39; or the current time. &quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time</span><span class="p">()</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="n">start</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">last</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">elapsed</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+<div class="viewcode-block" id="Timer.time"><a class="viewcode-back" href="../../../misc/loggingTools.html#fontTools.misc.loggingTools.Timer.time">[docs]</a>	<span class="k">def</span> <span class="nf">time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; Return the overall time (in seconds) since the timer started. &quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span></div>
+
+<div class="viewcode-block" id="Timer.split"><a class="viewcode-back" href="../../../misc/loggingTools.html#fontTools.misc.loggingTools.Timer.split">[docs]</a>	<span class="k">def</span> <span class="nf">split</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; Split and return the lap time (in seconds) in between splits. &quot;&quot;&quot;</span>
+		<span class="n">current</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">elapsed</span> <span class="o">=</span> <span class="n">current</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">last</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">last</span> <span class="o">=</span> <span class="n">current</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">elapsed</span></div>
+
+<div class="viewcode-block" id="Timer.formatTime"><a class="viewcode-back" href="../../../misc/loggingTools.html#fontTools.misc.loggingTools.Timer.formatTime">[docs]</a>	<span class="k">def</span> <span class="nf">formatTime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">time</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; Format &#39;time&#39; value in &#39;msg&#39; and return formatted string.</span>
+<span class="sd">		If &#39;msg&#39; contains a &#39;%(time)&#39; format string, try to use that.</span>
+<span class="sd">		Otherwise, use the predefined &#39;default_format&#39;.</span>
+<span class="sd">		If &#39;msg&#39; is empty or None, fall back to &#39;default_msg&#39;.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">msg</span><span class="p">:</span>
+			<span class="n">msg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_msg</span>
+		<span class="k">if</span> <span class="n">msg</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;%(time)&quot;</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+			<span class="n">msg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_format</span> <span class="o">%</span> <span class="p">{</span><span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="n">msg</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="n">time</span><span class="p">}</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">try</span><span class="p">:</span>
+				<span class="n">msg</span> <span class="o">=</span> <span class="n">msg</span> <span class="o">%</span> <span class="p">{</span><span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="n">time</span><span class="p">}</span>
+			<span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+				<span class="k">pass</span>  <span class="c1"># skip if the format string is malformed</span>
+		<span class="k">return</span> <span class="n">msg</span></div>
+
+	<span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; Start a new lap &quot;&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">last</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">elapsed</span> <span class="o">=</span> <span class="mf">0.0</span>
+		<span class="k">return</span> <span class="bp">self</span>
+
+	<span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">traceback</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; End the current lap. If timer has a logger, log the time elapsed,</span>
+<span class="sd">		using the format string in self.msg (or the default one).</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">exc_type</span><span class="p">:</span>
+			<span class="c1"># if there&#39;s no logger attached, or if any exception occurred in</span>
+			<span class="c1"># the with-statement, exit without logging the time</span>
+			<span class="k">return</span>
+		<span class="n">message</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">formatTime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="p">,</span> <span class="n">time</span><span class="p">)</span>
+		<span class="c1"># Allow log handlers to see the individual parts to facilitate things</span>
+		<span class="c1"># like a server accumulating aggregate stats.</span>
+		<span class="n">msg_parts</span> <span class="o">=</span> <span class="p">{</span> <span class="s1">&#39;msg&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="n">time</span> <span class="p">}</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">level</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">msg_parts</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func_or_msg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; If the first argument is a function, return a decorator which runs</span>
+<span class="sd">		the wrapped function inside Timer&#39;s context manager.</span>
+<span class="sd">		Otherwise, treat the first argument as a &#39;msg&#39; string and return an updated</span>
+<span class="sd">		Timer instance, referencing the same logger.</span>
+<span class="sd">		A &#39;level&#39; keyword can also be passed to override self.level.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">func_or_msg</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Callable</span><span class="p">):</span>
+			<span class="n">func</span> <span class="o">=</span> <span class="n">func_or_msg</span>
+			<span class="c1"># use the function name when no explicit &#39;msg&#39; is provided</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;run &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">func</span><span class="o">.</span><span class="vm">__name__</span>
+
+			<span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+			<span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+				<span class="k">with</span> <span class="bp">self</span><span class="p">:</span>
+					<span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
+			<span class="k">return</span> <span class="n">wrapper</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">msg</span> <span class="o">=</span> <span class="n">func_or_msg</span> <span class="ow">or</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;msg&quot;</span><span class="p">)</span>
+			<span class="n">level</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;level&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">level</span><span class="p">)</span>
+			<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">__float__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">elapsed</span>
+
+	<span class="k">def</span> <span class="nf">__int__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elapsed</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="s2">&quot;</span><span class="si">%.3f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">elapsed</span></div>
+
+
+<div class="viewcode-block" id="ChannelsFilter"><a class="viewcode-back" href="../../../misc/loggingTools.html#fontTools.misc.loggingTools.ChannelsFilter">[docs]</a><span class="k">class</span> <span class="nc">ChannelsFilter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Filter</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot; Filter out records emitted from a list of enabled channel names,</span>
+<span class="sd">	including their children. It works the same as the logging.Filter class,</span>
+<span class="sd">	but allows to specify multiple channel names.</span>
+
+<span class="sd">	&gt;&gt;&gt; import sys</span>
+<span class="sd">	&gt;&gt;&gt; handler = logging.StreamHandler(sys.stdout)</span>
+<span class="sd">	&gt;&gt;&gt; handler.setFormatter(logging.Formatter(&quot;%(message)s&quot;))</span>
+<span class="sd">	&gt;&gt;&gt; filter = ChannelsFilter(&quot;A.B&quot;, &quot;C.D&quot;)</span>
+<span class="sd">	&gt;&gt;&gt; handler.addFilter(filter)</span>
+<span class="sd">	&gt;&gt;&gt; root = logging.getLogger()</span>
+<span class="sd">	&gt;&gt;&gt; root.addHandler(handler)</span>
+<span class="sd">	&gt;&gt;&gt; root.setLevel(level=logging.DEBUG)</span>
+<span class="sd">	&gt;&gt;&gt; logging.getLogger(&#39;A.B&#39;).debug(&#39;this record passes through&#39;)</span>
+<span class="sd">	this record passes through</span>
+<span class="sd">	&gt;&gt;&gt; logging.getLogger(&#39;A.B.C&#39;).debug(&#39;records from children also pass&#39;)</span>
+<span class="sd">	records from children also pass</span>
+<span class="sd">	&gt;&gt;&gt; logging.getLogger(&#39;C.D&#39;).debug(&#39;this one as well&#39;)</span>
+<span class="sd">	this one as well</span>
+<span class="sd">	&gt;&gt;&gt; logging.getLogger(&#39;A.B.&#39;).debug(&#39;also this one&#39;)</span>
+<span class="sd">	also this one</span>
+<span class="sd">	&gt;&gt;&gt; logging.getLogger(&#39;A.F&#39;).debug(&#39;but this one does not!&#39;)</span>
+<span class="sd">	&gt;&gt;&gt; logging.getLogger(&#39;C.DE&#39;).debug(&#39;neither this one!&#39;)</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">names</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="n">names</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">num</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">lenghts</span> <span class="o">=</span> <span class="p">{</span><span class="n">n</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">names</span><span class="p">}</span>
+
+<div class="viewcode-block" id="ChannelsFilter.filter"><a class="viewcode-back" href="../../../misc/loggingTools.html#fontTools.misc.loggingTools.ChannelsFilter.filter">[docs]</a>	<span class="k">def</span> <span class="nf">filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+			<span class="k">return</span> <span class="kc">True</span>
+		<span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
+			<span class="n">nlen</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lenghts</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+			<span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="n">record</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+				<span class="k">return</span> <span class="kc">True</span>
+			<span class="k">elif</span> <span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">nlen</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+					<span class="ow">and</span> <span class="n">record</span><span class="o">.</span><span class="n">name</span><span class="p">[</span><span class="n">nlen</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;.&quot;</span><span class="p">):</span>
+				<span class="k">return</span> <span class="kc">True</span>
+		<span class="k">return</span> <span class="kc">False</span></div></div>
+
+
+<div class="viewcode-block" id="CapturingLogHandler"><a class="viewcode-back" href="../../../misc/loggingTools.html#fontTools.misc.loggingTools.CapturingLogHandler">[docs]</a><span class="k">class</span> <span class="nc">CapturingLogHandler</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Handler</span><span class="p">):</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">level</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">(</span><span class="n">CapturingLogHandler</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">level</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">records</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">basestring</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logger</span>
+
+	<span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">original_disabled</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">disabled</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">original_level</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">level</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">original_propagate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">propagate</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">level</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">disabled</span> <span class="o">=</span> <span class="kc">False</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">propagate</span> <span class="o">=</span> <span class="kc">False</span>
+
+		<span class="k">return</span> <span class="bp">self</span>
+
+	<span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">traceback</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">removeHandler</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">original_level</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">disabled</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_disabled</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">propagate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_propagate</span>
+
+		<span class="k">return</span> <span class="bp">self</span>
+
+<div class="viewcode-block" id="CapturingLogHandler.emit"><a class="viewcode-back" href="../../../misc/loggingTools.html#fontTools.misc.loggingTools.CapturingLogHandler.emit">[docs]</a>	<span class="k">def</span> <span class="nf">emit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">records</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">record</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CapturingLogHandler.assertRegex"><a class="viewcode-back" href="../../../misc/loggingTools.html#fontTools.misc.loggingTools.CapturingLogHandler.assertRegex">[docs]</a>	<span class="k">def</span> <span class="nf">assertRegex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">regexp</span><span class="p">):</span>
+		<span class="kn">import</span> <span class="nn">re</span>
+		<span class="n">pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">regexp</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">records</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">pattern</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">getMessage</span><span class="p">()):</span>
+				<span class="k">return</span> <span class="kc">True</span>
+		<span class="k">assert</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;Pattern &#39;</span><span class="si">%s</span><span class="s2">&#39; not found in logger records&quot;</span> <span class="o">%</span> <span class="n">regexp</span></div></div>
+
+
+<div class="viewcode-block" id="LogMixin"><a class="viewcode-back" href="../../../misc/loggingTools.html#fontTools.misc.loggingTools.LogMixin">[docs]</a><span class="k">class</span> <span class="nc">LogMixin</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot; Mixin class that adds logging functionality to another class.</span>
+<span class="sd">	You can define a new class that subclasses from LogMixin as well as</span>
+<span class="sd">	other base classes through multiple inheritance.</span>
+<span class="sd">	All instances of that class will have a &#39;log&#39; property that returns</span>
+<span class="sd">	a logging.Logger named after their respective &lt;module&gt;.&lt;class&gt;.</span>
+<span class="sd">	For example:</span>
+
+<span class="sd">	&gt;&gt;&gt; class BaseClass(object):</span>
+<span class="sd">	...     pass</span>
+<span class="sd">	&gt;&gt;&gt; class MyClass(LogMixin, BaseClass):</span>
+<span class="sd">	...     pass</span>
+<span class="sd">	&gt;&gt;&gt; a = MyClass()</span>
+<span class="sd">	&gt;&gt;&gt; isinstance(a.log, logging.Logger)</span>
+<span class="sd">	True</span>
+<span class="sd">	&gt;&gt;&gt; print(a.log.name)</span>
+<span class="sd">	fontTools.misc.loggingTools.MyClass</span>
+<span class="sd">	&gt;&gt;&gt; class AnotherClass(MyClass):</span>
+<span class="sd">	...     pass</span>
+<span class="sd">	&gt;&gt;&gt; b = AnotherClass()</span>
+<span class="sd">	&gt;&gt;&gt; isinstance(b.log, logging.Logger)</span>
+<span class="sd">	True</span>
+<span class="sd">	&gt;&gt;&gt; print(b.log.name)</span>
+<span class="sd">	fontTools.misc.loggingTools.AnotherClass</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_log&quot;</span><span class="p">):</span>
+			<span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+				<span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__module__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+			<span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_log</span></div>
+
+
+<div class="viewcode-block" id="deprecateArgument"><a class="viewcode-back" href="../../../misc/loggingTools.html#fontTools.misc.loggingTools.deprecateArgument">[docs]</a><span class="k">def</span> <span class="nf">deprecateArgument</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="ne">UserWarning</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot; Raise a warning about deprecated function argument &#39;name&#39;. &quot;&quot;&quot;</span>
+	<span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+		<span class="s2">&quot;</span><span class="si">%r</span><span class="s2"> is deprecated; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">msg</span><span class="p">),</span> <span class="n">category</span><span class="o">=</span><span class="n">category</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="deprecateFunction"><a class="viewcode-back" href="../../../misc/loggingTools.html#fontTools.misc.loggingTools.deprecateFunction">[docs]</a><span class="k">def</span> <span class="nf">deprecateFunction</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="ne">UserWarning</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot; Decorator to raise a warning when a deprecated function is called. &quot;&quot;&quot;</span>
+	<span class="k">def</span> <span class="nf">decorator</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+		<span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+		<span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+			<span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+				<span class="s2">&quot;</span><span class="si">%r</span><span class="s2"> is deprecated; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">msg</span><span class="p">),</span>
+				<span class="n">category</span><span class="o">=</span><span class="n">category</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+			<span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">wrapper</span>
+	<span class="k">return</span> <span class="n">decorator</span></div>
+
+
+<div class="viewcode-block" id="LastResortLogger"><a class="viewcode-back" href="../../../misc/loggingTools.html#fontTools.misc.loggingTools.LastResortLogger">[docs]</a><span class="k">class</span> <span class="nc">LastResortLogger</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Logger</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot; Adds support for &#39;lastResort&#39; handler introduced in Python 3.2.</span>
+<span class="sd">	It allows to print messages to sys.stderr even when no explicit handler</span>
+<span class="sd">	was configured.</span>
+<span class="sd">	To enable it, you can do:</span>
+
+<span class="sd">		import logging</span>
+<span class="sd">		logging.lastResort = StderrHandler(logging.WARNING)</span>
+<span class="sd">		logging.setLoggerClass(LastResortLogger)</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LastResortLogger.callHandlers"><a class="viewcode-back" href="../../../misc/loggingTools.html#fontTools.misc.loggingTools.LastResortLogger.callHandlers">[docs]</a>	<span class="k">def</span> <span class="nf">callHandlers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
+		<span class="c1"># this is the same as Python 3.5&#39;s logging.Logger.callHandlers</span>
+		<span class="n">c</span> <span class="o">=</span> <span class="bp">self</span>
+		<span class="n">found</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="k">while</span> <span class="n">c</span><span class="p">:</span>
+			<span class="k">for</span> <span class="n">hdlr</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">handlers</span><span class="p">:</span>
+				<span class="n">found</span> <span class="o">=</span> <span class="n">found</span> <span class="o">+</span> <span class="mi">1</span>
+				<span class="k">if</span> <span class="n">record</span><span class="o">.</span><span class="n">levelno</span> <span class="o">&gt;=</span> <span class="n">hdlr</span><span class="o">.</span><span class="n">level</span><span class="p">:</span>
+					<span class="n">hdlr</span><span class="o">.</span><span class="n">handle</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">c</span><span class="o">.</span><span class="n">propagate</span><span class="p">:</span>
+				<span class="n">c</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># break out</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">c</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">parent</span>
+		<span class="k">if</span> <span class="n">found</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">logging</span><span class="o">.</span><span class="n">lastResort</span><span class="p">:</span>
+				<span class="k">if</span> <span class="n">record</span><span class="o">.</span><span class="n">levelno</span> <span class="o">&gt;=</span> <span class="n">logging</span><span class="o">.</span><span class="n">lastResort</span><span class="o">.</span><span class="n">level</span><span class="p">:</span>
+					<span class="n">logging</span><span class="o">.</span><span class="n">lastResort</span><span class="o">.</span><span class="n">handle</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+			<span class="k">elif</span> <span class="p">(</span>
+				<span class="n">logging</span><span class="o">.</span><span class="n">raiseExceptions</span>
+				<span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">manager</span><span class="o">.</span><span class="n">emittedNoHandlerWarning</span>
+			<span class="p">):</span>
+				<span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+					<span class="s2">&quot;No handlers could be found for logger&quot;</span>
+					<span class="s1">&#39; &quot;</span><span class="si">%s</span><span class="s1">&quot;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+				<span class="p">)</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">manager</span><span class="o">.</span><span class="n">emittedNoHandlerWarning</span> <span class="o">=</span> <span class="kc">True</span></div></div>
+
+
+<div class="viewcode-block" id="StderrHandler"><a class="viewcode-back" href="../../../misc/loggingTools.html#fontTools.misc.loggingTools.StderrHandler">[docs]</a><span class="k">class</span> <span class="nc">StderrHandler</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot; This class is like a StreamHandler using sys.stderr, but always uses</span>
+<span class="sd">	whateve sys.stderr is currently set to rather than the value of</span>
+<span class="sd">	sys.stderr at handler construction time.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Initialize the handler.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">logging</span><span class="o">.</span><span class="n">Handler</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">stream</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="c1"># the try/execept avoids failures during interpreter shutdown, when</span>
+		<span class="c1"># globals are set to None</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span>
+		<span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+			<span class="k">return</span> <span class="nb">__import__</span><span class="p">(</span><span class="s2">&quot;sys&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">stderr</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+	<span class="kn">import</span> <span class="nn">doctest</span>
+	<span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">doctest</span><span class="o">.</span><span class="n">testmod</span><span class="p">(</span><span class="n">optionflags</span><span class="o">=</span><span class="n">doctest</span><span class="o">.</span><span class="n">ELLIPSIS</span><span class="p">)</span><span class="o">.</span><span class="n">failed</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>merger &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="models" href="models.html" />
+    <link rel="prev" title="interpolate_layout" href="interpolate_layout.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="models.html" title="models"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="interpolate_layout.html" title="interpolate_layout"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">varLib</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-fontTools.varLib.merger">
+<span id="merger"></span><h1>merger<a class="headerlink" href="#module-fontTools.varLib.merger" title="Permalink to this headline">¶</a></h1>
+<p>Merge OpenType Layout tables (GDEF / GPOS / GSUB).</p>
+<dl class="class">
+<dt id="fontTools.varLib.merger.AligningMerger">
+<em class="property">class </em><code class="descclassname">fontTools.varLib.merger.</code><code class="descname">AligningMerger</code><span class="sig-paren">(</span><em>font=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/varLib/merger.html#AligningMerger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.varLib.merger.AligningMerger" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="fontTools.varLib.merger.AligningMerger.mergers">
+<code class="descname">mergers</code><em class="property"> = {&lt;class 'fontTools.ttLib.tables.otTables.PairSet'&gt;: {None: &lt;function merge&gt;}, &lt;class 'fontTools.ttLib.tables.otTables.SinglePos'&gt;: {None: &lt;function merge&gt;}, &lt;class 'fontTools.ttLib.tables.otTables.Lookup'&gt;: {None: &lt;function merge&gt;}, &lt;class 'fontTools.ttLib.tables.otTables.PairPos'&gt;: {None: &lt;function merge&gt;}}</em><a class="headerlink" href="#fontTools.varLib.merger.AligningMerger.mergers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.varLib.merger.InstancerMerger">
+<em class="property">class </em><code class="descclassname">fontTools.varLib.merger.</code><code class="descname">InstancerMerger</code><span class="sig-paren">(</span><em>font</em>, <em>model</em>, <em>location</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/varLib/merger.html#InstancerMerger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.varLib.merger.InstancerMerger" title="Permalink to this definition">¶</a></dt>
+<dd><p>A merger that takes multiple master fonts, and instantiates
+an instance.</p>
+<dl class="attribute">
+<dt id="fontTools.varLib.merger.InstancerMerger.mergers">
+<code class="descname">mergers</code><em class="property"> = {&lt;class 'fontTools.ttLib.tables.otBase.ValueRecord'&gt;: {None: &lt;function merge&gt;}, &lt;class 'fontTools.ttLib.tables.otTables.Anchor'&gt;: {None: &lt;function merge&gt;}}</em><a class="headerlink" href="#fontTools.varLib.merger.InstancerMerger.mergers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.varLib.merger.Merger">
+<em class="property">class </em><code class="descclassname">fontTools.varLib.merger.</code><code class="descname">Merger</code><span class="sig-paren">(</span><em>font=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/varLib/merger.html#Merger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.varLib.merger.Merger" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="fontTools.varLib.merger.Merger.mergeLists">
+<code class="descname">mergeLists</code><span class="sig-paren">(</span><em>out</em>, <em>lst</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/varLib/merger.html#Merger.mergeLists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.varLib.merger.Merger.mergeLists" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.varLib.merger.Merger.mergeObjects">
+<code class="descname">mergeObjects</code><span class="sig-paren">(</span><em>out</em>, <em>lst</em>, <em>exclude=()</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/varLib/merger.html#Merger.mergeObjects"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.varLib.merger.Merger.mergeObjects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.varLib.merger.Merger.mergeTables">
+<code class="descname">mergeTables</code><span class="sig-paren">(</span><em>font</em>, <em>master_ttfs</em>, <em>tables</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/varLib/merger.html#Merger.mergeTables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.varLib.merger.Merger.mergeTables" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.varLib.merger.Merger.mergeThings">
+<code class="descname">mergeThings</code><span class="sig-paren">(</span><em>out</em>, <em>lst</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/varLib/merger.html#Merger.mergeThings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.varLib.merger.Merger.mergeThings" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="fontTools.varLib.merger.Merger.merger">
+<em class="property">classmethod </em><code class="descname">merger</code><span class="sig-paren">(</span><em>celf</em>, <em>clazzes</em>, <em>attrs=(None</em>, <em>)</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/varLib/merger.html#Merger.merger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.varLib.merger.Merger.merger" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="fontTools.varLib.merger.Merger.mergersFor">
+<em class="property">classmethod </em><code class="descname">mergersFor</code><span class="sig-paren">(</span><em>celf</em>, <em>thing</em>, <em>_default={}</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/varLib/merger.html#Merger.mergersFor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.varLib.merger.Merger.mergersFor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.varLib.merger.MutatorMerger">
+<em class="property">class </em><code class="descclassname">fontTools.varLib.merger.</code><code class="descname">MutatorMerger</code><span class="sig-paren">(</span><em>font</em>, <em>location</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/varLib/merger.html#MutatorMerger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.varLib.merger.MutatorMerger" title="Permalink to this definition">¶</a></dt>
+<dd><p>A merger that takes a variable font, and instantiates
+an instance.</p>
+<dl class="method">
+<dt id="fontTools.varLib.merger.MutatorMerger.instantiate">
+<code class="descname">instantiate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/varLib/merger.html#MutatorMerger.instantiate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.varLib.merger.MutatorMerger.instantiate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.varLib.merger.MutatorMerger.mergers">
+<code class="descname">mergers</code><em class="property"> = {&lt;class 'fontTools.ttLib.tables.otBase.ValueRecord'&gt;: {None: &lt;function merge&gt;}, &lt;class 'fontTools.ttLib.tables.otTables.Anchor'&gt;: {None: &lt;function merge&gt;}}</em><a class="headerlink" href="#fontTools.varLib.merger.MutatorMerger.mergers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.varLib.merger.VariationMerger">
+<em class="property">class </em><code class="descclassname">fontTools.varLib.merger.</code><code class="descname">VariationMerger</code><span class="sig-paren">(</span><em>model</em>, <em>axisTags</em>, <em>font</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/varLib/merger.html#VariationMerger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.varLib.merger.VariationMerger" title="Permalink to this definition">¶</a></dt>
+<dd><p>A merger that takes multiple master fonts, and builds a
+variable font.</p>
+<dl class="attribute">
+<dt id="fontTools.varLib.merger.VariationMerger.mergers">
+<code class="descname">mergers</code><em class="property"> = {&lt;class 'fontTools.ttLib.tables.otBase.ValueRecord'&gt;: {None: &lt;function merge&gt;}, &lt;class 'fontTools.ttLib.tables.otTables.Anchor'&gt;: {None: &lt;function merge&gt;}}</em><a class="headerlink" href="#fontTools.varLib.merger.VariationMerger.mergers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="fontTools.varLib.merger.buildVarDevTable">
+<code class="descclassname">fontTools.varLib.merger.</code><code class="descname">buildVarDevTable</code><span class="sig-paren">(</span><em>store_builder</em>, <em>master_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/varLib/merger.html#buildVarDevTable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.varLib.merger.buildVarDevTable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="interpolate_layout.html"
+                        title="previous chapter">interpolate_layout</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="models.html"
+                        title="next chapter">models</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/varLib/merger.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="models.html" title="models"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="interpolate_layout.html" title="interpolate_layout"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >varLib</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fontTools.encodings.codecs &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fontTools.encodings.codecs</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Extend the Python codecs module with a few encodings that are used in OpenType (name table)</span>
+<span class="sd">but missing from Python.  See https://github.com/behdad/fonttools/issues/236 for details.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.py23</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">codecs</span>
+<span class="kn">import</span> <span class="nn">encodings</span>
+
+<div class="viewcode-block" id="ExtendCodec"><a class="viewcode-back" href="../../../encodings.html#fontTools.encodings.codecs.ExtendCodec">[docs]</a><span class="k">class</span> <span class="nc">ExtendCodec</span><span class="p">(</span><span class="n">codecs</span><span class="o">.</span><span class="n">Codec</span><span class="p">):</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">base_encoding</span><span class="p">,</span> <span class="n">mapping</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">base_encoding</span> <span class="o">=</span> <span class="n">base_encoding</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">mapping</span> <span class="o">=</span> <span class="n">mapping</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">reverse</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">mapping</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">max_len</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">mapping</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">info</span> <span class="o">=</span> <span class="n">codecs</span><span class="o">.</span><span class="n">CodecInfo</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">encode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">encode</span><span class="p">,</span> <span class="n">decode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">decode</span><span class="p">)</span>
+		<span class="n">codecs</span><span class="o">.</span><span class="n">register_error</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ExtendCodec.encode"><a class="viewcode-back" href="../../../encodings.html#fontTools.encodings.codecs.ExtendCodec.encode">[docs]</a>	<span class="k">def</span> <span class="nf">encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s1">&#39;strict&#39;</span><span class="p">):</span>
+		<span class="k">assert</span> <span class="n">errors</span> <span class="o">==</span> <span class="s1">&#39;strict&#39;</span>
+		<span class="c1">#return codecs.encode(input, self.base_encoding, self.name), len(input)</span>
+
+		<span class="c1"># The above line could totally be all we needed, relying on the error</span>
+		<span class="c1"># handling to replace the unencodable Unicode characters with our extended</span>
+		<span class="c1"># byte sequences.</span>
+		<span class="c1">#</span>
+		<span class="c1"># However, there seems to be a design bug in Python (probably intentional):</span>
+		<span class="c1"># the error handler for encoding is supposed to return a **Unicode** character,</span>
+		<span class="c1"># that then needs to be encodable itself...  Ugh.</span>
+		<span class="c1">#</span>
+		<span class="c1"># So we implement what codecs.encode() should have been doing: which is expect</span>
+		<span class="c1"># error handler to return bytes() to be added to the output.</span>
+		<span class="c1">#</span>
+		<span class="c1"># This seems to have been fixed in Python 3.3.  We should try using that and</span>
+		<span class="c1"># use fallback only if that failed.</span>
+		<span class="c1"># https://docs.python.org/3.3/library/codecs.html#codecs.register_error</span>
+
+		<span class="n">length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+		<span class="n">out</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;&#39;</span>
+		<span class="k">while</span> <span class="nb">input</span><span class="p">:</span>
+			<span class="k">try</span><span class="p">:</span>
+				<span class="n">part</span> <span class="o">=</span> <span class="n">codecs</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_encoding</span><span class="p">)</span>
+				<span class="n">out</span> <span class="o">+=</span> <span class="n">part</span>
+				<span class="nb">input</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="c1"># All converted</span>
+			<span class="k">except</span> <span class="ne">UnicodeEncodeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+				<span class="c1"># Convert the correct part</span>
+				<span class="n">out</span> <span class="o">+=</span> <span class="n">codecs</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="nb">input</span><span class="p">[:</span><span class="n">e</span><span class="o">.</span><span class="n">start</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_encoding</span><span class="p">)</span>
+				<span class="n">replacement</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+				<span class="n">out</span> <span class="o">+=</span> <span class="n">replacement</span>
+				<span class="nb">input</span> <span class="o">=</span> <span class="nb">input</span><span class="p">[</span><span class="n">pos</span><span class="p">:]</span>
+		<span class="k">return</span> <span class="n">out</span><span class="p">,</span> <span class="n">length</span></div>
+
+<div class="viewcode-block" id="ExtendCodec.decode"><a class="viewcode-back" href="../../../encodings.html#fontTools.encodings.codecs.ExtendCodec.decode">[docs]</a>	<span class="k">def</span> <span class="nf">decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s1">&#39;strict&#39;</span><span class="p">):</span>
+		<span class="k">assert</span> <span class="n">errors</span> <span class="o">==</span> <span class="s1">&#39;strict&#39;</span>
+		<span class="k">return</span> <span class="n">codecs</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_encoding</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ExtendCodec.error"><a class="viewcode-back" href="../../../encodings.html#fontTools.encodings.codecs.ExtendCodec.error">[docs]</a>	<span class="k">def</span> <span class="nf">error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e</span><span class="p">):</span>
+		<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="ne">UnicodeDecodeError</span><span class="p">):</span>
+			<span class="k">for</span> <span class="n">end</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">start</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+				<span class="n">s</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">object</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
+				<span class="k">if</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mapping</span><span class="p">:</span>
+					<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="n">s</span><span class="p">],</span> <span class="n">end</span>
+		<span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="ne">UnicodeEncodeError</span><span class="p">):</span>
+			<span class="k">for</span> <span class="n">end</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">start</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">start</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_len</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+				<span class="n">s</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">object</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
+				<span class="k">if</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reverse</span><span class="p">:</span>
+					<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reverse</span><span class="p">[</span><span class="n">s</span><span class="p">],</span> <span class="n">end</span>
+		<span class="n">e</span><span class="o">.</span><span class="n">encoding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+		<span class="k">raise</span> <span class="n">e</span></div></div>
+
+
+<span class="n">_extended_encodings</span> <span class="o">=</span> <span class="p">{</span>
+	<span class="s2">&quot;x_mac_japanese_ttx&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;shift_jis&quot;</span><span class="p">,</span> <span class="p">{</span>
+					<span class="sa">b</span><span class="s2">&quot;</span><span class="se">\xFC</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">unichr</span><span class="p">(</span><span class="mh">0x007C</span><span class="p">),</span>
+					<span class="sa">b</span><span class="s2">&quot;</span><span class="se">\x7E</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">unichr</span><span class="p">(</span><span class="mh">0x007E</span><span class="p">),</span>
+					<span class="sa">b</span><span class="s2">&quot;</span><span class="se">\x80</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">unichr</span><span class="p">(</span><span class="mh">0x005C</span><span class="p">),</span>
+					<span class="sa">b</span><span class="s2">&quot;</span><span class="se">\xA0</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">unichr</span><span class="p">(</span><span class="mh">0x00A0</span><span class="p">),</span>
+					<span class="sa">b</span><span class="s2">&quot;</span><span class="se">\xFD</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">unichr</span><span class="p">(</span><span class="mh">0x00A9</span><span class="p">),</span>
+					<span class="sa">b</span><span class="s2">&quot;</span><span class="se">\xFE</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">unichr</span><span class="p">(</span><span class="mh">0x2122</span><span class="p">),</span>
+					<span class="sa">b</span><span class="s2">&quot;</span><span class="se">\xFF</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">unichr</span><span class="p">(</span><span class="mh">0x2026</span><span class="p">),</span>
+				<span class="p">}),</span>
+	<span class="s2">&quot;x_mac_trad_chinese_ttx&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;big5&quot;</span><span class="p">,</span> <span class="p">{</span>
+					<span class="sa">b</span><span class="s2">&quot;</span><span class="se">\x80</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">unichr</span><span class="p">(</span><span class="mh">0x005C</span><span class="p">),</span>
+					<span class="sa">b</span><span class="s2">&quot;</span><span class="se">\xA0</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">unichr</span><span class="p">(</span><span class="mh">0x00A0</span><span class="p">),</span>
+					<span class="sa">b</span><span class="s2">&quot;</span><span class="se">\xFD</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">unichr</span><span class="p">(</span><span class="mh">0x00A9</span><span class="p">),</span>
+					<span class="sa">b</span><span class="s2">&quot;</span><span class="se">\xFE</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">unichr</span><span class="p">(</span><span class="mh">0x2122</span><span class="p">),</span>
+					<span class="sa">b</span><span class="s2">&quot;</span><span class="se">\xFF</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">unichr</span><span class="p">(</span><span class="mh">0x2026</span><span class="p">),</span>
+				<span class="p">}),</span>
+	<span class="s2">&quot;x_mac_korean_ttx&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;euc_kr&quot;</span><span class="p">,</span> <span class="p">{</span>
+					<span class="sa">b</span><span class="s2">&quot;</span><span class="se">\x80</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">unichr</span><span class="p">(</span><span class="mh">0x00A0</span><span class="p">),</span>
+					<span class="sa">b</span><span class="s2">&quot;</span><span class="se">\x81</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">unichr</span><span class="p">(</span><span class="mh">0x20A9</span><span class="p">),</span>
+					<span class="sa">b</span><span class="s2">&quot;</span><span class="se">\x82</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">unichr</span><span class="p">(</span><span class="mh">0x2014</span><span class="p">),</span>
+					<span class="sa">b</span><span class="s2">&quot;</span><span class="se">\x83</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">unichr</span><span class="p">(</span><span class="mh">0x00A9</span><span class="p">),</span>
+					<span class="sa">b</span><span class="s2">&quot;</span><span class="se">\xFE</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">unichr</span><span class="p">(</span><span class="mh">0x2122</span><span class="p">),</span>
+					<span class="sa">b</span><span class="s2">&quot;</span><span class="se">\xFF</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">unichr</span><span class="p">(</span><span class="mh">0x2026</span><span class="p">),</span>
+				<span class="p">}),</span>
+	<span class="s2">&quot;x_mac_simp_chinese_ttx&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;gb2312&quot;</span><span class="p">,</span> <span class="p">{</span>
+					<span class="sa">b</span><span class="s2">&quot;</span><span class="se">\x80</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">unichr</span><span class="p">(</span><span class="mh">0x00FC</span><span class="p">),</span>
+					<span class="sa">b</span><span class="s2">&quot;</span><span class="se">\xA0</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">unichr</span><span class="p">(</span><span class="mh">0x00A0</span><span class="p">),</span>
+					<span class="sa">b</span><span class="s2">&quot;</span><span class="se">\xFD</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">unichr</span><span class="p">(</span><span class="mh">0x00A9</span><span class="p">),</span>
+					<span class="sa">b</span><span class="s2">&quot;</span><span class="se">\xFE</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">unichr</span><span class="p">(</span><span class="mh">0x2122</span><span class="p">),</span>
+					<span class="sa">b</span><span class="s2">&quot;</span><span class="se">\xFF</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">unichr</span><span class="p">(</span><span class="mh">0x2026</span><span class="p">),</span>
+				<span class="p">}),</span>
+<span class="p">}</span>
+
+<span class="n">_cache</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="search_function"><a class="viewcode-back" href="../../../encodings.html#fontTools.encodings.codecs.search_function">[docs]</a><span class="k">def</span> <span class="nf">search_function</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+	<span class="n">name</span> <span class="o">=</span> <span class="n">encodings</span><span class="o">.</span><span class="n">normalize_encoding</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="c1"># Rather undocumented...</span>
+	<span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_extended_encodings</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_cache</span><span class="p">:</span>
+			<span class="n">base_encoding</span><span class="p">,</span> <span class="n">mapping</span> <span class="o">=</span> <span class="n">_extended_encodings</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+			<span class="k">assert</span><span class="p">(</span><span class="n">name</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span> <span class="o">==</span> <span class="s2">&quot;_ttx&quot;</span><span class="p">)</span>
+			<span class="c1"># Python 2 didn&#39;t have any of the encodings that we are implementing</span>
+			<span class="c1"># in this file.  Python 3 added aliases for the East Asian ones, mapping</span>
+			<span class="c1"># them &quot;temporarily&quot; to the same base encoding as us, with a comment</span>
+			<span class="c1"># suggesting that full implementation will appear some time later.</span>
+			<span class="c1"># As such, try the Python version of the x_mac_... first, if that is found,</span>
+			<span class="c1"># use *that* as our base encoding.  This would make our encoding upgrade</span>
+			<span class="c1"># to the full encoding when and if Python finally implements that.</span>
+			<span class="c1"># http://bugs.python.org/issue24041</span>
+			<span class="n">base_encodings</span> <span class="o">=</span> <span class="p">[</span><span class="n">name</span><span class="p">[:</span><span class="o">-</span><span class="mi">4</span><span class="p">],</span> <span class="n">base_encoding</span><span class="p">]</span>
+			<span class="k">for</span> <span class="n">base_encoding</span> <span class="ow">in</span> <span class="n">base_encodings</span><span class="p">:</span>
+				<span class="k">try</span><span class="p">:</span>
+					<span class="n">codecs</span><span class="o">.</span><span class="n">lookup</span><span class="p">(</span><span class="n">base_encoding</span><span class="p">)</span>
+				<span class="k">except</span> <span class="ne">LookupError</span><span class="p">:</span>
+					<span class="k">continue</span>
+				<span class="n">_cache</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">ExtendCodec</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">base_encoding</span><span class="p">,</span> <span class="n">mapping</span><span class="p">)</span>
+				<span class="k">break</span>
+		<span class="k">return</span> <span class="n">_cache</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">info</span>
+
+	<span class="k">return</span> <span class="kc">None</span></div>
+
+<span class="n">codecs</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">search_function</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,466 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fontTools.t1Lib &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fontTools.t1Lib</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;fontTools.t1Lib.py -- Tools for PostScript Type 1 fonts (Python2 only)</span>
+
+<span class="sd">Functions for reading and writing raw Type 1 data:</span>
+
+<span class="sd">read(path)</span>
+<span class="sd">	reads any Type 1 font file, returns the raw data and a type indicator:</span>
+<span class="sd">	&#39;LWFN&#39;, &#39;PFB&#39; or &#39;OTHER&#39;, depending on the format of the file pointed</span>
+<span class="sd">	to by &#39;path&#39;.</span>
+<span class="sd">	Raises an error when the file does not contain valid Type 1 data.</span>
+
+<span class="sd">write(path, data, kind=&#39;OTHER&#39;, dohex=False)</span>
+<span class="sd">	writes raw Type 1 data to the file pointed to by &#39;path&#39;.</span>
+<span class="sd">	&#39;kind&#39; can be one of &#39;LWFN&#39;, &#39;PFB&#39; or &#39;OTHER&#39;; it defaults to &#39;OTHER&#39;.</span>
+<span class="sd">	&#39;dohex&#39; is a flag which determines whether the eexec encrypted</span>
+<span class="sd">	part should be written as hexadecimal or binary, but only if kind</span>
+<span class="sd">	is &#39;OTHER&#39;.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.py23</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc</span> <span class="k">import</span> <span class="n">eexec</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.macCreatorType</span> <span class="k">import</span> <span class="n">getMacCreatorAndType</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;jvr&quot;</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s2">&quot;1.0b2&quot;</span>
+<span class="n">DEBUG</span> <span class="o">=</span> <span class="mi">0</span>
+
+
+<span class="k">try</span><span class="p">:</span>
+	<span class="k">try</span><span class="p">:</span>
+		<span class="kn">from</span> <span class="nn">Carbon</span> <span class="k">import</span> <span class="n">Res</span>
+	<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+		<span class="kn">import</span> <span class="nn">Res</span>  <span class="c1"># MacPython &lt; 2.2</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+	<span class="n">haveMacSupport</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">else</span><span class="p">:</span>
+	<span class="n">haveMacSupport</span> <span class="o">=</span> <span class="mi">1</span>
+
+
+<div class="viewcode-block" id="T1Error"><a class="viewcode-back" href="../../t1Lib.html#fontTools.t1Lib.T1Error">[docs]</a><span class="k">class</span> <span class="nc">T1Error</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="T1Font"><a class="viewcode-back" href="../../t1Lib.html#fontTools.t1Lib.T1Font">[docs]</a><span class="k">class</span> <span class="nc">T1Font</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+	<span class="sd">&quot;&quot;&quot;Type 1 font class.</span>
+
+<span class="sd">	Uses a minimal interpeter that supports just about enough PS to parse</span>
+<span class="sd">	Type 1 fonts.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;ascii&quot;</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">kind</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">read</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;LWFN&quot;</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">readLWFN</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;PFB&quot;</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">readPFB</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;OTHER&quot;</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">readOther</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">kind</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">encoding</span> <span class="o">=</span> <span class="n">encoding</span>
+
+<div class="viewcode-block" id="T1Font.saveAs"><a class="viewcode-back" href="../../t1Lib.html#fontTools.t1Lib.T1Font.saveAs">[docs]</a>	<span class="k">def</span> <span class="nf">saveAs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">dohex</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+		<span class="n">write</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">getData</span><span class="p">(),</span> <span class="nb">type</span><span class="p">,</span> <span class="n">dohex</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="T1Font.getData"><a class="viewcode-back" href="../../t1Lib.html#fontTools.t1Lib.T1Font.getData">[docs]</a>	<span class="k">def</span> <span class="nf">getData</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="c1"># XXX Todo: if the data has been converted to Python object,</span>
+		<span class="c1"># recreate the PS stream</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span></div>
+
+<div class="viewcode-block" id="T1Font.getGlyphSet"><a class="viewcode-back" href="../../t1Lib.html#fontTools.t1Lib.T1Font.getGlyphSet">[docs]</a>	<span class="k">def</span> <span class="nf">getGlyphSet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Return a generic GlyphSet, which is a dict-like object</span>
+<span class="sd">		mapping glyph names to glyph objects. The returned glyph objects</span>
+<span class="sd">		have a .draw() method that supports the Pen protocol, and will</span>
+<span class="sd">		have an attribute named &#39;width&#39;, but only *after* the .draw() method</span>
+<span class="sd">		has been called.</span>
+
+<span class="sd">		In the case of Type 1, the GlyphSet is simply the CharStrings dict.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;CharStrings&quot;</span><span class="p">]</span></div>
+
+	<span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;font&quot;</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">parse</span><span class="p">()</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">font</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+<div class="viewcode-block" id="T1Font.parse"><a class="viewcode-back" href="../../t1Lib.html#fontTools.t1Lib.T1Font.parse">[docs]</a>	<span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="kn">from</span> <span class="nn">fontTools.misc</span> <span class="k">import</span> <span class="n">psLib</span>
+		<span class="kn">from</span> <span class="nn">fontTools.misc</span> <span class="k">import</span> <span class="n">psCharStrings</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">font</span> <span class="o">=</span> <span class="n">psLib</span><span class="o">.</span><span class="n">suckfont</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoding</span><span class="p">)</span>
+		<span class="n">charStrings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">font</span><span class="p">[</span><span class="s2">&quot;CharStrings&quot;</span><span class="p">]</span>
+		<span class="n">lenIV</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">font</span><span class="p">[</span><span class="s2">&quot;Private&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;lenIV&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+		<span class="k">assert</span> <span class="n">lenIV</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+		<span class="n">subrs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">font</span><span class="p">[</span><span class="s2">&quot;Private&quot;</span><span class="p">][</span><span class="s2">&quot;Subrs&quot;</span><span class="p">]</span>
+		<span class="k">for</span> <span class="n">glyphName</span><span class="p">,</span> <span class="n">charString</span> <span class="ow">in</span> <span class="n">charStrings</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+			<span class="n">charString</span><span class="p">,</span> <span class="n">R</span> <span class="o">=</span> <span class="n">eexec</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span><span class="n">charString</span><span class="p">,</span> <span class="mi">4330</span><span class="p">)</span>
+			<span class="n">charStrings</span><span class="p">[</span><span class="n">glyphName</span><span class="p">]</span> <span class="o">=</span> <span class="n">psCharStrings</span><span class="o">.</span><span class="n">T1CharString</span><span class="p">(</span><span class="n">charString</span><span class="p">[</span><span class="n">lenIV</span><span class="p">:],</span>
+					<span class="n">subrs</span><span class="o">=</span><span class="n">subrs</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">subrs</span><span class="p">)):</span>
+			<span class="n">charString</span><span class="p">,</span> <span class="n">R</span> <span class="o">=</span> <span class="n">eexec</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span><span class="n">subrs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="mi">4330</span><span class="p">)</span>
+			<span class="n">subrs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">psCharStrings</span><span class="o">.</span><span class="n">T1CharString</span><span class="p">(</span><span class="n">charString</span><span class="p">[</span><span class="n">lenIV</span><span class="p">:],</span> <span class="n">subrs</span><span class="o">=</span><span class="n">subrs</span><span class="p">)</span>
+		<span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span></div></div>
+
+
+<span class="c1"># low level T1 data read and write functions</span>
+
+<div class="viewcode-block" id="read"><a class="viewcode-back" href="../../t1Lib.html#fontTools.t1Lib.read">[docs]</a><span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">onlyHeader</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;reads any Type 1 font file, returns raw data&quot;&quot;&quot;</span>
+	<span class="n">normpath</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+	<span class="n">creator</span><span class="p">,</span> <span class="n">typ</span> <span class="o">=</span> <span class="n">getMacCreatorAndType</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">typ</span> <span class="o">==</span> <span class="s1">&#39;LWFN&#39;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">readLWFN</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">onlyHeader</span><span class="p">),</span> <span class="s1">&#39;LWFN&#39;</span>
+	<span class="k">if</span> <span class="n">normpath</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span> <span class="o">==</span> <span class="s1">&#39;.pfb&#39;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">readPFB</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">onlyHeader</span><span class="p">),</span> <span class="s1">&#39;PFB&#39;</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">readOther</span><span class="p">(</span><span class="n">path</span><span class="p">),</span> <span class="s1">&#39;OTHER&#39;</span></div>
+
+<div class="viewcode-block" id="write"><a class="viewcode-back" href="../../t1Lib.html#fontTools.t1Lib.write">[docs]</a><span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;OTHER&#39;</span><span class="p">,</span> <span class="n">dohex</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+	<span class="n">assertType1</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+	<span class="n">kind</span> <span class="o">=</span> <span class="n">kind</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+	<span class="k">try</span><span class="p">:</span>
+		<span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+	<span class="k">except</span> <span class="n">os</span><span class="o">.</span><span class="n">error</span><span class="p">:</span>
+		<span class="k">pass</span>
+	<span class="n">err</span> <span class="o">=</span> <span class="mi">1</span>
+	<span class="k">try</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s1">&#39;LWFN&#39;</span><span class="p">:</span>
+			<span class="n">writeLWFN</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s1">&#39;PFB&#39;</span><span class="p">:</span>
+			<span class="n">writePFB</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">writeOther</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">dohex</span><span class="p">)</span>
+		<span class="n">err</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="k">finally</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">err</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">DEBUG</span><span class="p">:</span>
+			<span class="k">try</span><span class="p">:</span>
+				<span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+			<span class="k">except</span> <span class="n">os</span><span class="o">.</span><span class="n">error</span><span class="p">:</span>
+				<span class="k">pass</span></div>
+
+
+<span class="c1"># -- internal --</span>
+
+<span class="n">LWFNCHUNKSIZE</span> <span class="o">=</span> <span class="mi">2000</span>
+<span class="n">HEXLINELENGTH</span> <span class="o">=</span> <span class="mi">80</span>
+
+
+<div class="viewcode-block" id="readLWFN"><a class="viewcode-back" href="../../t1Lib.html#fontTools.t1Lib.readLWFN">[docs]</a><span class="k">def</span> <span class="nf">readLWFN</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">onlyHeader</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;reads an LWFN font file, returns raw data&quot;&quot;&quot;</span>
+	<span class="kn">from</span> <span class="nn">fontTools.misc.macRes</span> <span class="k">import</span> <span class="n">ResourceReader</span>
+	<span class="n">reader</span> <span class="o">=</span> <span class="n">ResourceReader</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+	<span class="k">try</span><span class="p">:</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">reader</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;POST&#39;</span><span class="p">,</span> <span class="p">[]):</span>
+			<span class="n">code</span> <span class="o">=</span> <span class="n">byteord</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+			<span class="k">if</span> <span class="n">byteord</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+				<span class="k">raise</span> <span class="n">T1Error</span><span class="p">(</span><span class="s1">&#39;corrupt LWFN file&#39;</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">code</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]:</span>
+				<span class="k">if</span> <span class="n">onlyHeader</span> <span class="ow">and</span> <span class="n">code</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+					<span class="k">break</span>
+				<span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">:])</span>
+			<span class="k">elif</span> <span class="n">code</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">]:</span>
+				<span class="k">break</span>
+			<span class="k">elif</span> <span class="n">code</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+				<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span>
+				<span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+				<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+			<span class="k">elif</span> <span class="n">code</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+				<span class="k">pass</span> <span class="c1"># comment, ignore</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="k">raise</span> <span class="n">T1Error</span><span class="p">(</span><span class="s1">&#39;bad chunk code: &#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">code</span><span class="p">))</span>
+	<span class="k">finally</span><span class="p">:</span>
+		<span class="n">reader</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+	<span class="n">data</span> <span class="o">=</span> <span class="n">bytesjoin</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+	<span class="n">assertType1</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+	<span class="k">return</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="readPFB"><a class="viewcode-back" href="../../t1Lib.html#fontTools.t1Lib.readPFB">[docs]</a><span class="k">def</span> <span class="nf">readPFB</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">onlyHeader</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;reads a PFB font file, returns raw data&quot;&quot;&quot;</span>
+	<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span>
+	<span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">!=</span> <span class="n">bytechr</span><span class="p">(</span><span class="mi">128</span><span class="p">):</span>
+			<span class="k">raise</span> <span class="n">T1Error</span><span class="p">(</span><span class="s1">&#39;corrupt PFB file&#39;</span><span class="p">)</span>
+		<span class="n">code</span> <span class="o">=</span> <span class="n">byteord</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+		<span class="k">if</span> <span class="n">code</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]:</span>
+			<span class="n">chunklen</span> <span class="o">=</span> <span class="n">stringToLong</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+			<span class="n">chunk</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">chunklen</span><span class="p">)</span>
+			<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span> <span class="o">==</span> <span class="n">chunklen</span>
+			<span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="n">code</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+			<span class="k">break</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="n">T1Error</span><span class="p">(</span><span class="s1">&#39;bad chunk code: &#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">code</span><span class="p">))</span>
+		<span class="k">if</span> <span class="n">onlyHeader</span><span class="p">:</span>
+			<span class="k">break</span>
+	<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+	<span class="n">data</span> <span class="o">=</span> <span class="n">bytesjoin</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+	<span class="n">assertType1</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+	<span class="k">return</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="readOther"><a class="viewcode-back" href="../../t1Lib.html#fontTools.t1Lib.readOther">[docs]</a><span class="k">def</span> <span class="nf">readOther</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;reads any (font) file, returns raw data&quot;&quot;&quot;</span>
+	<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span>
+	<span class="n">data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+	<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+	<span class="n">assertType1</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+	<span class="n">chunks</span> <span class="o">=</span> <span class="n">findEncryptedChunks</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+	<span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="k">for</span> <span class="n">isEncrypted</span><span class="p">,</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">chunks</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">isEncrypted</span> <span class="ow">and</span> <span class="n">isHex</span><span class="p">(</span><span class="n">chunk</span><span class="p">[:</span><span class="mi">4</span><span class="p">]):</span>
+			<span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">deHexString</span><span class="p">(</span><span class="n">chunk</span><span class="p">))</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+	<span class="k">return</span> <span class="n">bytesjoin</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+
+<span class="c1"># file writing tools</span>
+
+<div class="viewcode-block" id="writeLWFN"><a class="viewcode-back" href="../../t1Lib.html#fontTools.t1Lib.writeLWFN">[docs]</a><span class="k">def</span> <span class="nf">writeLWFN</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+	<span class="c1"># Res.FSpCreateResFile was deprecated in OS X 10.5</span>
+	<span class="n">Res</span><span class="o">.</span><span class="n">FSpCreateResFile</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;just&quot;</span><span class="p">,</span> <span class="s2">&quot;LWFN&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+	<span class="n">resRef</span> <span class="o">=</span> <span class="n">Res</span><span class="o">.</span><span class="n">FSOpenResFile</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>  <span class="c1"># write-only</span>
+	<span class="k">try</span><span class="p">:</span>
+		<span class="n">Res</span><span class="o">.</span><span class="n">UseResFile</span><span class="p">(</span><span class="n">resRef</span><span class="p">)</span>
+		<span class="n">resID</span> <span class="o">=</span> <span class="mi">501</span>
+		<span class="n">chunks</span> <span class="o">=</span> <span class="n">findEncryptedChunks</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">isEncrypted</span><span class="p">,</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">chunks</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">isEncrypted</span><span class="p">:</span>
+				<span class="n">code</span> <span class="o">=</span> <span class="mi">2</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">code</span> <span class="o">=</span> <span class="mi">1</span>
+			<span class="k">while</span> <span class="n">chunk</span><span class="p">:</span>
+				<span class="n">res</span> <span class="o">=</span> <span class="n">Res</span><span class="o">.</span><span class="n">Resource</span><span class="p">(</span><span class="n">bytechr</span><span class="p">(</span><span class="n">code</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\0</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">chunk</span><span class="p">[:</span><span class="n">LWFNCHUNKSIZE</span> <span class="o">-</span> <span class="mi">2</span><span class="p">])</span>
+				<span class="n">res</span><span class="o">.</span><span class="n">AddResource</span><span class="p">(</span><span class="s1">&#39;POST&#39;</span><span class="p">,</span> <span class="n">resID</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+				<span class="n">chunk</span> <span class="o">=</span> <span class="n">chunk</span><span class="p">[</span><span class="n">LWFNCHUNKSIZE</span> <span class="o">-</span> <span class="mi">2</span><span class="p">:]</span>
+				<span class="n">resID</span> <span class="o">=</span> <span class="n">resID</span> <span class="o">+</span> <span class="mi">1</span>
+		<span class="n">res</span> <span class="o">=</span> <span class="n">Res</span><span class="o">.</span><span class="n">Resource</span><span class="p">(</span><span class="n">bytechr</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\0</span><span class="s1">&#39;</span><span class="p">)</span>
+		<span class="n">res</span><span class="o">.</span><span class="n">AddResource</span><span class="p">(</span><span class="s1">&#39;POST&#39;</span><span class="p">,</span> <span class="n">resID</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+	<span class="k">finally</span><span class="p">:</span>
+		<span class="n">Res</span><span class="o">.</span><span class="n">CloseResFile</span><span class="p">(</span><span class="n">resRef</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="writePFB"><a class="viewcode-back" href="../../t1Lib.html#fontTools.t1Lib.writePFB">[docs]</a><span class="k">def</span> <span class="nf">writePFB</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+	<span class="n">chunks</span> <span class="o">=</span> <span class="n">findEncryptedChunks</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+	<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span>
+	<span class="k">try</span><span class="p">:</span>
+		<span class="k">for</span> <span class="n">isEncrypted</span><span class="p">,</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">chunks</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">isEncrypted</span><span class="p">:</span>
+				<span class="n">code</span> <span class="o">=</span> <span class="mi">2</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">code</span> <span class="o">=</span> <span class="mi">1</span>
+			<span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">bytechr</span><span class="p">(</span><span class="mi">128</span><span class="p">)</span> <span class="o">+</span> <span class="n">bytechr</span><span class="p">(</span><span class="n">code</span><span class="p">))</span>
+			<span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">longToString</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)))</span>
+			<span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+		<span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">bytechr</span><span class="p">(</span><span class="mi">128</span><span class="p">)</span> <span class="o">+</span> <span class="n">bytechr</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+	<span class="k">finally</span><span class="p">:</span>
+		<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="writeOther"><a class="viewcode-back" href="../../t1Lib.html#fontTools.t1Lib.writeOther">[docs]</a><span class="k">def</span> <span class="nf">writeOther</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">dohex</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+	<span class="n">chunks</span> <span class="o">=</span> <span class="n">findEncryptedChunks</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+	<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span>
+	<span class="k">try</span><span class="p">:</span>
+		<span class="n">hexlinelen</span> <span class="o">=</span> <span class="n">HEXLINELENGTH</span> <span class="o">//</span> <span class="mi">2</span>
+		<span class="k">for</span> <span class="n">isEncrypted</span><span class="p">,</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">chunks</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">isEncrypted</span><span class="p">:</span>
+				<span class="n">code</span> <span class="o">=</span> <span class="mi">2</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">code</span> <span class="o">=</span> <span class="mi">1</span>
+			<span class="k">if</span> <span class="n">code</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">dohex</span><span class="p">:</span>
+				<span class="k">while</span> <span class="n">chunk</span><span class="p">:</span>
+					<span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">eexec</span><span class="o">.</span><span class="n">hexString</span><span class="p">(</span><span class="n">chunk</span><span class="p">[:</span><span class="n">hexlinelen</span><span class="p">]))</span>
+					<span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;</span><span class="se">\r</span><span class="s1">&#39;</span><span class="p">)</span>
+					<span class="n">chunk</span> <span class="o">=</span> <span class="n">chunk</span><span class="p">[</span><span class="n">hexlinelen</span><span class="p">:]</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+	<span class="k">finally</span><span class="p">:</span>
+		<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<span class="c1"># decryption tools</span>
+
+<span class="n">EEXECBEGIN</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;currentfile eexec&quot;</span>
+<span class="n">EEXECEND</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;0&#39;</span> <span class="o">*</span> <span class="mi">64</span>
+<span class="n">EEXECINTERNALEND</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;currentfile closefile&quot;</span>
+<span class="n">EEXECBEGINMARKER</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="si">%-- e</span><span class="s2">exec start</span><span class="se">\r</span><span class="s2">&quot;</span>
+<span class="n">EEXECENDMARKER</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="si">%-- e</span><span class="s2">exec end</span><span class="se">\r</span><span class="s2">&quot;</span>
+
+<span class="n">_ishexRE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;[0-9A-Fa-f]*$&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="isHex"><a class="viewcode-back" href="../../t1Lib.html#fontTools.t1Lib.isHex">[docs]</a><span class="k">def</span> <span class="nf">isHex</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+	<span class="k">return</span> <span class="n">_ishexRE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="decryptType1"><a class="viewcode-back" href="../../t1Lib.html#fontTools.t1Lib.decryptType1">[docs]</a><span class="k">def</span> <span class="nf">decryptType1</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+	<span class="n">chunks</span> <span class="o">=</span> <span class="n">findEncryptedChunks</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+	<span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="k">for</span> <span class="n">isEncrypted</span><span class="p">,</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">chunks</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">isEncrypted</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">isHex</span><span class="p">(</span><span class="n">chunk</span><span class="p">[:</span><span class="mi">4</span><span class="p">]):</span>
+				<span class="n">chunk</span> <span class="o">=</span> <span class="n">deHexString</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+			<span class="n">decrypted</span><span class="p">,</span> <span class="n">R</span> <span class="o">=</span> <span class="n">eexec</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="mi">55665</span><span class="p">)</span>
+			<span class="n">decrypted</span> <span class="o">=</span> <span class="n">decrypted</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span>
+			<span class="k">if</span> <span class="n">decrypted</span><span class="p">[</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">EEXECINTERNALEND</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">EEXECINTERNALEND</span> \
+					<span class="ow">and</span> <span class="n">decrypted</span><span class="p">[</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">EEXECINTERNALEND</span><span class="p">)</span><span class="o">-</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">!=</span> <span class="n">EEXECINTERNALEND</span><span class="p">:</span>
+				<span class="k">raise</span> <span class="n">T1Error</span><span class="p">(</span><span class="s2">&quot;invalid end of eexec part&quot;</span><span class="p">)</span>
+			<span class="n">decrypted</span> <span class="o">=</span> <span class="n">decrypted</span><span class="p">[:</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">EEXECINTERNALEND</span><span class="p">)</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\r</span><span class="s1">&#39;</span>
+			<span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">EEXECBEGINMARKER</span> <span class="o">+</span> <span class="n">decrypted</span> <span class="o">+</span> <span class="n">EEXECENDMARKER</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">chunk</span><span class="p">[</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">EEXECBEGIN</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">EEXECBEGIN</span><span class="p">:</span>
+				<span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chunk</span><span class="p">[:</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">EEXECBEGIN</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+	<span class="k">return</span> <span class="n">bytesjoin</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="findEncryptedChunks"><a class="viewcode-back" href="../../t1Lib.html#fontTools.t1Lib.findEncryptedChunks">[docs]</a><span class="k">def</span> <span class="nf">findEncryptedChunks</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+	<span class="n">chunks</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+		<span class="n">eBegin</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">EEXECBEGIN</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">eBegin</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+			<span class="k">break</span>
+		<span class="n">eBegin</span> <span class="o">=</span> <span class="n">eBegin</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">EEXECBEGIN</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+		<span class="n">eEnd</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">EEXECEND</span><span class="p">,</span> <span class="n">eBegin</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">eEnd</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="n">T1Error</span><span class="p">(</span><span class="s2">&quot;can&#39;t find end of eexec part&quot;</span><span class="p">)</span>
+		<span class="n">cypherText</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">eBegin</span><span class="p">:</span><span class="n">eEnd</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span>
+		<span class="k">if</span> <span class="n">isHex</span><span class="p">(</span><span class="n">cypherText</span><span class="p">[:</span><span class="mi">4</span><span class="p">]):</span>
+			<span class="n">cypherText</span> <span class="o">=</span> <span class="n">deHexString</span><span class="p">(</span><span class="n">cypherText</span><span class="p">)</span>
+		<span class="n">plainText</span><span class="p">,</span> <span class="n">R</span> <span class="o">=</span> <span class="n">eexec</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span><span class="n">cypherText</span><span class="p">,</span> <span class="mi">55665</span><span class="p">)</span>
+		<span class="n">eEndLocal</span> <span class="o">=</span> <span class="n">plainText</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">EEXECINTERNALEND</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">eEndLocal</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="n">T1Error</span><span class="p">(</span><span class="s2">&quot;can&#39;t find end of eexec part&quot;</span><span class="p">)</span>
+		<span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">data</span><span class="p">[:</span><span class="n">eBegin</span><span class="p">]))</span>
+		<span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">cypherText</span><span class="p">[:</span><span class="n">eEndLocal</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">EEXECINTERNALEND</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]))</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">eEnd</span><span class="p">:]</span>
+	<span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">data</span><span class="p">))</span>
+	<span class="k">return</span> <span class="n">chunks</span></div>
+
+<div class="viewcode-block" id="deHexString"><a class="viewcode-back" href="../../t1Lib.html#fontTools.t1Lib.deHexString">[docs]</a><span class="k">def</span> <span class="nf">deHexString</span><span class="p">(</span><span class="n">hexstring</span><span class="p">):</span>
+	<span class="k">return</span> <span class="n">eexec</span><span class="o">.</span><span class="n">deHexString</span><span class="p">(</span><span class="n">bytesjoin</span><span class="p">(</span><span class="n">hexstring</span><span class="o">.</span><span class="n">split</span><span class="p">()))</span></div>
+
+
+<span class="c1"># Type 1 assertion</span>
+
+<span class="n">_fontType1RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">br</span><span class="s2">&quot;/FontType\s+1\s+def&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="assertType1"><a class="viewcode-back" href="../../t1Lib.html#fontTools.t1Lib.assertType1">[docs]</a><span class="k">def</span> <span class="nf">assertType1</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+	<span class="k">for</span> <span class="n">head</span> <span class="ow">in</span> <span class="p">[</span><span class="sa">b</span><span class="s1">&#39;%!PS-AdobeFont&#39;</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39;%!FontType1&#39;</span><span class="p">]:</span>
+		<span class="k">if</span> <span class="n">data</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">head</span><span class="p">)]</span> <span class="o">==</span> <span class="n">head</span><span class="p">:</span>
+			<span class="k">break</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">raise</span> <span class="n">T1Error</span><span class="p">(</span><span class="s2">&quot;not a PostScript font&quot;</span><span class="p">)</span>
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">_fontType1RE</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+		<span class="k">raise</span> <span class="n">T1Error</span><span class="p">(</span><span class="s2">&quot;not a Type 1 font&quot;</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;currentfile eexec&quot;</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+		<span class="k">raise</span> <span class="n">T1Error</span><span class="p">(</span><span class="s2">&quot;not an encrypted Type 1 font&quot;</span><span class="p">)</span>
+	<span class="c1"># XXX what else?</span>
+	<span class="k">return</span> <span class="n">data</span></div>
+
+
+<span class="c1"># pfb helpers</span>
+
+<div class="viewcode-block" id="longToString"><a class="viewcode-back" href="../../t1Lib.html#fontTools.t1Lib.longToString">[docs]</a><span class="k">def</span> <span class="nf">longToString</span><span class="p">(</span><span class="n">long</span><span class="p">):</span>
+	<span class="n">s</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span>
+	<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+		<span class="n">s</span> <span class="o">+=</span> <span class="n">bytechr</span><span class="p">((</span><span class="n">long</span> <span class="o">&amp;</span> <span class="p">(</span><span class="mh">0xff</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="mi">8</span><span class="p">)))</span> <span class="o">&gt;&gt;</span> <span class="n">i</span> <span class="o">*</span> <span class="mi">8</span><span class="p">)</span>
+	<span class="k">return</span> <span class="n">s</span></div>
+
+<div class="viewcode-block" id="stringToLong"><a class="viewcode-back" href="../../t1Lib.html#fontTools.t1Lib.stringToLong">[docs]</a><span class="k">def</span> <span class="nf">stringToLong</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+	<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">:</span>
+		<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;string must be 4 bytes long&#39;</span><span class="p">)</span>
+	<span class="n">l</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+		<span class="n">l</span> <span class="o">+=</span> <span class="n">byteord</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="mi">8</span><span class="p">)</span>
+	<span class="k">return</span> <span class="n">l</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

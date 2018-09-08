@@ -1,0 +1,311 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fontTools.ttLib.tables._f_v_a_r &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../ttLib.html" accesskey="U">fontTools.ttLib</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fontTools.ttLib.tables._f_v_a_r</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.py23</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc</span> <span class="k">import</span> <span class="n">sstruct</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.fixedTools</span> <span class="k">import</span> <span class="n">fixedToFloat</span><span class="p">,</span> <span class="n">floatToFixed</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.textTools</span> <span class="k">import</span> <span class="n">safeEval</span><span class="p">,</span> <span class="n">num2binary</span><span class="p">,</span> <span class="n">binary2num</span>
+<span class="kn">from</span> <span class="nn">fontTools.ttLib</span> <span class="k">import</span> <span class="n">TTLibError</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">DefaultTable</span>
+<span class="kn">import</span> <span class="nn">struct</span>
+
+
+<span class="c1"># Apple&#39;s documentation of &#39;fvar&#39;:</span>
+<span class="c1"># https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6fvar.html</span>
+
+<span class="n">FVAR_HEADER_FORMAT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    &gt; # big endian</span>
+<span class="s2">    version:        L</span>
+<span class="s2">    offsetToData:   H</span>
+<span class="s2">    countSizePairs: H</span>
+<span class="s2">    axisCount:      H</span>
+<span class="s2">    axisSize:       H</span>
+<span class="s2">    instanceCount:  H</span>
+<span class="s2">    instanceSize:   H</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="n">FVAR_AXIS_FORMAT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    &gt; # big endian</span>
+<span class="s2">    axisTag:        4s</span>
+<span class="s2">    minValue:       16.16F</span>
+<span class="s2">    defaultValue:   16.16F</span>
+<span class="s2">    maxValue:       16.16F</span>
+<span class="s2">    flags:          H</span>
+<span class="s2">    axisNameID:         H</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="n">FVAR_INSTANCE_FORMAT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    &gt; # big endian</span>
+<span class="s2">    subfamilyNameID:     H</span>
+<span class="s2">    flags:      H</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="table__f_v_a_r"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._f_v_a_r.table__f_v_a_r">[docs]</a><span class="k">class</span> <span class="nc">table__f_v_a_r</span><span class="p">(</span><span class="n">DefaultTable</span><span class="o">.</span><span class="n">DefaultTable</span><span class="p">):</span>
+    <span class="n">dependencies</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">DefaultTable</span><span class="o">.</span><span class="n">DefaultTable</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">axes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instances</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="table__f_v_a_r.compile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._f_v_a_r.table__f_v_a_r.compile">[docs]</a>    <span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+        <span class="n">instanceSize</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">FVAR_INSTANCE_FORMAT</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">)</span> <span class="o">*</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="n">includePostScriptNames</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">postscriptNameID</span> <span class="o">!=</span> <span class="mh">0xFFFF</span>
+                                     <span class="k">for</span> <span class="n">instance</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">instances</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">includePostScriptNames</span><span class="p">:</span>
+            <span class="n">instanceSize</span> <span class="o">+=</span> <span class="mi">2</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="mh">0x00010000</span><span class="p">,</span>
+            <span class="s2">&quot;offsetToData&quot;</span><span class="p">:</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">FVAR_HEADER_FORMAT</span><span class="p">),</span>
+            <span class="s2">&quot;countSizePairs&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="s2">&quot;axisCount&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">),</span>
+            <span class="s2">&quot;axisSize&quot;</span><span class="p">:</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">FVAR_AXIS_FORMAT</span><span class="p">),</span>
+            <span class="s2">&quot;instanceCount&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">instances</span><span class="p">),</span>
+            <span class="s2">&quot;instanceSize&quot;</span><span class="p">:</span> <span class="n">instanceSize</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">FVAR_HEADER_FORMAT</span><span class="p">,</span> <span class="n">header</span><span class="p">)]</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">axis</span><span class="o">.</span><span class="n">compile</span><span class="p">()</span> <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">])</span>
+        <span class="n">axisTags</span> <span class="o">=</span> <span class="p">[</span><span class="n">axis</span><span class="o">.</span><span class="n">axisTag</span> <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">instance</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">instances</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">axisTags</span><span class="p">,</span> <span class="n">includePostScriptNames</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">bytesjoin</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="table__f_v_a_r.decompile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._f_v_a_r.table__f_v_a_r.decompile">[docs]</a>    <span class="k">def</span> <span class="nf">decompile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">headerSize</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">FVAR_HEADER_FORMAT</span><span class="p">)</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">FVAR_HEADER_FORMAT</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">headerSize</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">header</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="mh">0x00010000</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TTLibError</span><span class="p">(</span><span class="s2">&quot;unsupported &#39;fvar&#39; version </span><span class="si">%04x</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">header</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">])</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="n">header</span><span class="p">[</span><span class="s2">&quot;offsetToData&quot;</span><span class="p">]</span>
+        <span class="n">axisSize</span> <span class="o">=</span> <span class="n">header</span><span class="p">[</span><span class="s2">&quot;axisSize&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">header</span><span class="p">[</span><span class="s2">&quot;axisCount&quot;</span><span class="p">]):</span>
+            <span class="n">axis</span> <span class="o">=</span> <span class="n">Axis</span><span class="p">()</span>
+            <span class="n">axis</span><span class="o">.</span><span class="n">decompile</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">pos</span><span class="p">:</span><span class="n">pos</span><span class="o">+</span><span class="n">axisSize</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+            <span class="n">pos</span> <span class="o">+=</span> <span class="n">axisSize</span>
+        <span class="n">instanceSize</span> <span class="o">=</span> <span class="n">header</span><span class="p">[</span><span class="s2">&quot;instanceSize&quot;</span><span class="p">]</span>
+        <span class="n">axisTags</span> <span class="o">=</span> <span class="p">[</span><span class="n">axis</span><span class="o">.</span><span class="n">axisTag</span> <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">header</span><span class="p">[</span><span class="s2">&quot;instanceCount&quot;</span><span class="p">]):</span>
+            <span class="n">instance</span> <span class="o">=</span> <span class="n">NamedInstance</span><span class="p">()</span>
+            <span class="n">instance</span><span class="o">.</span><span class="n">decompile</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">pos</span><span class="p">:</span><span class="n">pos</span><span class="o">+</span><span class="n">instanceSize</span><span class="p">],</span> <span class="n">axisTags</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">instances</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">instance</span><span class="p">)</span>
+            <span class="n">pos</span> <span class="o">+=</span> <span class="n">instanceSize</span></div>
+
+<div class="viewcode-block" id="table__f_v_a_r.toXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._f_v_a_r.table__f_v_a_r.toXML">[docs]</a>    <span class="k">def</span> <span class="nf">toXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">:</span>
+            <span class="n">axis</span><span class="o">.</span><span class="n">toXML</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">instance</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">instances</span><span class="p">:</span>
+            <span class="n">instance</span><span class="o">.</span><span class="n">toXML</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="table__f_v_a_r.fromXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._f_v_a_r.table__f_v_a_r.fromXML">[docs]</a>    <span class="k">def</span> <span class="nf">fromXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;Axis&quot;</span><span class="p">:</span>
+            <span class="n">axis</span> <span class="o">=</span> <span class="n">Axis</span><span class="p">()</span>
+            <span class="n">axis</span><span class="o">.</span><span class="n">fromXML</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;NamedInstance&quot;</span><span class="p">:</span>
+            <span class="n">instance</span> <span class="o">=</span> <span class="n">NamedInstance</span><span class="p">()</span>
+            <span class="n">instance</span><span class="o">.</span><span class="n">fromXML</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">instances</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">instance</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="Axis"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._f_v_a_r.Axis">[docs]</a><span class="k">class</span> <span class="nc">Axis</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">axisTag</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">axisNameID</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flags</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">minValue</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">defaultValue</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maxValue</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+<div class="viewcode-block" id="Axis.compile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._f_v_a_r.Axis.compile">[docs]</a>    <span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">FVAR_AXIS_FORMAT</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Axis.decompile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._f_v_a_r.Axis.decompile">[docs]</a>    <span class="k">def</span> <span class="nf">decompile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="n">sstruct</span><span class="o">.</span><span class="n">unpack2</span><span class="p">(</span><span class="n">FVAR_AXIS_FORMAT</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Axis.toXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._f_v_a_r.Axis.toXML">[docs]</a>    <span class="k">def</span> <span class="nf">toXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">ttFont</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">getDebugName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axisNameID</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">comment</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+        <span class="n">writer</span><span class="o">.</span><span class="n">begintag</span><span class="p">(</span><span class="s2">&quot;Axis&quot;</span><span class="p">)</span>
+        <span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">tag</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="p">[(</span><span class="s2">&quot;AxisTag&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">axisTag</span><span class="p">),</span>
+                           <span class="p">(</span><span class="s2">&quot;Flags&quot;</span><span class="p">,</span> <span class="s2">&quot;0x</span><span class="si">%X</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">flags</span><span class="p">),</span>
+                           <span class="p">(</span><span class="s2">&quot;MinValue&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">minValue</span><span class="p">)),</span>
+                           <span class="p">(</span><span class="s2">&quot;DefaultValue&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">defaultValue</span><span class="p">)),</span>
+                           <span class="p">(</span><span class="s2">&quot;MaxValue&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">maxValue</span><span class="p">)),</span>
+                           <span class="p">(</span><span class="s2">&quot;AxisNameID&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axisNameID</span><span class="p">))]:</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">begintag</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">endtag</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+        <span class="n">writer</span><span class="o">.</span><span class="n">endtag</span><span class="p">(</span><span class="s2">&quot;Axis&quot;</span><span class="p">)</span>
+        <span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Axis.fromXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._f_v_a_r.Axis.fromXML">[docs]</a>    <span class="k">def</span> <span class="nf">fromXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">_attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+        <span class="k">assert</span><span class="p">(</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;Axis&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">tag</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="nb">type</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">content</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s2">&quot;AxisTag&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">axisTag</span> <span class="o">=</span> <span class="n">Tag</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">tag</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;Flags&quot;</span><span class="p">,</span> <span class="s2">&quot;MinValue&quot;</span><span class="p">,</span> <span class="s2">&quot;DefaultValue&quot;</span><span class="p">,</span> <span class="s2">&quot;MaxValue&quot;</span><span class="p">,</span>
+                         <span class="s2">&quot;AxisNameID&quot;</span><span class="p">}:</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">+</span> <span class="n">tag</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">value</span><span class="p">))</span></div></div>
+
+
+<div class="viewcode-block" id="NamedInstance"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._f_v_a_r.NamedInstance">[docs]</a><span class="k">class</span> <span class="nc">NamedInstance</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subfamilyNameID</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">postscriptNameID</span> <span class="o">=</span> <span class="mh">0xFFFF</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flags</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="NamedInstance.compile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._f_v_a_r.NamedInstance.compile">[docs]</a>    <span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axisTags</span><span class="p">,</span> <span class="n">includePostScriptName</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">FVAR_INSTANCE_FORMAT</span><span class="p">,</span> <span class="bp">self</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="n">axisTags</span><span class="p">:</span>
+            <span class="n">fixedCoord</span> <span class="o">=</span> <span class="n">floatToFixed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="n">axis</span><span class="p">],</span> <span class="mi">16</span><span class="p">)</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">&quot;&gt;l&quot;</span><span class="p">,</span> <span class="n">fixedCoord</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">includePostScriptName</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">&quot;&gt;H&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">postscriptNameID</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">bytesjoin</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="NamedInstance.decompile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._f_v_a_r.NamedInstance.decompile">[docs]</a>    <span class="k">def</span> <span class="nf">decompile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">axisTags</span><span class="p">):</span>
+        <span class="n">sstruct</span><span class="o">.</span><span class="n">unpack2</span><span class="p">(</span><span class="n">FVAR_INSTANCE_FORMAT</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">FVAR_INSTANCE_FORMAT</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="n">axisTags</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;&gt;l&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">pos</span> <span class="p">:</span> <span class="n">pos</span> <span class="o">+</span> <span class="mi">4</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span> <span class="o">=</span> <span class="n">fixedToFloat</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+            <span class="n">pos</span> <span class="o">+=</span> <span class="mi">4</span>
+        <span class="k">if</span> <span class="n">pos</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">postscriptNameID</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;&gt;H&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">pos</span> <span class="p">:</span> <span class="n">pos</span> <span class="o">+</span> <span class="mi">2</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">postscriptNameID</span> <span class="o">=</span> <span class="mh">0xFFFF</span></div>
+
+<div class="viewcode-block" id="NamedInstance.toXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._f_v_a_r.NamedInstance.toXML">[docs]</a>    <span class="k">def</span> <span class="nf">toXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">ttFont</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">getDebugName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subfamilyNameID</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">comment</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+        <span class="n">psname</span> <span class="o">=</span> <span class="n">ttFont</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">getDebugName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">postscriptNameID</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">psname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">comment</span><span class="p">(</span><span class="sa">u</span><span class="s2">&quot;PostScript: &quot;</span> <span class="o">+</span> <span class="n">psname</span><span class="p">)</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">postscriptNameID</span>  <span class="o">==</span> <span class="mh">0xFFFF</span><span class="p">:</span>
+           <span class="n">writer</span><span class="o">.</span><span class="n">begintag</span><span class="p">(</span><span class="s2">&quot;NamedInstance&quot;</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;0x</span><span class="si">%X</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">flags</span><span class="p">),</span>
+                           <span class="n">subfamilyNameID</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">subfamilyNameID</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">begintag</span><span class="p">(</span><span class="s2">&quot;NamedInstance&quot;</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;0x</span><span class="si">%X</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">flags</span><span class="p">),</span>
+                            <span class="n">subfamilyNameID</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">subfamilyNameID</span><span class="p">,</span>
+                            <span class="n">postscriptNameID</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">postscriptNameID</span><span class="p">,</span> <span class="p">)</span>
+        <span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="n">ttFont</span><span class="p">[</span><span class="s2">&quot;fvar&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">axes</span><span class="p">:</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="s2">&quot;coord&quot;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="o">.</span><span class="n">axisTag</span><span class="p">,</span>
+                             <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="n">axis</span><span class="o">.</span><span class="n">axisTag</span><span class="p">])</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+        <span class="n">writer</span><span class="o">.</span><span class="n">endtag</span><span class="p">(</span><span class="s2">&quot;NamedInstance&quot;</span><span class="p">)</span>
+        <span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="NamedInstance.fromXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._f_v_a_r.NamedInstance.fromXML">[docs]</a>    <span class="k">def</span> <span class="nf">fromXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+        <span class="k">assert</span><span class="p">(</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;NamedInstance&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subfamilyNameID</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;subfamilyNameID&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flags</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;flags&quot;</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="s2">&quot;postscriptNameID&quot;</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">postscriptNameID</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;postscriptNameID&quot;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">postscriptNameID</span> <span class="o">=</span> <span class="mh">0xFFFF</span>
+
+        <span class="k">for</span> <span class="n">tag</span><span class="p">,</span> <span class="n">elementAttrs</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="nb">type</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">content</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s2">&quot;coord&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="n">elementAttrs</span><span class="p">[</span><span class="s2">&quot;axis&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">elementAttrs</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">])</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../ttLib.html" >fontTools.ttLib</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

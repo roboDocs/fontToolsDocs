@@ -1,0 +1,719 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fontTools.ttLib.tables.E_B_L_C_ &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../ttLib.html" accesskey="U">fontTools.ttLib</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fontTools.ttLib.tables.E_B_L_C_</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.py23</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc</span> <span class="k">import</span> <span class="n">sstruct</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">DefaultTable</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.textTools</span> <span class="k">import</span> <span class="n">safeEval</span>
+<span class="kn">from</span> <span class="nn">.BitmapGlyphMetrics</span> <span class="k">import</span> <span class="n">BigGlyphMetrics</span><span class="p">,</span> <span class="n">bigGlyphMetricsFormat</span><span class="p">,</span> <span class="n">SmallGlyphMetrics</span><span class="p">,</span> <span class="n">smallGlyphMetricsFormat</span>
+<span class="kn">import</span> <span class="nn">struct</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">deque</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="n">eblcHeaderFormat</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">	&gt; # big endian</span>
+<span class="s2">	version:  16.16F</span>
+<span class="s2">	numSizes: I</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="c1"># The table format string is split to handle sbitLineMetrics simply.</span>
+<span class="n">bitmapSizeTableFormatPart1</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">	&gt; # big endian</span>
+<span class="s2">	indexSubTableArrayOffset: I</span>
+<span class="s2">	indexTablesSize:          I</span>
+<span class="s2">	numberOfIndexSubTables:   I</span>
+<span class="s2">	colorRef:                 I</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="c1"># The compound type for hori and vert.</span>
+<span class="n">sbitLineMetricsFormat</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">	&gt; # big endian</span>
+<span class="s2">	ascender:              b</span>
+<span class="s2">	descender:             b</span>
+<span class="s2">	widthMax:              B</span>
+<span class="s2">	caretSlopeNumerator:   b</span>
+<span class="s2">	caretSlopeDenominator: b</span>
+<span class="s2">	caretOffset:           b</span>
+<span class="s2">	minOriginSB:           b</span>
+<span class="s2">	minAdvanceSB:          b</span>
+<span class="s2">	maxBeforeBL:           b</span>
+<span class="s2">	minAfterBL:            b</span>
+<span class="s2">	pad1:                  b</span>
+<span class="s2">	pad2:                  b</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="c1"># hori and vert go between the two parts.</span>
+<span class="n">bitmapSizeTableFormatPart2</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">	&gt; # big endian</span>
+<span class="s2">	startGlyphIndex: H</span>
+<span class="s2">	endGlyphIndex:   H</span>
+<span class="s2">	ppemX:           B</span>
+<span class="s2">	ppemY:           B</span>
+<span class="s2">	bitDepth:        B</span>
+<span class="s2">	flags:           b</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="n">indexSubTableArrayFormat</span> <span class="o">=</span> <span class="s2">&quot;&gt;HHL&quot;</span>
+<span class="n">indexSubTableArraySize</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">indexSubTableArrayFormat</span><span class="p">)</span>
+
+<span class="n">indexSubHeaderFormat</span> <span class="o">=</span> <span class="s2">&quot;&gt;HHL&quot;</span>
+<span class="n">indexSubHeaderSize</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">indexSubHeaderFormat</span><span class="p">)</span>
+
+<span class="n">codeOffsetPairFormat</span> <span class="o">=</span> <span class="s2">&quot;&gt;HH&quot;</span>
+<span class="n">codeOffsetPairSize</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">codeOffsetPairFormat</span><span class="p">)</span>
+
+<div class="viewcode-block" id="table_E_B_L_C_"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.table_E_B_L_C_">[docs]</a><span class="k">class</span> <span class="nc">table_E_B_L_C_</span><span class="p">(</span><span class="n">DefaultTable</span><span class="o">.</span><span class="n">DefaultTable</span><span class="p">):</span>
+
+	<span class="n">dependencies</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;EBDT&#39;</span><span class="p">]</span>
+
+	<span class="c1"># This method can be overridden in subclasses to support new formats</span>
+	<span class="c1"># without changing the other implementation. Also can be used as a</span>
+	<span class="c1"># convenience method for coverting a font file to an alternative format.</span>
+<div class="viewcode-block" id="table_E_B_L_C_.getIndexFormatClass"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.table_E_B_L_C_.getIndexFormatClass">[docs]</a>	<span class="k">def</span> <span class="nf">getIndexFormatClass</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indexFormat</span><span class="p">):</span>
+		<span class="k">return</span> <span class="n">eblc_sub_table_classes</span><span class="p">[</span><span class="n">indexFormat</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="table_E_B_L_C_.decompile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.table_E_B_L_C_.decompile">[docs]</a>	<span class="k">def</span> <span class="nf">decompile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+
+		<span class="c1"># Save the original data because offsets are from the start of the table.</span>
+		<span class="n">origData</span> <span class="o">=</span> <span class="n">data</span>
+		<span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+		<span class="n">dummy</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">eblcHeaderFormat</span><span class="p">,</span> <span class="n">data</span><span class="p">[:</span><span class="mi">8</span><span class="p">],</span> <span class="bp">self</span><span class="p">)</span>
+		<span class="n">i</span> <span class="o">+=</span> <span class="mi">8</span><span class="p">;</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">strikes</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">curStrikeIndex</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numSizes</span><span class="p">):</span>
+			<span class="n">curStrike</span> <span class="o">=</span> <span class="n">Strike</span><span class="p">()</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">strikes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">curStrike</span><span class="p">)</span>
+			<span class="n">curTable</span> <span class="o">=</span> <span class="n">curStrike</span><span class="o">.</span><span class="n">bitmapSizeTable</span>
+			<span class="n">dummy</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">unpack2</span><span class="p">(</span><span class="n">bitmapSizeTableFormatPart1</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="mi">16</span><span class="p">],</span> <span class="n">curTable</span><span class="p">)</span>
+			<span class="n">i</span> <span class="o">+=</span> <span class="mi">16</span>
+			<span class="k">for</span> <span class="n">metric</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;hori&#39;</span><span class="p">,</span> <span class="s1">&#39;vert&#39;</span><span class="p">):</span>
+				<span class="n">metricObj</span> <span class="o">=</span> <span class="n">SbitLineMetrics</span><span class="p">()</span>
+				<span class="nb">vars</span><span class="p">(</span><span class="n">curTable</span><span class="p">)[</span><span class="n">metric</span><span class="p">]</span> <span class="o">=</span> <span class="n">metricObj</span>
+				<span class="n">dummy</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">unpack2</span><span class="p">(</span><span class="n">sbitLineMetricsFormat</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="mi">12</span><span class="p">],</span> <span class="n">metricObj</span><span class="p">)</span>
+				<span class="n">i</span> <span class="o">+=</span> <span class="mi">12</span>
+			<span class="n">dummy</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">bitmapSizeTableFormatPart2</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="mi">8</span><span class="p">],</span> <span class="n">curTable</span><span class="p">)</span>
+			<span class="n">i</span> <span class="o">+=</span> <span class="mi">8</span>
+
+		<span class="k">for</span> <span class="n">curStrike</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">strikes</span><span class="p">:</span>
+			<span class="n">curTable</span> <span class="o">=</span> <span class="n">curStrike</span><span class="o">.</span><span class="n">bitmapSizeTable</span>
+			<span class="k">for</span> <span class="n">subtableIndex</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">curTable</span><span class="o">.</span><span class="n">numberOfIndexSubTables</span><span class="p">):</span>
+				<span class="n">i</span> <span class="o">=</span> <span class="n">curTable</span><span class="o">.</span><span class="n">indexSubTableArrayOffset</span> <span class="o">+</span> <span class="n">subtableIndex</span> <span class="o">*</span> <span class="n">indexSubTableArraySize</span>
+
+				<span class="n">tup</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">indexSubTableArrayFormat</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">indexSubTableArraySize</span><span class="p">])</span>
+				<span class="p">(</span><span class="n">firstGlyphIndex</span><span class="p">,</span> <span class="n">lastGlyphIndex</span><span class="p">,</span> <span class="n">additionalOffsetToIndexSubtable</span><span class="p">)</span> <span class="o">=</span> <span class="n">tup</span>
+				<span class="n">i</span> <span class="o">=</span> <span class="n">curTable</span><span class="o">.</span><span class="n">indexSubTableArrayOffset</span> <span class="o">+</span> <span class="n">additionalOffsetToIndexSubtable</span>
+
+				<span class="n">tup</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">indexSubHeaderFormat</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">indexSubHeaderSize</span><span class="p">])</span>
+				<span class="p">(</span><span class="n">indexFormat</span><span class="p">,</span> <span class="n">imageFormat</span><span class="p">,</span> <span class="n">imageDataOffset</span><span class="p">)</span> <span class="o">=</span> <span class="n">tup</span>
+
+				<span class="n">indexFormatClass</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getIndexFormatClass</span><span class="p">(</span><span class="n">indexFormat</span><span class="p">)</span>
+				<span class="n">indexSubTable</span> <span class="o">=</span> <span class="n">indexFormatClass</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="n">indexSubHeaderSize</span><span class="p">:],</span> <span class="n">ttFont</span><span class="p">)</span>
+				<span class="n">indexSubTable</span><span class="o">.</span><span class="n">firstGlyphIndex</span> <span class="o">=</span> <span class="n">firstGlyphIndex</span>
+				<span class="n">indexSubTable</span><span class="o">.</span><span class="n">lastGlyphIndex</span> <span class="o">=</span> <span class="n">lastGlyphIndex</span>
+				<span class="n">indexSubTable</span><span class="o">.</span><span class="n">additionalOffsetToIndexSubtable</span> <span class="o">=</span> <span class="n">additionalOffsetToIndexSubtable</span>
+				<span class="n">indexSubTable</span><span class="o">.</span><span class="n">indexFormat</span> <span class="o">=</span> <span class="n">indexFormat</span>
+				<span class="n">indexSubTable</span><span class="o">.</span><span class="n">imageFormat</span> <span class="o">=</span> <span class="n">imageFormat</span>
+				<span class="n">indexSubTable</span><span class="o">.</span><span class="n">imageDataOffset</span> <span class="o">=</span> <span class="n">imageDataOffset</span>
+				<span class="n">indexSubTable</span><span class="o">.</span><span class="n">decompile</span><span class="p">()</span> <span class="c1"># https://github.com/behdad/fonttools/issues/317</span>
+				<span class="n">curStrike</span><span class="o">.</span><span class="n">indexSubTables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">indexSubTable</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="table_E_B_L_C_.compile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.table_E_B_L_C_.compile">[docs]</a>	<span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+
+		<span class="n">dataList</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">numSizes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">strikes</span><span class="p">)</span>
+		<span class="n">dataList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">eblcHeaderFormat</span><span class="p">,</span> <span class="bp">self</span><span class="p">))</span>
+
+		<span class="c1"># Data size of the header + bitmapSizeTable needs to be calculated</span>
+		<span class="c1"># in order to form offsets. This value will hold the size of the data</span>
+		<span class="c1"># in dataList after all the data is consolidated in dataList.</span>
+		<span class="n">dataSize</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataList</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+		<span class="c1"># The table will be structured in the following order:</span>
+		<span class="c1"># (0) header</span>
+		<span class="c1"># (1) Each bitmapSizeTable [1 ... self.numSizes]</span>
+		<span class="c1"># (2) Alternate between indexSubTableArray and indexSubTable</span>
+		<span class="c1">#     for each bitmapSizeTable present.</span>
+		<span class="c1">#</span>
+		<span class="c1"># The issue is maintaining the proper offsets when table information</span>
+		<span class="c1"># gets moved around. All offsets and size information must be recalculated</span>
+		<span class="c1"># when building the table to allow editing within ttLib and also allow easy</span>
+		<span class="c1"># import/export to and from XML. All of this offset information is lost</span>
+		<span class="c1"># when exporting to XML so everything must be calculated fresh so importing</span>
+		<span class="c1"># from XML will work cleanly. Only byte offset and size information is</span>
+		<span class="c1"># calculated fresh. Count information like numberOfIndexSubTables is</span>
+		<span class="c1"># checked through assertions. If the information in this table was not</span>
+		<span class="c1"># touched or was changed properly then these types of values should match.</span>
+		<span class="c1">#</span>
+		<span class="c1"># The table will be rebuilt the following way:</span>
+		<span class="c1"># (0) Precompute the size of all the bitmapSizeTables. This is needed to</span>
+		<span class="c1">#     compute the offsets properly.</span>
+		<span class="c1"># (1) For each bitmapSizeTable compute the indexSubTable and</span>
+		<span class="c1">#    	indexSubTableArray pair. The indexSubTable must be computed first</span>
+		<span class="c1">#     so that the offset information in indexSubTableArray can be</span>
+		<span class="c1">#     calculated. Update the data size after each pairing.</span>
+		<span class="c1"># (2) Build each bitmapSizeTable.</span>
+		<span class="c1"># (3) Consolidate all the data into the main dataList in the correct order.</span>
+
+		<span class="k">for</span> <span class="n">curStrike</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">strikes</span><span class="p">:</span>
+			<span class="n">dataSize</span> <span class="o">+=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">bitmapSizeTableFormatPart1</span><span class="p">)</span>
+			<span class="n">dataSize</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">((</span><span class="s1">&#39;hori&#39;</span><span class="p">,</span> <span class="s1">&#39;vert&#39;</span><span class="p">))</span> <span class="o">*</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">sbitLineMetricsFormat</span><span class="p">)</span>
+			<span class="n">dataSize</span> <span class="o">+=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">bitmapSizeTableFormatPart2</span><span class="p">)</span>
+
+		<span class="n">indexSubTablePairDataList</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">curStrike</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">strikes</span><span class="p">:</span>
+			<span class="n">curTable</span> <span class="o">=</span> <span class="n">curStrike</span><span class="o">.</span><span class="n">bitmapSizeTable</span>
+			<span class="n">curTable</span><span class="o">.</span><span class="n">numberOfIndexSubTables</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">curStrike</span><span class="o">.</span><span class="n">indexSubTables</span><span class="p">)</span>
+			<span class="n">curTable</span><span class="o">.</span><span class="n">indexSubTableArrayOffset</span> <span class="o">=</span> <span class="n">dataSize</span>
+
+			<span class="c1"># Precompute the size of the indexSubTableArray. This information</span>
+			<span class="c1"># is important for correctly calculating the new value for</span>
+			<span class="c1"># additionalOffsetToIndexSubtable.</span>
+			<span class="n">sizeOfSubTableArray</span> <span class="o">=</span> <span class="n">curTable</span><span class="o">.</span><span class="n">numberOfIndexSubTables</span> <span class="o">*</span> <span class="n">indexSubTableArraySize</span>
+			<span class="n">lowerBound</span> <span class="o">=</span> <span class="n">dataSize</span>
+			<span class="n">dataSize</span> <span class="o">+=</span> <span class="n">sizeOfSubTableArray</span>
+			<span class="n">upperBound</span> <span class="o">=</span> <span class="n">dataSize</span>
+
+			<span class="n">indexSubTableDataList</span> <span class="o">=</span> <span class="p">[]</span>
+			<span class="k">for</span> <span class="n">indexSubTable</span> <span class="ow">in</span> <span class="n">curStrike</span><span class="o">.</span><span class="n">indexSubTables</span><span class="p">:</span>
+				<span class="n">indexSubTable</span><span class="o">.</span><span class="n">additionalOffsetToIndexSubtable</span> <span class="o">=</span> <span class="n">dataSize</span> <span class="o">-</span> <span class="n">curTable</span><span class="o">.</span><span class="n">indexSubTableArrayOffset</span>
+				<span class="n">glyphIds</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ttFont</span><span class="o">.</span><span class="n">getGlyphID</span><span class="p">,</span> <span class="n">indexSubTable</span><span class="o">.</span><span class="n">names</span><span class="p">))</span>
+				<span class="n">indexSubTable</span><span class="o">.</span><span class="n">firstGlyphIndex</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">glyphIds</span><span class="p">)</span>
+				<span class="n">indexSubTable</span><span class="o">.</span><span class="n">lastGlyphIndex</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">glyphIds</span><span class="p">)</span>
+				<span class="n">data</span> <span class="o">=</span> <span class="n">indexSubTable</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">ttFont</span><span class="p">)</span>
+				<span class="n">indexSubTableDataList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+				<span class="n">dataSize</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+			<span class="n">curTable</span><span class="o">.</span><span class="n">startGlyphIndex</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">ist</span><span class="o">.</span><span class="n">firstGlyphIndex</span> <span class="k">for</span> <span class="n">ist</span> <span class="ow">in</span> <span class="n">curStrike</span><span class="o">.</span><span class="n">indexSubTables</span><span class="p">)</span>
+			<span class="n">curTable</span><span class="o">.</span><span class="n">endGlyphIndex</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">ist</span><span class="o">.</span><span class="n">lastGlyphIndex</span> <span class="k">for</span> <span class="n">ist</span> <span class="ow">in</span> <span class="n">curStrike</span><span class="o">.</span><span class="n">indexSubTables</span><span class="p">)</span>
+
+			<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">curStrike</span><span class="o">.</span><span class="n">indexSubTables</span><span class="p">:</span>
+				<span class="n">data</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">indexSubHeaderFormat</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">firstGlyphIndex</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">lastGlyphIndex</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">additionalOffsetToIndexSubtable</span><span class="p">)</span>
+				<span class="n">indexSubTablePairDataList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+			<span class="n">indexSubTablePairDataList</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">indexSubTableDataList</span><span class="p">)</span>
+			<span class="n">curTable</span><span class="o">.</span><span class="n">indexTablesSize</span> <span class="o">=</span> <span class="n">dataSize</span> <span class="o">-</span> <span class="n">curTable</span><span class="o">.</span><span class="n">indexSubTableArrayOffset</span>
+
+		<span class="k">for</span> <span class="n">curStrike</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">strikes</span><span class="p">:</span>
+			<span class="n">curTable</span> <span class="o">=</span> <span class="n">curStrike</span><span class="o">.</span><span class="n">bitmapSizeTable</span>
+			<span class="n">data</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">bitmapSizeTableFormatPart1</span><span class="p">,</span> <span class="n">curTable</span><span class="p">)</span>
+			<span class="n">dataList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+			<span class="k">for</span> <span class="n">metric</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;hori&#39;</span><span class="p">,</span> <span class="s1">&#39;vert&#39;</span><span class="p">):</span>
+				<span class="n">metricObj</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="n">curTable</span><span class="p">)[</span><span class="n">metric</span><span class="p">]</span>
+				<span class="n">data</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">sbitLineMetricsFormat</span><span class="p">,</span> <span class="n">metricObj</span><span class="p">)</span>
+				<span class="n">dataList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+			<span class="n">data</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">bitmapSizeTableFormatPart2</span><span class="p">,</span> <span class="n">curTable</span><span class="p">)</span>
+			<span class="n">dataList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+		<span class="n">dataList</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">indexSubTablePairDataList</span><span class="p">)</span>
+
+		<span class="k">return</span> <span class="n">bytesjoin</span><span class="p">(</span><span class="n">dataList</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="table_E_B_L_C_.toXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.table_E_B_L_C_.toXML">[docs]</a>	<span class="k">def</span> <span class="nf">toXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="s1">&#39;header&#39;</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;version&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">)])</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">curIndex</span><span class="p">,</span> <span class="n">curStrike</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">strikes</span><span class="p">):</span>
+			<span class="n">curStrike</span><span class="o">.</span><span class="n">toXML</span><span class="p">(</span><span class="n">curIndex</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="table_E_B_L_C_.fromXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.table_E_B_L_C_.fromXML">[docs]</a>	<span class="k">def</span> <span class="nf">fromXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;header&#39;</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;version&#39;</span><span class="p">])</span>
+		<span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;strike&#39;</span><span class="p">:</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;strikes&#39;</span><span class="p">):</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">strikes</span> <span class="o">=</span> <span class="p">[]</span>
+			<span class="n">strikeIndex</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;index&#39;</span><span class="p">])</span>
+			<span class="n">curStrike</span> <span class="o">=</span> <span class="n">Strike</span><span class="p">()</span>
+			<span class="n">curStrike</span><span class="o">.</span><span class="n">fromXML</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+
+			<span class="c1"># Grow the strike array to the appropriate size. The XML format</span>
+			<span class="c1"># allows for the strike index value to be out of order.</span>
+			<span class="k">if</span> <span class="n">strikeIndex</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">strikes</span><span class="p">):</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">strikes</span> <span class="o">+=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">strikeIndex</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">strikes</span><span class="p">))</span>
+			<span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">strikes</span><span class="p">[</span><span class="n">strikeIndex</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Duplicate strike EBLC indices.&quot;</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">strikes</span><span class="p">[</span><span class="n">strikeIndex</span><span class="p">]</span> <span class="o">=</span> <span class="n">curStrike</span></div></div>
+
+<div class="viewcode-block" id="Strike"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.Strike">[docs]</a><span class="k">class</span> <span class="nc">Strike</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">bitmapSizeTable</span> <span class="o">=</span> <span class="n">BitmapSizeTable</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">indexSubTables</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="Strike.toXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.Strike.toXML">[docs]</a>	<span class="k">def</span> <span class="nf">toXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strikeIndex</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">begintag</span><span class="p">(</span><span class="s1">&#39;strike&#39;</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="n">strikeIndex</span><span class="p">)])</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">bitmapSizeTable</span><span class="o">.</span><span class="n">toXML</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">comment</span><span class="p">(</span><span class="s1">&#39;GlyphIds are written but not read. The firstGlyphIndex and</span><span class="se">\n</span><span class="s1">lastGlyphIndex values will be recalculated by the compiler.&#39;</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">indexSubTable</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">indexSubTables</span><span class="p">:</span>
+			<span class="n">indexSubTable</span><span class="o">.</span><span class="n">toXML</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">endtag</span><span class="p">(</span><span class="s1">&#39;strike&#39;</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Strike.fromXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.Strike.fromXML">[docs]</a>	<span class="k">def</span> <span class="nf">fromXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">,</span> <span class="n">locator</span><span class="p">):</span>
+		<span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+				<span class="k">continue</span>
+			<span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span> <span class="o">=</span> <span class="n">element</span>
+			<span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;bitmapSizeTable&#39;</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">bitmapSizeTable</span><span class="o">.</span><span class="n">fromXML</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span>
+			<span class="k">elif</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">_indexSubTableSubclassPrefix</span><span class="p">):</span>
+				<span class="n">indexFormat</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">name</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">_indexSubTableSubclassPrefix</span><span class="p">):])</span>
+				<span class="n">indexFormatClass</span> <span class="o">=</span> <span class="n">locator</span><span class="o">.</span><span class="n">getIndexFormatClass</span><span class="p">(</span><span class="n">indexFormat</span><span class="p">)</span>
+				<span class="n">indexSubTable</span> <span class="o">=</span> <span class="n">indexFormatClass</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+				<span class="n">indexSubTable</span><span class="o">.</span><span class="n">indexFormat</span> <span class="o">=</span> <span class="n">indexFormat</span>
+				<span class="n">indexSubTable</span><span class="o">.</span><span class="n">fromXML</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">indexSubTables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">indexSubTable</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="BitmapSizeTable"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.BitmapSizeTable">[docs]</a><span class="k">class</span> <span class="nc">BitmapSizeTable</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+	<span class="c1"># Returns all the simple metric names that bitmap size table</span>
+	<span class="c1"># cares about in terms of XML creation.</span>
+	<span class="k">def</span> <span class="nf">_getXMLMetricNames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="n">dataNames</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">getformat</span><span class="p">(</span><span class="n">bitmapSizeTableFormatPart1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+		<span class="n">dataNames</span> <span class="o">=</span> <span class="n">dataNames</span> <span class="o">+</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">getformat</span><span class="p">(</span><span class="n">bitmapSizeTableFormatPart2</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+		<span class="c1"># Skip the first 3 data names because they are byte offsets and counts.</span>
+		<span class="k">return</span> <span class="n">dataNames</span><span class="p">[</span><span class="mi">3</span><span class="p">:]</span>
+
+<div class="viewcode-block" id="BitmapSizeTable.toXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.BitmapSizeTable.toXML">[docs]</a>	<span class="k">def</span> <span class="nf">toXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">begintag</span><span class="p">(</span><span class="s1">&#39;bitmapSizeTable&#39;</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">metric</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;hori&#39;</span><span class="p">,</span> <span class="s1">&#39;vert&#39;</span><span class="p">):</span>
+			<span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric</span><span class="p">)</span><span class="o">.</span><span class="n">toXML</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">metricName</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getXMLMetricNames</span><span class="p">():</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="n">metricName</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metricName</span><span class="p">))</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">endtag</span><span class="p">(</span><span class="s1">&#39;bitmapSizeTable&#39;</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="BitmapSizeTable.fromXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.BitmapSizeTable.fromXML">[docs]</a>	<span class="k">def</span> <span class="nf">fromXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="c1"># Create a lookup for all the simple names that make sense to</span>
+		<span class="c1"># bitmap size table. Only read the information from these names.</span>
+		<span class="n">dataNames</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getXMLMetricNames</span><span class="p">())</span>
+		<span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+				<span class="k">continue</span>
+			<span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span> <span class="o">=</span> <span class="n">element</span>
+			<span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;sbitLineMetrics&#39;</span><span class="p">:</span>
+				<span class="n">direction</span> <span class="o">=</span> <span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;direction&#39;</span><span class="p">]</span>
+				<span class="k">assert</span> <span class="n">direction</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;hori&#39;</span><span class="p">,</span> <span class="s1">&#39;vert&#39;</span><span class="p">),</span> <span class="s2">&quot;SbitLineMetrics direction specified invalid.&quot;</span>
+				<span class="n">metricObj</span> <span class="o">=</span> <span class="n">SbitLineMetrics</span><span class="p">()</span>
+				<span class="n">metricObj</span><span class="o">.</span><span class="n">fromXML</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span>
+				<span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)[</span><span class="n">direction</span><span class="p">]</span> <span class="o">=</span> <span class="n">metricObj</span>
+			<span class="k">elif</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">dataNames</span><span class="p">:</span>
+				<span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">])</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;unknown name &#39;</span><span class="si">%s</span><span class="s2">&#39; being ignored in BitmapSizeTable.&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="SbitLineMetrics"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.SbitLineMetrics">[docs]</a><span class="k">class</span> <span class="nc">SbitLineMetrics</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+<div class="viewcode-block" id="SbitLineMetrics.toXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.SbitLineMetrics.toXML">[docs]</a>	<span class="k">def</span> <span class="nf">toXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">begintag</span><span class="p">(</span><span class="s1">&#39;sbitLineMetrics&#39;</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;direction&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">)])</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">metricName</span> <span class="ow">in</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">getformat</span><span class="p">(</span><span class="n">sbitLineMetricsFormat</span><span class="p">)[</span><span class="mi">1</span><span class="p">]:</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="n">metricName</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metricName</span><span class="p">))</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">endtag</span><span class="p">(</span><span class="s1">&#39;sbitLineMetrics&#39;</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="SbitLineMetrics.fromXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.SbitLineMetrics.fromXML">[docs]</a>	<span class="k">def</span> <span class="nf">fromXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">metricNames</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">sstruct</span><span class="o">.</span><span class="n">getformat</span><span class="p">(</span><span class="n">sbitLineMetricsFormat</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+		<span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+				<span class="k">continue</span>
+			<span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span> <span class="o">=</span> <span class="n">element</span>
+			<span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">metricNames</span><span class="p">:</span>
+				<span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">])</span></div></div>
+
+<span class="c1"># Important information about the naming scheme. Used for identifying subtables.</span>
+<span class="n">_indexSubTableSubclassPrefix</span> <span class="o">=</span> <span class="s1">&#39;eblc_index_sub_table_&#39;</span>
+
+<div class="viewcode-block" id="EblcIndexSubTable"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.EblcIndexSubTable">[docs]</a><span class="k">class</span> <span class="nc">EblcIndexSubTable</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">ttFont</span> <span class="o">=</span> <span class="n">ttFont</span>
+		<span class="c1"># TODO Currently non-lazy decompiling doesn&#39;t work for this class...</span>
+		<span class="c1">#if not ttFont.lazy:</span>
+		<span class="c1">#	self.decompile()</span>
+		<span class="c1">#	del self.data, self.ttFont</span>
+
+	<span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+		<span class="c1"># Allow lazy decompile.</span>
+		<span class="k">if</span> <span class="n">attr</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;__&#39;</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">):</span>
+			<span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">decompile</span><span class="p">()</span>
+		<span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+
+	<span class="c1"># This method just takes care of the indexSubHeader. Implementing subclasses</span>
+	<span class="c1"># should call it to compile the indexSubHeader and then continue compiling</span>
+	<span class="c1"># the remainder of their unique format.</span>
+<div class="viewcode-block" id="EblcIndexSubTable.compile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.EblcIndexSubTable.compile">[docs]</a>	<span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="k">return</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">indexSubHeaderFormat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">indexFormat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">imageFormat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">imageDataOffset</span><span class="p">)</span></div>
+
+	<span class="c1"># Creates the XML for bitmap glyphs. Each index sub table basically makes</span>
+	<span class="c1"># the same XML except for specific metric information that is written</span>
+	<span class="c1"># out via a method call that a subclass implements optionally.</span>
+<div class="viewcode-block" id="EblcIndexSubTable.toXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.EblcIndexSubTable.toXML">[docs]</a>	<span class="k">def</span> <span class="nf">toXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">begintag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="p">[</span>
+				<span class="p">(</span><span class="s1">&#39;imageFormat&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">imageFormat</span><span class="p">),</span>
+				<span class="p">(</span><span class="s1">&#39;firstGlyphIndex&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">firstGlyphIndex</span><span class="p">),</span>
+				<span class="p">(</span><span class="s1">&#39;lastGlyphIndex&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lastGlyphIndex</span><span class="p">),</span>
+				<span class="p">])</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">writeMetrics</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span>
+		<span class="c1"># Write out the names as thats all thats needed to rebuild etc.</span>
+		<span class="c1"># For font debugging of consecutive formats the ids are also written.</span>
+		<span class="c1"># The ids are not read when moving from the XML format.</span>
+		<span class="n">glyphIds</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">ttFont</span><span class="o">.</span><span class="n">getGlyphID</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">glyphName</span><span class="p">,</span> <span class="n">glyphId</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">,</span> <span class="n">glyphIds</span><span class="p">):</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="s1">&#39;glyphLoc&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">glyphName</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">glyphId</span><span class="p">)</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">endtag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="EblcIndexSubTable.fromXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.EblcIndexSubTable.fromXML">[docs]</a>	<span class="k">def</span> <span class="nf">fromXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="c1"># Read all the attributes. Even though the glyph indices are</span>
+		<span class="c1"># recalculated, they are still read in case there needs to</span>
+		<span class="c1"># be an immediate export of the data.</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">imageFormat</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;imageFormat&#39;</span><span class="p">])</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">firstGlyphIndex</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;firstGlyphIndex&#39;</span><span class="p">])</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">lastGlyphIndex</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;lastGlyphIndex&#39;</span><span class="p">])</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">readMetrics</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+				<span class="k">continue</span>
+			<span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span> <span class="o">=</span> <span class="n">element</span>
+			<span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;glyphLoc&#39;</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span></div>
+
+	<span class="c1"># A helper method that writes the metrics for the index sub table. It also</span>
+	<span class="c1"># is responsible for writing the image size for fixed size data since fixed</span>
+	<span class="c1"># size is not recalculated on compile. Default behavior is to do nothing.</span>
+<div class="viewcode-block" id="EblcIndexSubTable.writeMetrics"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.EblcIndexSubTable.writeMetrics">[docs]</a>	<span class="k">def</span> <span class="nf">writeMetrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="k">pass</span></div>
+
+	<span class="c1"># A helper method that is the inverse of writeMetrics.</span>
+<div class="viewcode-block" id="EblcIndexSubTable.readMetrics"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.EblcIndexSubTable.readMetrics">[docs]</a>	<span class="k">def</span> <span class="nf">readMetrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="k">pass</span></div>
+
+	<span class="c1"># This method is for fixed glyph data sizes. There are formats where</span>
+	<span class="c1"># the glyph data is fixed but are actually composite glyphs. To handle</span>
+	<span class="c1"># this the font spec in indexSubTable makes the data the size of the</span>
+	<span class="c1"># fixed size by padding the component arrays. This function abstracts</span>
+	<span class="c1"># out this padding process. Input is data unpadded. Output is data</span>
+	<span class="c1"># padded only in fixed formats. Default behavior is to return the data.</span>
+<div class="viewcode-block" id="EblcIndexSubTable.padBitmapData"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.EblcIndexSubTable.padBitmapData">[docs]</a>	<span class="k">def</span> <span class="nf">padBitmapData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+		<span class="k">return</span> <span class="n">data</span></div>
+
+	<span class="c1"># Remove any of the glyph locations and names that are flagged as skipped.</span>
+	<span class="c1"># This only occurs in formats {1,3}.</span>
+<div class="viewcode-block" id="EblcIndexSubTable.removeSkipGlyphs"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.EblcIndexSubTable.removeSkipGlyphs">[docs]</a>	<span class="k">def</span> <span class="nf">removeSkipGlyphs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="c1"># Determines if a name, location pair is a valid data location.</span>
+		<span class="c1"># Skip glyphs are marked when the size is equal to zero.</span>
+		<span class="k">def</span> <span class="nf">isValidLocation</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+			<span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">(</span><span class="n">startByte</span><span class="p">,</span> <span class="n">endByte</span><span class="p">))</span> <span class="o">=</span> <span class="n">args</span>
+			<span class="k">return</span> <span class="n">startByte</span> <span class="o">&lt;</span> <span class="n">endByte</span>
+		<span class="c1"># Remove all skip glyphs.</span>
+		<span class="n">dataPairs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="n">isValidLocation</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">locations</span><span class="p">)))</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">locations</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">dataPairs</span><span class="p">)))</span></div></div>
+
+<span class="c1"># A closure for creating a custom mixin. This is done because formats 1 and 3</span>
+<span class="c1"># are very similar. The only difference between them is the size per offset</span>
+<span class="c1"># value. Code put in here should handle both cases generally.</span>
+<span class="k">def</span> <span class="nf">_createOffsetArrayIndexSubTableMixin</span><span class="p">(</span><span class="n">formatStringForDataType</span><span class="p">):</span>
+
+	<span class="c1"># Prep the data size for the offset array data format.</span>
+	<span class="n">dataFormat</span> <span class="o">=</span> <span class="s1">&#39;&gt;&#39;</span><span class="o">+</span><span class="n">formatStringForDataType</span>
+	<span class="n">offsetDataSize</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">dataFormat</span><span class="p">)</span>
+
+	<span class="k">class</span> <span class="nc">OffsetArrayIndexSubTableMixin</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+		<span class="k">def</span> <span class="nf">decompile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+			<span class="n">numGlyphs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lastGlyphIndex</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">firstGlyphIndex</span> <span class="o">+</span> <span class="mi">1</span>
+			<span class="n">indexingOffsets</span> <span class="o">=</span> <span class="p">[</span><span class="n">glyphIndex</span> <span class="o">*</span> <span class="n">offsetDataSize</span> <span class="k">for</span> <span class="n">glyphIndex</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numGlyphs</span><span class="o">+</span><span class="mi">2</span><span class="p">)]</span>
+			<span class="n">indexingLocations</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">indexingOffsets</span><span class="p">,</span> <span class="n">indexingOffsets</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+			<span class="n">offsetArray</span> <span class="o">=</span> <span class="p">[</span><span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">dataFormat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="o">*</span><span class="n">loc</span><span class="p">)])[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">loc</span> <span class="ow">in</span> <span class="n">indexingLocations</span><span class="p">]</span>
+
+			<span class="n">glyphIds</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">firstGlyphIndex</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lastGlyphIndex</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+			<span class="n">modifiedOffsets</span> <span class="o">=</span> <span class="p">[</span><span class="n">offset</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">imageDataOffset</span> <span class="k">for</span> <span class="n">offset</span> <span class="ow">in</span> <span class="n">offsetArray</span><span class="p">]</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">locations</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">modifiedOffsets</span><span class="p">,</span> <span class="n">modifiedOffsets</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+
+			<span class="bp">self</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ttFont</span><span class="o">.</span><span class="n">getGlyphName</span><span class="p">,</span> <span class="n">glyphIds</span><span class="p">))</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">removeSkipGlyphs</span><span class="p">()</span>
+			<span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ttFont</span>
+
+		<span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+			<span class="c1"># First make sure that all the data lines up properly. Formats 1 and 3</span>
+			<span class="c1"># must have all its data lined up consecutively. If not this will fail.</span>
+			<span class="k">for</span> <span class="n">curLoc</span><span class="p">,</span> <span class="n">nxtLoc</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">locations</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">locations</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+				<span class="k">assert</span> <span class="n">curLoc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">nxtLoc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;Data must be consecutive in indexSubTable offset formats&quot;</span>
+
+			<span class="n">glyphIds</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ttFont</span><span class="o">.</span><span class="n">getGlyphID</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">))</span>
+			<span class="c1"># Make sure that all ids are sorted strictly increasing.</span>
+			<span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">glyphIds</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">glyphIds</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">glyphIds</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+
+			<span class="c1"># Run a simple algorithm to add skip glyphs to the data locations at</span>
+			<span class="c1"># the places where an id is not present.</span>
+			<span class="n">idQueue</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">glyphIds</span><span class="p">)</span>
+			<span class="n">locQueue</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">locations</span><span class="p">)</span>
+			<span class="n">allGlyphIds</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">firstGlyphIndex</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lastGlyphIndex</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+			<span class="n">allLocations</span> <span class="o">=</span> <span class="p">[]</span>
+			<span class="k">for</span> <span class="n">curId</span> <span class="ow">in</span> <span class="n">allGlyphIds</span><span class="p">:</span>
+				<span class="k">if</span> <span class="n">curId</span> <span class="o">!=</span> <span class="n">idQueue</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+					<span class="n">allLocations</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">locQueue</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">locQueue</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="n">idQueue</span><span class="o">.</span><span class="n">popleft</span><span class="p">()</span>
+					<span class="n">allLocations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">locQueue</span><span class="o">.</span><span class="n">popleft</span><span class="p">())</span>
+
+			<span class="c1"># Now that all the locations are collected, pack them appropriately into</span>
+			<span class="c1"># offsets. This is the form where offset[i] is the location and</span>
+			<span class="c1"># offset[i+1]-offset[i] is the size of the data location.</span>
+			<span class="n">offsets</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">allLocations</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="p">[</span><span class="n">loc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">loc</span> <span class="ow">in</span> <span class="n">allLocations</span><span class="p">[</span><span class="mi">1</span><span class="p">:]]</span>
+			<span class="c1"># Image data offset must be less than or equal to the minimum of locations.</span>
+			<span class="c1"># This offset may change the value for round tripping but is safer and</span>
+			<span class="c1"># allows imageDataOffset to not be required to be in the XML version.</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">imageDataOffset</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">offsets</span><span class="p">)</span>
+			<span class="n">offsetArray</span> <span class="o">=</span> <span class="p">[</span><span class="n">offset</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">imageDataOffset</span> <span class="k">for</span> <span class="n">offset</span> <span class="ow">in</span> <span class="n">offsets</span><span class="p">]</span>
+
+			<span class="n">dataList</span> <span class="o">=</span> <span class="p">[</span><span class="n">EblcIndexSubTable</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)]</span>
+			<span class="n">dataList</span> <span class="o">+=</span> <span class="p">[</span><span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">dataFormat</span><span class="p">,</span> <span class="n">offsetValue</span><span class="p">)</span> <span class="k">for</span> <span class="n">offsetValue</span> <span class="ow">in</span> <span class="n">offsetArray</span><span class="p">]</span>
+			<span class="c1"># Take care of any padding issues. Only occurs in format 3.</span>
+			<span class="k">if</span> <span class="n">offsetDataSize</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataList</span><span class="p">)</span> <span class="o">%</span> <span class="mi">4</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+				<span class="n">dataList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">dataFormat</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+			<span class="k">return</span> <span class="n">bytesjoin</span><span class="p">(</span><span class="n">dataList</span><span class="p">)</span>
+
+	<span class="k">return</span> <span class="n">OffsetArrayIndexSubTableMixin</span>
+
+<span class="c1"># A Mixin for functionality shared between the different kinds</span>
+<span class="c1"># of fixed sized data handling. Both kinds have big metrics so</span>
+<span class="c1"># that kind of special processing is also handled in this mixin.</span>
+<div class="viewcode-block" id="FixedSizeIndexSubTableMixin"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.FixedSizeIndexSubTableMixin">[docs]</a><span class="k">class</span> <span class="nc">FixedSizeIndexSubTableMixin</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+<div class="viewcode-block" id="FixedSizeIndexSubTableMixin.writeMetrics"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.FixedSizeIndexSubTableMixin.writeMetrics">[docs]</a>	<span class="k">def</span> <span class="nf">writeMetrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="s1">&#39;imageSize&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">imageSize</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">toXML</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FixedSizeIndexSubTableMixin.readMetrics"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.FixedSizeIndexSubTableMixin.readMetrics">[docs]</a>	<span class="k">def</span> <span class="nf">readMetrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+				<span class="k">continue</span>
+			<span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span> <span class="o">=</span> <span class="n">element</span>
+			<span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;imageSize&#39;</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">imageSize</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">])</span>
+			<span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="n">BigGlyphMetrics</span><span class="o">.</span><span class="vm">__name__</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">metrics</span> <span class="o">=</span> <span class="n">BigGlyphMetrics</span><span class="p">()</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">fromXML</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span>
+			<span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="n">SmallGlyphMetrics</span><span class="o">.</span><span class="vm">__name__</span><span class="p">:</span>
+				<span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;SmallGlyphMetrics being ignored in format </span><span class="si">%d</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">indexFormat</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FixedSizeIndexSubTableMixin.padBitmapData"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.FixedSizeIndexSubTableMixin.padBitmapData">[docs]</a>	<span class="k">def</span> <span class="nf">padBitmapData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+		<span class="c1"># Make sure that the data isn&#39;t bigger than the fixed size.</span>
+		<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">imageSize</span><span class="p">,</span> <span class="s2">&quot;Data in indexSubTable format </span><span class="si">%d</span><span class="s2"> must be less than the fixed size.&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">indexFormat</span>
+		<span class="c1"># Pad the data so that it matches the fixed size.</span>
+		<span class="n">pad</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imageSize</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">))</span> <span class="o">*</span> <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\0</span><span class="s1">&#39;</span>
+		<span class="k">return</span> <span class="n">data</span> <span class="o">+</span> <span class="n">pad</span></div></div>
+
+<div class="viewcode-block" id="eblc_index_sub_table_1"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.eblc_index_sub_table_1">[docs]</a><span class="k">class</span> <span class="nc">eblc_index_sub_table_1</span><span class="p">(</span><span class="n">_createOffsetArrayIndexSubTableMixin</span><span class="p">(</span><span class="s1">&#39;L&#39;</span><span class="p">),</span> <span class="n">EblcIndexSubTable</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+<div class="viewcode-block" id="eblc_index_sub_table_2"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.eblc_index_sub_table_2">[docs]</a><span class="k">class</span> <span class="nc">eblc_index_sub_table_2</span><span class="p">(</span><span class="n">FixedSizeIndexSubTableMixin</span><span class="p">,</span> <span class="n">EblcIndexSubTable</span><span class="p">):</span>
+
+<div class="viewcode-block" id="eblc_index_sub_table_2.decompile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.eblc_index_sub_table_2.decompile">[docs]</a>	<span class="k">def</span> <span class="nf">decompile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imageSize</span><span class="p">,)</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;&gt;L&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[:</span><span class="mi">4</span><span class="p">])</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">metrics</span> <span class="o">=</span> <span class="n">BigGlyphMetrics</span><span class="p">()</span>
+		<span class="n">sstruct</span><span class="o">.</span><span class="n">unpack2</span><span class="p">(</span><span class="n">bigGlyphMetricsFormat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">4</span><span class="p">:],</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">)</span>
+		<span class="n">glyphIds</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">firstGlyphIndex</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lastGlyphIndex</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+		<span class="n">offsets</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">imageSize</span> <span class="o">*</span> <span class="n">i</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">imageDataOffset</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">glyphIds</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">locations</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">offsets</span><span class="p">,</span> <span class="n">offsets</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ttFont</span><span class="o">.</span><span class="n">getGlyphName</span><span class="p">,</span> <span class="n">glyphIds</span><span class="p">))</span>
+		<span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ttFont</span></div>
+
+<div class="viewcode-block" id="eblc_index_sub_table_2.compile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.eblc_index_sub_table_2.compile">[docs]</a>	<span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">glyphIds</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ttFont</span><span class="o">.</span><span class="n">getGlyphID</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">))</span>
+		<span class="c1"># Make sure all the ids are consecutive. This is required by Format 2.</span>
+		<span class="k">assert</span> <span class="n">glyphIds</span> <span class="o">==</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">firstGlyphIndex</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lastGlyphIndex</span><span class="o">+</span><span class="mi">1</span><span class="p">)),</span> <span class="s2">&quot;Format 2 ids must be consecutive.&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">imageDataOffset</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">locations</span><span class="p">))))</span>
+
+		<span class="n">dataList</span> <span class="o">=</span> <span class="p">[</span><span class="n">EblcIndexSubTable</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)]</span>
+		<span class="n">dataList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">&quot;&gt;L&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">imageSize</span><span class="p">))</span>
+		<span class="n">dataList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">bigGlyphMetricsFormat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">))</span>
+		<span class="k">return</span> <span class="n">bytesjoin</span><span class="p">(</span><span class="n">dataList</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="eblc_index_sub_table_3"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.eblc_index_sub_table_3">[docs]</a><span class="k">class</span> <span class="nc">eblc_index_sub_table_3</span><span class="p">(</span><span class="n">_createOffsetArrayIndexSubTableMixin</span><span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">),</span> <span class="n">EblcIndexSubTable</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+<div class="viewcode-block" id="eblc_index_sub_table_4"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.eblc_index_sub_table_4">[docs]</a><span class="k">class</span> <span class="nc">eblc_index_sub_table_4</span><span class="p">(</span><span class="n">EblcIndexSubTable</span><span class="p">):</span>
+
+<div class="viewcode-block" id="eblc_index_sub_table_4.decompile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.eblc_index_sub_table_4.decompile">[docs]</a>	<span class="k">def</span> <span class="nf">decompile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+		<span class="p">(</span><span class="n">numGlyphs</span><span class="p">,)</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;&gt;L&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[:</span><span class="mi">4</span><span class="p">])</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span>
+		<span class="n">indexingOffsets</span> <span class="o">=</span> <span class="p">[</span><span class="n">glyphIndex</span> <span class="o">*</span> <span class="n">codeOffsetPairSize</span> <span class="k">for</span> <span class="n">glyphIndex</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numGlyphs</span><span class="o">+</span><span class="mi">2</span><span class="p">)]</span>
+		<span class="n">indexingLocations</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">indexingOffsets</span><span class="p">,</span> <span class="n">indexingOffsets</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+		<span class="n">glyphArray</span> <span class="o">=</span> <span class="p">[</span><span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">codeOffsetPairFormat</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="o">*</span><span class="n">loc</span><span class="p">)])</span> <span class="k">for</span> <span class="n">loc</span> <span class="ow">in</span> <span class="n">indexingLocations</span><span class="p">]</span>
+		<span class="n">glyphIds</span><span class="p">,</span> <span class="n">offsets</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">glyphArray</span><span class="p">)))</span>
+		<span class="c1"># There are one too many glyph ids. Get rid of the last one.</span>
+		<span class="n">glyphIds</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+
+		<span class="n">offsets</span> <span class="o">=</span> <span class="p">[</span><span class="n">offset</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">imageDataOffset</span> <span class="k">for</span> <span class="n">offset</span> <span class="ow">in</span> <span class="n">offsets</span><span class="p">]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">locations</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">offsets</span><span class="p">,</span> <span class="n">offsets</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ttFont</span><span class="o">.</span><span class="n">getGlyphName</span><span class="p">,</span> <span class="n">glyphIds</span><span class="p">))</span>
+		<span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ttFont</span></div>
+
+<div class="viewcode-block" id="eblc_index_sub_table_4.compile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.eblc_index_sub_table_4.compile">[docs]</a>	<span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="c1"># First make sure that all the data lines up properly. Format 4</span>
+		<span class="c1"># must have all its data lined up consecutively. If not this will fail.</span>
+		<span class="k">for</span> <span class="n">curLoc</span><span class="p">,</span> <span class="n">nxtLoc</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">locations</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">locations</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+			<span class="k">assert</span> <span class="n">curLoc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">nxtLoc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;Data must be consecutive in indexSubTable format 4&quot;</span>
+
+		<span class="n">offsets</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">locations</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="p">[</span><span class="n">loc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">loc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">locations</span><span class="p">[</span><span class="mi">1</span><span class="p">:]]</span>
+		<span class="c1"># Image data offset must be less than or equal to the minimum of locations.</span>
+		<span class="c1"># Resetting this offset may change the value for round tripping but is safer</span>
+		<span class="c1"># and allows imageDataOffset to not be required to be in the XML version.</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">imageDataOffset</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">offsets</span><span class="p">)</span>
+		<span class="n">offsets</span> <span class="o">=</span> <span class="p">[</span><span class="n">offset</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">imageDataOffset</span> <span class="k">for</span> <span class="n">offset</span> <span class="ow">in</span> <span class="n">offsets</span><span class="p">]</span>
+		<span class="n">glyphIds</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ttFont</span><span class="o">.</span><span class="n">getGlyphID</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">))</span>
+		<span class="c1"># Create an iterator over the ids plus a padding value.</span>
+		<span class="n">idsPlusPad</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="n">glyphIds</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+		<span class="n">dataList</span> <span class="o">=</span> <span class="p">[</span><span class="n">EblcIndexSubTable</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)]</span>
+		<span class="n">dataList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">&quot;&gt;L&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">glyphIds</span><span class="p">)))</span>
+		<span class="n">tmp</span> <span class="o">=</span> <span class="p">[</span><span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">codeOffsetPairFormat</span><span class="p">,</span> <span class="o">*</span><span class="n">cop</span><span class="p">)</span> <span class="k">for</span> <span class="n">cop</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">idsPlusPad</span><span class="p">,</span> <span class="n">offsets</span><span class="p">)]</span>
+		<span class="n">dataList</span> <span class="o">+=</span> <span class="n">tmp</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="n">bytesjoin</span><span class="p">(</span><span class="n">dataList</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">data</span></div></div>
+
+<div class="viewcode-block" id="eblc_index_sub_table_5"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.eblc_index_sub_table_5">[docs]</a><span class="k">class</span> <span class="nc">eblc_index_sub_table_5</span><span class="p">(</span><span class="n">FixedSizeIndexSubTableMixin</span><span class="p">,</span> <span class="n">EblcIndexSubTable</span><span class="p">):</span>
+
+<div class="viewcode-block" id="eblc_index_sub_table_5.decompile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.eblc_index_sub_table_5.decompile">[docs]</a>	<span class="k">def</span> <span class="nf">decompile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">origDataLen</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imageSize</span><span class="p">,)</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;&gt;L&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[:</span><span class="mi">4</span><span class="p">])</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">unpack2</span><span class="p">(</span><span class="n">bigGlyphMetricsFormat</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">BigGlyphMetrics</span><span class="p">())</span>
+		<span class="p">(</span><span class="n">numGlyphs</span><span class="p">,)</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;&gt;L&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">[:</span><span class="mi">4</span><span class="p">])</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span>
+		<span class="n">glyphIds</span> <span class="o">=</span> <span class="p">[</span><span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;&gt;H&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span><span class="p">:</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)])[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numGlyphs</span><span class="p">)]</span>
+
+		<span class="n">offsets</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">imageSize</span> <span class="o">*</span> <span class="n">i</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">imageDataOffset</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">glyphIds</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">locations</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">offsets</span><span class="p">,</span> <span class="n">offsets</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ttFont</span><span class="o">.</span><span class="n">getGlyphName</span><span class="p">,</span> <span class="n">glyphIds</span><span class="p">))</span>
+		<span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ttFont</span></div>
+
+<div class="viewcode-block" id="eblc_index_sub_table_5.compile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.E_B_L_C_.eblc_index_sub_table_5.compile">[docs]</a>	<span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">imageDataOffset</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">locations</span><span class="p">))))</span>
+		<span class="n">dataList</span> <span class="o">=</span> <span class="p">[</span><span class="n">EblcIndexSubTable</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)]</span>
+		<span class="n">dataList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">&quot;&gt;L&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">imageSize</span><span class="p">))</span>
+		<span class="n">dataList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">bigGlyphMetricsFormat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">))</span>
+		<span class="n">glyphIds</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ttFont</span><span class="o">.</span><span class="n">getGlyphID</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">))</span>
+		<span class="n">dataList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">&quot;&gt;L&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">glyphIds</span><span class="p">)))</span>
+		<span class="n">dataList</span> <span class="o">+=</span> <span class="p">[</span><span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">&quot;&gt;H&quot;</span><span class="p">,</span> <span class="n">curId</span><span class="p">)</span> <span class="k">for</span> <span class="n">curId</span> <span class="ow">in</span> <span class="n">glyphIds</span><span class="p">]</span>
+		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">glyphIds</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+			<span class="n">dataList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">&quot;&gt;H&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+		<span class="k">return</span> <span class="n">bytesjoin</span><span class="p">(</span><span class="n">dataList</span><span class="p">)</span></div></div>
+
+<span class="c1"># Dictionary of indexFormat to the class representing that format.</span>
+<span class="n">eblc_sub_table_classes</span> <span class="o">=</span> <span class="p">{</span>
+		<span class="mi">1</span><span class="p">:</span> <span class="n">eblc_index_sub_table_1</span><span class="p">,</span>
+		<span class="mi">2</span><span class="p">:</span> <span class="n">eblc_index_sub_table_2</span><span class="p">,</span>
+		<span class="mi">3</span><span class="p">:</span> <span class="n">eblc_index_sub_table_3</span><span class="p">,</span>
+		<span class="mi">4</span><span class="p">:</span> <span class="n">eblc_index_sub_table_4</span><span class="p">,</span>
+		<span class="mi">5</span><span class="p">:</span> <span class="n">eblc_index_sub_table_5</span><span class="p">,</span>
+	<span class="p">}</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../ttLib.html" >fontTools.ttLib</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

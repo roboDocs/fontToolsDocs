@@ -1,0 +1,327 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>basePen &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="boundsPen" href="boundsPen.html" />
+    <link rel="prev" title="pens" href="index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="boundsPen.html" title="boundsPen"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="pens"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">pens</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-fontTools.pens.basePen">
+<span id="basepen"></span><h1>basePen<a class="headerlink" href="#module-fontTools.pens.basePen" title="Permalink to this headline">¶</a></h1>
+<p>fontTools.pens.basePen.py &#8211; Tools and base classes to build pen objects.</p>
+<p>The Pen Protocol</p>
+<p>A Pen is a kind of object that standardizes the way how to &#8220;draw&#8221; outlines:
+it is a middle man between an outline and a drawing. In other words:
+it is an abstraction for drawing outlines, making sure that outline objects
+don&#8217;t need to know the details about how and where they&#8217;re being drawn, and
+that drawings don&#8217;t need to know the details of how outlines are stored.</p>
+<p>The most basic pattern is this:</p>
+<blockquote>
+<div>outline.draw(pen)  # &#8216;outline&#8217; draws itself onto &#8216;pen&#8217;</div></blockquote>
+<p>Pens can be used to render outlines to the screen, but also to construct
+new outlines. Eg. an outline object can be both a drawable object (it has a
+draw() method) as well as a pen itself: you <em>build</em> an outline using pen
+methods.</p>
+<p>The AbstractPen class defines the Pen protocol. It implements almost
+nothing (only no-op closePath() and endPath() methods), but is useful
+for documentation purposes. Subclassing it basically tells the reader:
+&#8220;this class implements the Pen protocol.&#8221;. An examples of an AbstractPen
+subclass is fontTools.pens.transformPen.TransformPen.</p>
+<p>The BasePen class is a base implementation useful for pens that actually
+draw (for example a pen renders outlines using a native graphics engine).
+BasePen contains a lot of base functionality, making it very easy to build
+a pen that fully conforms to the pen protocol. Note that if you subclass
+BasePen, you _don&#8217;<a href="#id1"><span class="problematic" id="id2">t_</span></a> override moveTo(), lineTo(), etc., but _moveTo(),
+_lineTo(), etc. See the BasePen doc string for details. Examples of
+BasePen subclasses are fontTools.pens.boundsPen.BoundsPen and
+fontTools.pens.cocoaPen.CocoaPen.</p>
+<p>Coordinates are usually expressed as (x, y) tuples, but generally any
+sequence of length 2 will do.</p>
+<dl class="class">
+<dt id="fontTools.pens.basePen.AbstractPen">
+<em class="property">class </em><code class="descclassname">fontTools.pens.basePen.</code><code class="descname">AbstractPen</code><a class="reference internal" href="../_modules/fontTools/pens/basePen.html#AbstractPen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.basePen.AbstractPen" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="fontTools.pens.basePen.AbstractPen.addComponent">
+<code class="descname">addComponent</code><span class="sig-paren">(</span><em>glyphName</em>, <em>transformation</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/basePen.html#AbstractPen.addComponent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.basePen.AbstractPen.addComponent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a sub glyph. The &#8216;transformation&#8217; argument must be a 6-tuple
+containing an affine transformation, or a Transform object from the
+fontTools.misc.transform module. More precisely: it should be a
+sequence containing 6 numbers.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fontTools.pens.basePen.AbstractPen.closePath">
+<code class="descname">closePath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/basePen.html#AbstractPen.closePath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.basePen.AbstractPen.closePath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close the current sub path. You must call either pen.closePath()
+or pen.endPath() after each sub path.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fontTools.pens.basePen.AbstractPen.curveTo">
+<code class="descname">curveTo</code><span class="sig-paren">(</span><em>*points</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/basePen.html#AbstractPen.curveTo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.basePen.AbstractPen.curveTo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw a cubic bezier with an arbitrary number of control points.</p>
+<p>The last point specified is on-curve, all others are off-curve
+(control) points. If the number of control points is &gt; 2, the
+segment is split into multiple bezier segments. This works
+like this:</p>
+<p>Let n be the number of control points (which is the number of
+arguments to this call minus 1). If n==2, a plain vanilla cubic
+bezier is drawn. If n==1, we fall back to a quadratic segment and
+if n==0 we draw a straight line. It gets interesting when n&gt;2:
+n-1 PostScript-style cubic segments will be drawn as if it were
+one curve. See decomposeSuperBezierSegment().</p>
+<p>The conversion algorithm used for n&gt;2 is inspired by NURB
+splines, and is conceptually equivalent to the TrueType &#8220;implied
+points&#8221; principle. See also decomposeQuadraticSegment().</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fontTools.pens.basePen.AbstractPen.endPath">
+<code class="descname">endPath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/basePen.html#AbstractPen.endPath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.basePen.AbstractPen.endPath" title="Permalink to this definition">¶</a></dt>
+<dd><p>End the current sub path, but don&#8217;t close it. You must call
+either pen.closePath() or pen.endPath() after each sub path.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fontTools.pens.basePen.AbstractPen.lineTo">
+<code class="descname">lineTo</code><span class="sig-paren">(</span><em>pt</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/basePen.html#AbstractPen.lineTo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.basePen.AbstractPen.lineTo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw a straight line from the current point to &#8216;pt&#8217;.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fontTools.pens.basePen.AbstractPen.moveTo">
+<code class="descname">moveTo</code><span class="sig-paren">(</span><em>pt</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/basePen.html#AbstractPen.moveTo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.basePen.AbstractPen.moveTo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Begin a new sub path, set the current point to &#8216;pt&#8217;. You must
+end each sub path with a call to pen.closePath() or pen.endPath().</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fontTools.pens.basePen.AbstractPen.qCurveTo">
+<code class="descname">qCurveTo</code><span class="sig-paren">(</span><em>*points</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/basePen.html#AbstractPen.qCurveTo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.basePen.AbstractPen.qCurveTo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw a whole string of quadratic curve segments.</p>
+<p>The last point specified is on-curve, all others are off-curve
+points.</p>
+<p>This method implements TrueType-style curves, breaking up curves
+using &#8216;implied points&#8217;: between each two consequtive off-curve points,
+there is one implied point exactly in the middle between them. See
+also decomposeQuadraticSegment().</p>
+<p>The last argument (normally the on-curve point) may be None.
+This is to support contours that have NO on-curve points (a rarely
+seen feature of TrueType outlines).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.pens.basePen.NullPen">
+<em class="property">class </em><code class="descclassname">fontTools.pens.basePen.</code><code class="descname">NullPen</code><a class="reference internal" href="../_modules/fontTools/pens/basePen.html#NullPen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.basePen.NullPen" title="Permalink to this definition">¶</a></dt>
+<dd><p>A pen that does nothing.</p>
+<dl class="method">
+<dt id="fontTools.pens.basePen.NullPen.addComponent">
+<code class="descname">addComponent</code><span class="sig-paren">(</span><em>glyphName</em>, <em>transformation</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/basePen.html#NullPen.addComponent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.basePen.NullPen.addComponent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.pens.basePen.NullPen.closePath">
+<code class="descname">closePath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/basePen.html#NullPen.closePath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.basePen.NullPen.closePath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.pens.basePen.NullPen.curveTo">
+<code class="descname">curveTo</code><span class="sig-paren">(</span><em>*points</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/basePen.html#NullPen.curveTo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.basePen.NullPen.curveTo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.pens.basePen.NullPen.endPath">
+<code class="descname">endPath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/basePen.html#NullPen.endPath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.basePen.NullPen.endPath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.pens.basePen.NullPen.lineTo">
+<code class="descname">lineTo</code><span class="sig-paren">(</span><em>pt</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/basePen.html#NullPen.lineTo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.basePen.NullPen.lineTo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.pens.basePen.NullPen.moveTo">
+<code class="descname">moveTo</code><span class="sig-paren">(</span><em>pt</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/basePen.html#NullPen.moveTo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.basePen.NullPen.moveTo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.pens.basePen.NullPen.qCurveTo">
+<code class="descname">qCurveTo</code><span class="sig-paren">(</span><em>*points</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/basePen.html#NullPen.qCurveTo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.basePen.NullPen.qCurveTo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.pens.basePen.BasePen">
+<em class="property">class </em><code class="descclassname">fontTools.pens.basePen.</code><code class="descname">BasePen</code><span class="sig-paren">(</span><em>glyphSet=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/basePen.html#BasePen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.basePen.BasePen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for drawing pens. You must override _moveTo, _lineTo and
+_curveToOne. You may additionally override _closePath, _endPath,
+addComponent and/or _qCurveToOne. You should not override any other
+methods.</p>
+<dl class="method">
+<dt id="fontTools.pens.basePen.BasePen.closePath">
+<code class="descname">closePath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/basePen.html#BasePen.closePath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.basePen.BasePen.closePath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.pens.basePen.BasePen.curveTo">
+<code class="descname">curveTo</code><span class="sig-paren">(</span><em>*points</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/basePen.html#BasePen.curveTo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.basePen.BasePen.curveTo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.pens.basePen.BasePen.endPath">
+<code class="descname">endPath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/basePen.html#BasePen.endPath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.basePen.BasePen.endPath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.pens.basePen.BasePen.lineTo">
+<code class="descname">lineTo</code><span class="sig-paren">(</span><em>pt</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/basePen.html#BasePen.lineTo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.basePen.BasePen.lineTo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.pens.basePen.BasePen.moveTo">
+<code class="descname">moveTo</code><span class="sig-paren">(</span><em>pt</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/basePen.html#BasePen.moveTo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.basePen.BasePen.moveTo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.pens.basePen.BasePen.qCurveTo">
+<code class="descname">qCurveTo</code><span class="sig-paren">(</span><em>*points</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/basePen.html#BasePen.qCurveTo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.basePen.BasePen.qCurveTo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="fontTools.pens.basePen.decomposeSuperBezierSegment">
+<code class="descclassname">fontTools.pens.basePen.</code><code class="descname">decomposeSuperBezierSegment</code><span class="sig-paren">(</span><em>points</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/basePen.html#decomposeSuperBezierSegment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.basePen.decomposeSuperBezierSegment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Split the SuperBezier described by &#8216;points&#8217; into a list of regular
+bezier segments. The &#8216;points&#8217; argument must be a sequence with length
+3 or greater, containing (x, y) coordinates. The last point is the
+destination on-curve point, the rest of the points are off-curve points.
+The start point should not be supplied.</p>
+<p>This function returns a list of (pt1, pt2, pt3) tuples, which each
+specify a regular curveto-style bezier segment.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fontTools.pens.basePen.decomposeQuadraticSegment">
+<code class="descclassname">fontTools.pens.basePen.</code><code class="descname">decomposeQuadraticSegment</code><span class="sig-paren">(</span><em>points</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/basePen.html#decomposeQuadraticSegment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.basePen.decomposeQuadraticSegment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Split the quadratic curve segment described by &#8216;points&#8217; into a list
+of &#8220;atomic&#8221; quadratic segments. The &#8216;points&#8217; argument must be a sequence
+with length 2 or greater, containing (x, y) coordinates. The last point
+is the destination on-curve point, the rest of the points are off-curve
+points. The start point should not be supplied.</p>
+<p>This function returns a list of (pt1, pt2) tuples, which each specify a
+plain quadratic bezier segment.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">pens</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="boundsPen.html"
+                        title="next chapter">boundsPen</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/pens/basePen.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="boundsPen.html" title="boundsPen"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="pens"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >pens</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

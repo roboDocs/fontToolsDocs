@@ -1,0 +1,201 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fontTools.ttLib.tables._h_h_e_a &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../ttLib.html" accesskey="U">fontTools.ttLib</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fontTools.ttLib.tables._h_h_e_a</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.py23</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc</span> <span class="k">import</span> <span class="n">sstruct</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.textTools</span> <span class="k">import</span> <span class="n">safeEval</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.fixedTools</span> <span class="k">import</span> <span class="p">(</span>
+	<span class="n">ensureVersionIsLong</span> <span class="k">as</span> <span class="n">fi2ve</span><span class="p">,</span> <span class="n">versionToFixed</span> <span class="k">as</span> <span class="n">ve2fi</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">DefaultTable</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+
+<span class="n">hheaFormat</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">		&gt;  # big endian</span>
+<span class="s2">		tableVersion:           L</span>
+<span class="s2">		ascent:                 h</span>
+<span class="s2">		descent:                h</span>
+<span class="s2">		lineGap:                h</span>
+<span class="s2">		advanceWidthMax:        H</span>
+<span class="s2">		minLeftSideBearing:     h</span>
+<span class="s2">		minRightSideBearing:    h</span>
+<span class="s2">		xMaxExtent:             h</span>
+<span class="s2">		caretSlopeRise:         h</span>
+<span class="s2">		caretSlopeRun:          h</span>
+<span class="s2">		caretOffset:            h</span>
+<span class="s2">		reserved0:              h</span>
+<span class="s2">		reserved1:              h</span>
+<span class="s2">		reserved2:              h</span>
+<span class="s2">		reserved3:              h</span>
+<span class="s2">		metricDataFormat:       h</span>
+<span class="s2">		numberOfHMetrics:       H</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="table__h_h_e_a"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._h_h_e_a.table__h_h_e_a">[docs]</a><span class="k">class</span> <span class="nc">table__h_h_e_a</span><span class="p">(</span><span class="n">DefaultTable</span><span class="o">.</span><span class="n">DefaultTable</span><span class="p">):</span>
+
+	<span class="c1"># Note: Keep in sync with table__v_h_e_a</span>
+
+	<span class="n">dependencies</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;hmtx&#39;</span><span class="p">,</span> <span class="s1">&#39;glyf&#39;</span><span class="p">,</span> <span class="s1">&#39;CFF &#39;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="table__h_h_e_a.decompile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._h_h_e_a.table__h_h_e_a.decompile">[docs]</a>	<span class="k">def</span> <span class="nf">decompile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">sstruct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">hheaFormat</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="table__h_h_e_a.compile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._h_h_e_a.table__h_h_e_a.compile">[docs]</a>	<span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">ttFont</span><span class="o">.</span><span class="n">recalcBBoxes</span> <span class="ow">and</span> <span class="p">(</span><span class="n">ttFont</span><span class="o">.</span><span class="n">isLoaded</span><span class="p">(</span><span class="s1">&#39;glyf&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ttFont</span><span class="o">.</span><span class="n">isLoaded</span><span class="p">(</span><span class="s1">&#39;CFF &#39;</span><span class="p">)):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">recalc</span><span class="p">(</span><span class="n">ttFont</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">tableVersion</span> <span class="o">=</span> <span class="n">fi2ve</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tableVersion</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">hheaFormat</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="table__h_h_e_a.recalc"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._h_h_e_a.table__h_h_e_a.recalc">[docs]</a>	<span class="k">def</span> <span class="nf">recalc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="k">if</span> <span class="s1">&#39;hmtx&#39;</span> <span class="ow">in</span> <span class="n">ttFont</span><span class="p">:</span>
+			<span class="n">hmtxTable</span> <span class="o">=</span> <span class="n">ttFont</span><span class="p">[</span><span class="s1">&#39;hmtx&#39;</span><span class="p">]</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">advanceWidthMax</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">adv</span> <span class="k">for</span> <span class="n">adv</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">hmtxTable</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+		<span class="n">boundsWidthDict</span> <span class="o">=</span> <span class="p">{}</span>
+		<span class="k">if</span> <span class="s1">&#39;glyf&#39;</span> <span class="ow">in</span> <span class="n">ttFont</span><span class="p">:</span>
+			<span class="n">glyfTable</span> <span class="o">=</span> <span class="n">ttFont</span><span class="p">[</span><span class="s1">&#39;glyf&#39;</span><span class="p">]</span>
+			<span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">ttFont</span><span class="o">.</span><span class="n">getGlyphOrder</span><span class="p">():</span>
+				<span class="n">g</span> <span class="o">=</span> <span class="n">glyfTable</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+				<span class="k">if</span> <span class="n">g</span><span class="o">.</span><span class="n">numberOfContours</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+					<span class="k">continue</span>
+				<span class="k">if</span> <span class="n">g</span><span class="o">.</span><span class="n">numberOfContours</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="s2">&quot;xMax&quot;</span><span class="p">):</span>
+					<span class="c1"># Composite glyph without extents set.</span>
+					<span class="c1"># Calculate those.</span>
+					<span class="n">g</span><span class="o">.</span><span class="n">recalcBounds</span><span class="p">(</span><span class="n">glyfTable</span><span class="p">)</span>
+				<span class="n">boundsWidthDict</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">xMax</span> <span class="o">-</span> <span class="n">g</span><span class="o">.</span><span class="n">xMin</span>
+		<span class="k">elif</span> <span class="s1">&#39;CFF &#39;</span> <span class="ow">in</span> <span class="n">ttFont</span><span class="p">:</span>
+			<span class="n">topDict</span> <span class="o">=</span> <span class="n">ttFont</span><span class="p">[</span><span class="s1">&#39;CFF &#39;</span><span class="p">]</span><span class="o">.</span><span class="n">cff</span><span class="o">.</span><span class="n">topDictIndex</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+			<span class="n">charStrings</span> <span class="o">=</span> <span class="n">topDict</span><span class="o">.</span><span class="n">CharStrings</span>
+			<span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">ttFont</span><span class="o">.</span><span class="n">getGlyphOrder</span><span class="p">():</span>
+				<span class="n">cs</span> <span class="o">=</span> <span class="n">charStrings</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+				<span class="n">bounds</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">calcBounds</span><span class="p">(</span><span class="n">charStrings</span><span class="p">)</span>
+				<span class="k">if</span> <span class="n">bounds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+					<span class="n">boundsWidthDict</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
+						<span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+		<span class="k">if</span> <span class="n">boundsWidthDict</span><span class="p">:</span>
+			<span class="n">minLeftSideBearing</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">)</span>
+			<span class="n">minRightSideBearing</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">)</span>
+			<span class="n">xMaxExtent</span> <span class="o">=</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">)</span>
+			<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">boundsWidth</span> <span class="ow">in</span> <span class="n">boundsWidthDict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+				<span class="n">advanceWidth</span><span class="p">,</span> <span class="n">lsb</span> <span class="o">=</span> <span class="n">hmtxTable</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+				<span class="n">rsb</span> <span class="o">=</span> <span class="n">advanceWidth</span> <span class="o">-</span> <span class="n">lsb</span> <span class="o">-</span> <span class="n">boundsWidth</span>
+				<span class="n">extent</span> <span class="o">=</span> <span class="n">lsb</span> <span class="o">+</span> <span class="n">boundsWidth</span>
+				<span class="n">minLeftSideBearing</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">minLeftSideBearing</span><span class="p">,</span> <span class="n">lsb</span><span class="p">)</span>
+				<span class="n">minRightSideBearing</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">minRightSideBearing</span><span class="p">,</span> <span class="n">rsb</span><span class="p">)</span>
+				<span class="n">xMaxExtent</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">xMaxExtent</span><span class="p">,</span> <span class="n">extent</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">minLeftSideBearing</span> <span class="o">=</span> <span class="n">minLeftSideBearing</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">minRightSideBearing</span> <span class="o">=</span> <span class="n">minRightSideBearing</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">xMaxExtent</span> <span class="o">=</span> <span class="n">xMaxExtent</span>
+
+		<span class="k">else</span><span class="p">:</span>  <span class="c1"># No glyph has outlines.</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">minLeftSideBearing</span> <span class="o">=</span> <span class="mi">0</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">minRightSideBearing</span> <span class="o">=</span> <span class="mi">0</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">xMaxExtent</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="table__h_h_e_a.toXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._h_h_e_a.table__h_h_e_a.toXML">[docs]</a>	<span class="k">def</span> <span class="nf">toXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">formatstring</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">fixes</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">getformat</span><span class="p">(</span><span class="n">hheaFormat</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+			<span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;tableVersion&quot;</span><span class="p">:</span>
+				<span class="n">value</span> <span class="o">=</span> <span class="n">fi2ve</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+				<span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;0x</span><span class="si">%08x</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">value</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="table__h_h_e_a.fromXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._h_h_e_a.table__h_h_e_a.fromXML">[docs]</a>	<span class="k">def</span> <span class="nf">fromXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;tableVersion&quot;</span><span class="p">:</span>
+			<span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">ve2fi</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]))</span>
+			<span class="k">return</span>
+		<span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]))</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../ttLib.html" >fontTools.ttLib</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

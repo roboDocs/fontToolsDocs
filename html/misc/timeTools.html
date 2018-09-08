@@ -1,0 +1,158 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>timeTools &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="transform" href="transform.html" />
+    <link rel="prev" title="textTools" href="textTools.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="transform.html" title="transform"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="textTools.html" title="textTools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">misc</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-fontTools.misc.timeTools">
+<span id="timetools"></span><h1>timeTools<a class="headerlink" href="#module-fontTools.misc.timeTools" title="Permalink to this headline">¶</a></h1>
+<p>fontTools.misc.timeTools.py &#8211; tools for working with OpenType timestamps.</p>
+<dl class="function">
+<dt id="fontTools.misc.timeTools.asctime">
+<code class="descclassname">fontTools.misc.timeTools.</code><code class="descname">asctime</code><span class="sig-paren">(</span><em>t=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/timeTools.html#asctime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.timeTools.asctime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a tuple or struct_time representing a time as returned by gmtime()
+or localtime() to a 24-character string of the following form:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">asctime</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">gmtime</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+<span class="go">&#39;Thu Jan  1 00:00:00 1970&#39;</span>
+</pre></div>
+</div>
+<p>If t is not provided, the current time as returned by localtime() is used.
+Locale information is not used by asctime().</p>
+<p>This is meant to normalise the output of the built-in time.asctime() across
+different platforms and Python versions.
+In Python 3.x, the day of the month is right-justified, whereas on Windows
+Python 2.7 it is padded with zeros.</p>
+<p>See <a class="reference external" href="https://github.com/behdad/fonttools/issues/455">https://github.com/behdad/fonttools/issues/455</a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.timeTools.timestampFromString">
+<code class="descclassname">fontTools.misc.timeTools.</code><code class="descname">timestampFromString</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/timeTools.html#timestampFromString"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.timeTools.timestampFromString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.timeTools.timestampNow">
+<code class="descclassname">fontTools.misc.timeTools.</code><code class="descname">timestampNow</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/timeTools.html#timestampNow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.timeTools.timestampNow" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.timeTools.timestampSinceEpoch">
+<code class="descclassname">fontTools.misc.timeTools.</code><code class="descname">timestampSinceEpoch</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/timeTools.html#timestampSinceEpoch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.timeTools.timestampSinceEpoch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.timeTools.timestampToString">
+<code class="descclassname">fontTools.misc.timeTools.</code><code class="descname">timestampToString</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/timeTools.html#timestampToString"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.timeTools.timestampToString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="textTools.html"
+                        title="previous chapter">textTools</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="transform.html"
+                        title="next chapter">transform</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/misc/timeTools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="transform.html" title="transform"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="textTools.html" title="textTools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >misc</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

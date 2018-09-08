@@ -1,0 +1,325 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>woff2 &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="ttx" href="../ttx.html" />
+    <link rel="prev" title="tables" href="tables.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../ttx.html" title="ttx"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="tables.html" title="tables"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">ttLib</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-fontTools.ttLib.woff2">
+<span id="woff2"></span><h1>woff2<a class="headerlink" href="#module-fontTools.ttLib.woff2" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="fontTools.ttLib.woff2.WOFF2DirectoryEntry">
+<em class="property">class </em><code class="descclassname">fontTools.ttLib.woff2.</code><code class="descname">WOFF2DirectoryEntry</code><a class="reference internal" href="../_modules/fontTools/ttLib/woff2.html#WOFF2DirectoryEntry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.woff2.WOFF2DirectoryEntry" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="fontTools.ttLib.woff2.WOFF2DirectoryEntry.fromFile">
+<code class="descname">fromFile</code><span class="sig-paren">(</span><em>file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/woff2.html#WOFF2DirectoryEntry.fromFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.woff2.WOFF2DirectoryEntry.fromFile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.ttLib.woff2.WOFF2DirectoryEntry.fromString">
+<code class="descname">fromString</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/woff2.html#WOFF2DirectoryEntry.fromString"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.woff2.WOFF2DirectoryEntry.fromString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.ttLib.woff2.WOFF2DirectoryEntry.toString">
+<code class="descname">toString</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/woff2.html#WOFF2DirectoryEntry.toString"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.woff2.WOFF2DirectoryEntry.toString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.ttLib.woff2.WOFF2FlavorData">
+<em class="property">class </em><code class="descclassname">fontTools.ttLib.woff2.</code><code class="descname">WOFF2FlavorData</code><span class="sig-paren">(</span><em>reader=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/woff2.html#WOFF2FlavorData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.woff2.WOFF2FlavorData" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="fontTools.ttLib.woff2.WOFF2FlavorData.Flavor">
+<code class="descname">Flavor</code><em class="property"> = 'woff2'</em><a class="headerlink" href="#fontTools.ttLib.woff2.WOFF2FlavorData.Flavor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.ttLib.woff2.WOFF2GlyfTable">
+<em class="property">class </em><code class="descclassname">fontTools.ttLib.woff2.</code><code class="descname">WOFF2GlyfTable</code><span class="sig-paren">(</span><em>tag=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/woff2.html#WOFF2GlyfTable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.woff2.WOFF2GlyfTable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decoder/Encoder for WOFF2 &#8216;glyf&#8217; table transform.</p>
+<dl class="method">
+<dt id="fontTools.ttLib.woff2.WOFF2GlyfTable.reconstruct">
+<code class="descname">reconstruct</code><span class="sig-paren">(</span><em>data</em>, <em>ttFont</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/woff2.html#WOFF2GlyfTable.reconstruct"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.woff2.WOFF2GlyfTable.reconstruct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decompile transformed &#8216;glyf&#8217; data.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.ttLib.woff2.WOFF2GlyfTable.subStreams">
+<code class="descname">subStreams</code><em class="property"> = ('nContourStream', 'nPointsStream', 'flagStream', 'glyphStream', 'compositeStream', 'bboxStream', 'instructionStream')</em><a class="headerlink" href="#fontTools.ttLib.woff2.WOFF2GlyfTable.subStreams" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.ttLib.woff2.WOFF2GlyfTable.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>ttFont</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/woff2.html#WOFF2GlyfTable.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.woff2.WOFF2GlyfTable.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return transformed &#8216;glyf&#8217; data</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.ttLib.woff2.WOFF2LocaTable">
+<em class="property">class </em><code class="descclassname">fontTools.ttLib.woff2.</code><code class="descname">WOFF2LocaTable</code><span class="sig-paren">(</span><em>tag=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/woff2.html#WOFF2LocaTable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.woff2.WOFF2LocaTable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Same as parent class. The only difference is that it attempts to preserve
+the &#8216;indexFormat&#8217; as encoded in the WOFF2 glyf table.</p>
+<dl class="method">
+<dt id="fontTools.ttLib.woff2.WOFF2LocaTable.compile">
+<code class="descname">compile</code><span class="sig-paren">(</span><em>ttFont</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/woff2.html#WOFF2LocaTable.compile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.woff2.WOFF2LocaTable.compile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.ttLib.woff2.WOFF2Reader">
+<em class="property">class </em><code class="descclassname">fontTools.ttLib.woff2.</code><code class="descname">WOFF2Reader</code><span class="sig-paren">(</span><em>file</em>, <em>checkChecksums=1</em>, <em>fontNumber=-1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/woff2.html#WOFF2Reader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.woff2.WOFF2Reader" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="fontTools.ttLib.woff2.WOFF2Reader.flavor">
+<code class="descname">flavor</code><em class="property"> = 'woff2'</em><a class="headerlink" href="#fontTools.ttLib.woff2.WOFF2Reader.flavor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.ttLib.woff2.WOFF2Reader.reconstructTable">
+<code class="descname">reconstructTable</code><span class="sig-paren">(</span><em>tag</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/woff2.html#WOFF2Reader.reconstructTable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.woff2.WOFF2Reader.reconstructTable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reconstruct table named &#8216;tag&#8217; from transformed data.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.ttLib.woff2.WOFF2Writer">
+<em class="property">class </em><code class="descclassname">fontTools.ttLib.woff2.</code><code class="descname">WOFF2Writer</code><span class="sig-paren">(</span><em>file</em>, <em>numTables</em>, <em>sfntVersion='x00x01x00x00'</em>, <em>flavor=None</em>, <em>flavorData=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/woff2.html#WOFF2Writer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.woff2.WOFF2Writer" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="fontTools.ttLib.woff2.WOFF2Writer.close">
+<code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/woff2.html#WOFF2Writer.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.woff2.WOFF2Writer.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>All tags must have been specified. Now write the table data and directory.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.ttLib.woff2.WOFF2Writer.flavor">
+<code class="descname">flavor</code><em class="property"> = 'woff2'</em><a class="headerlink" href="#fontTools.ttLib.woff2.WOFF2Writer.flavor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.ttLib.woff2.WOFF2Writer.reordersTables">
+<code class="descname">reordersTables</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/woff2.html#WOFF2Writer.reordersTables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.woff2.WOFF2Writer.reordersTables" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.ttLib.woff2.WOFF2Writer.transformTable">
+<code class="descname">transformTable</code><span class="sig-paren">(</span><em>tag</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/woff2.html#WOFF2Writer.transformTable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.woff2.WOFF2Writer.transformTable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return transformed table data.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fontTools.ttLib.woff2.WOFF2Writer.writeMasterChecksum">
+<code class="descname">writeMasterChecksum</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/woff2.html#WOFF2Writer.writeMasterChecksum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.woff2.WOFF2Writer.writeMasterChecksum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write checkSumAdjustment to the transformBuffer.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="fontTools.ttLib.woff2.base128Size">
+<code class="descclassname">fontTools.ttLib.woff2.</code><code class="descname">base128Size</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/woff2.html#base128Size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.woff2.base128Size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the length in bytes of a UIntBase128-encoded sequence with value n.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">base128Size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">base128Size</span><span class="p">(</span><span class="mi">24567</span><span class="p">)</span>
+<span class="go">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">base128Size</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="mi">32</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">5</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="fontTools.ttLib.woff2.getKnownTagIndex">
+<code class="descclassname">fontTools.ttLib.woff2.</code><code class="descname">getKnownTagIndex</code><span class="sig-paren">(</span><em>tag</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/woff2.html#getKnownTagIndex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.woff2.getKnownTagIndex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return index of &#8216;tag&#8217; in woff2KnownTags list. Return 63 if not found.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fontTools.ttLib.woff2.pack255UShort">
+<code class="descclassname">fontTools.ttLib.woff2.</code><code class="descname">pack255UShort</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/woff2.html#pack255UShort"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.woff2.pack255UShort" title="Permalink to this definition">¶</a></dt>
+<dd><p>Encode unsigned integer in range 0 to 65535 (inclusive) to a bytestring
+using 255UInt16 variable-length encoding.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pack255UShort</span><span class="p">(</span><span class="mi">252</span><span class="p">)</span> <span class="o">==</span> <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\xfc</span><span class="s1">&#39;</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pack255UShort</span><span class="p">(</span><span class="mi">506</span><span class="p">)</span> <span class="o">==</span> <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\xfe\x00</span><span class="s1">&#39;</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pack255UShort</span><span class="p">(</span><span class="mi">762</span><span class="p">)</span> <span class="o">==</span> <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\xfd\x02\xfa</span><span class="s1">&#39;</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="fontTools.ttLib.woff2.packBase128">
+<code class="descclassname">fontTools.ttLib.woff2.</code><code class="descname">packBase128</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/woff2.html#packBase128"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.woff2.packBase128" title="Permalink to this definition">¶</a></dt>
+<dd><p>Encode unsigned integer in range 0 to 2**32-1 (inclusive) to a string of
+bytes using UIntBase128 variable-length encoding. Produce the shortest possible
+encoding.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">packBase128</span><span class="p">(</span><span class="mi">63</span><span class="p">)</span> <span class="o">==</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\x3f</span><span class="s2">&quot;</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">packBase128</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="mi">32</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x8f\xff\xff\xff\x7f</span><span class="s1">&#39;</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="fontTools.ttLib.woff2.unpack255UShort">
+<code class="descclassname">fontTools.ttLib.woff2.</code><code class="descname">unpack255UShort</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/woff2.html#unpack255UShort"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.woff2.unpack255UShort" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read one to three bytes from 255UInt16-encoded input string, and return a
+tuple containing the decoded integer plus any leftover data.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">unpack255UShort</span><span class="p">(</span><span class="n">bytechr</span><span class="p">(</span><span class="mi">252</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">252</span>
+</pre></div>
+</div>
+<p>Note that some numbers (e.g. 506) can have multiple encodings:
+&gt;&gt;&gt; unpack255UShort(struct.pack(&#8220;BB&#8221;, 254, 0))[0]
+506
+&gt;&gt;&gt; unpack255UShort(struct.pack(&#8220;BB&#8221;, 255, 253))[0]
+506
+&gt;&gt;&gt; unpack255UShort(struct.pack(&#8220;BBB&#8221;, 253, 1, 250))[0]
+506</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fontTools.ttLib.woff2.unpackBase128">
+<code class="descclassname">fontTools.ttLib.woff2.</code><code class="descname">unpackBase128</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/woff2.html#unpackBase128"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.woff2.unpackBase128" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read one to five bytes from UIntBase128-encoded input string, and return
+a tuple containing the decoded integer plus any leftover data.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">unpackBase128</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x3f\x00\x00</span><span class="s1">&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="mi">63</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\x00\x00</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">unpackBase128</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x8f\xff\xff\xff\x7f</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">4294967295</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">unpackBase128</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x80\x80\x3f</span><span class="s1">&#39;</span><span class="p">)</span>  
+<span class="gt">Traceback (most recent call last):</span>
+  File <span class="nb">&quot;&lt;stdin&gt;&quot;</span>, line <span class="m">1</span>, in <span class="n">?</span>
+<span class="gr">TTLibError</span>: <span class="n">UIntBase128 value must not start with leading zeros</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">unpackBase128</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x8f\xff\xff\xff\xff\x7f</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>  
+<span class="gt">Traceback (most recent call last):</span>
+  File <span class="nb">&quot;&lt;stdin&gt;&quot;</span>, line <span class="m">1</span>, in <span class="n">?</span>
+<span class="gr">TTLibError</span>: <span class="n">UIntBase128-encoded sequence is longer than 5 bytes</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">unpackBase128</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x90\x80\x80\x80\x00</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>  
+<span class="gt">Traceback (most recent call last):</span>
+  File <span class="nb">&quot;&lt;stdin&gt;&quot;</span>, line <span class="m">1</span>, in <span class="n">?</span>
+<span class="gr">TTLibError</span>: <span class="n">UIntBase128 value exceeds 2**32-1</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="tables.html"
+                        title="previous chapter">tables</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../ttx.html"
+                        title="next chapter">ttx</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/ttLib/woff2.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../ttx.html" title="ttx"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="tables.html" title="tables"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >ttLib</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

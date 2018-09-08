@@ -1,0 +1,959 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fontTools.varLib &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fontTools.varLib</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Module for dealing with &#39;gvar&#39;-style font variations, also known as run-time</span>
+<span class="sd">interpolation.</span>
+
+<span class="sd">The ideas here are very similar to MutatorMath.  There is even code to read</span>
+<span class="sd">MutatorMath .designspace files in the varLib.designspace module.</span>
+
+<span class="sd">For now, if you run this file on a designspace file, it tries to find</span>
+<span class="sd">ttf-interpolatable files for the masters and build a variable-font from</span>
+<span class="sd">them.  Such ttf-interpolatable and designspace files can be generated from</span>
+<span class="sd">a Glyphs source, eg., using noto-source as an example:</span>
+
+<span class="sd">	$ fontmake -o ttf-interpolatable -g NotoSansArabic-MM.glyphs</span>
+
+<span class="sd">Then you can make a variable-font this way:</span>
+
+<span class="sd">	$ fonttools varLib master_ufo/NotoSansArabic.designspace</span>
+
+<span class="sd">API *will* change in near future.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.py23</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.fixedTools</span> <span class="k">import</span> <span class="n">otRound</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.arrayTools</span> <span class="k">import</span> <span class="n">Vector</span>
+<span class="kn">from</span> <span class="nn">fontTools.ttLib</span> <span class="k">import</span> <span class="n">TTFont</span><span class="p">,</span> <span class="n">newTable</span>
+<span class="kn">from</span> <span class="nn">fontTools.ttLib.tables._n_a_m_e</span> <span class="k">import</span> <span class="n">NameRecord</span>
+<span class="kn">from</span> <span class="nn">fontTools.ttLib.tables._f_v_a_r</span> <span class="k">import</span> <span class="n">Axis</span><span class="p">,</span> <span class="n">NamedInstance</span>
+<span class="kn">from</span> <span class="nn">fontTools.ttLib.tables._g_l_y_f</span> <span class="k">import</span> <span class="n">GlyphCoordinates</span>
+<span class="kn">from</span> <span class="nn">fontTools.ttLib.tables.ttProgram</span> <span class="k">import</span> <span class="n">Program</span>
+<span class="kn">from</span> <span class="nn">fontTools.ttLib.tables.TupleVariation</span> <span class="k">import</span> <span class="n">TupleVariation</span>
+<span class="kn">from</span> <span class="nn">fontTools.ttLib.tables</span> <span class="k">import</span> <span class="n">otTables</span> <span class="k">as</span> <span class="n">ot</span>
+<span class="kn">from</span> <span class="nn">fontTools.ttLib.tables.otBase</span> <span class="k">import</span> <span class="n">OTTableWriter</span>
+<span class="kn">from</span> <span class="nn">fontTools.varLib</span> <span class="k">import</span> <span class="n">builder</span><span class="p">,</span> <span class="n">designspace</span><span class="p">,</span> <span class="n">models</span><span class="p">,</span> <span class="n">varStore</span>
+<span class="kn">from</span> <span class="nn">fontTools.varLib.merger</span> <span class="k">import</span> <span class="n">VariationMerger</span><span class="p">,</span> <span class="n">_all_equal</span>
+<span class="kn">from</span> <span class="nn">fontTools.varLib.mvar</span> <span class="k">import</span> <span class="n">MVAR_ENTRIES</span>
+<span class="kn">from</span> <span class="nn">fontTools.varLib.iup</span> <span class="k">import</span> <span class="n">iup_delta_optimize</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+<span class="kn">import</span> <span class="nn">os.path</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">pprint</span> <span class="k">import</span> <span class="n">pformat</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;fontTools.varLib&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="VarLibError"><a class="viewcode-back" href="../../varLib/index.html#fontTools.varLib.VarLibError">[docs]</a><span class="k">class</span> <span class="nc">VarLibError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+<span class="c1">#</span>
+<span class="c1"># Creation routines</span>
+<span class="c1">#</span>
+
+<span class="k">def</span> <span class="nf">_add_fvar</span><span class="p">(</span><span class="n">font</span><span class="p">,</span> <span class="n">axes</span><span class="p">,</span> <span class="n">instances</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Add &#39;fvar&#39; table to font.</span>
+
+<span class="sd">	axes is an ordered dictionary of DesignspaceAxis objects.</span>
+
+<span class="sd">	instances is list of dictionary objects with &#39;location&#39;, &#39;stylename&#39;,</span>
+<span class="sd">	and possibly &#39;postscriptfontname&#39; entries.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="k">assert</span> <span class="n">axes</span>
+	<span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">)</span>
+
+	<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Generating fvar&quot;</span><span class="p">)</span>
+
+	<span class="n">fvar</span> <span class="o">=</span> <span class="n">newTable</span><span class="p">(</span><span class="s1">&#39;fvar&#39;</span><span class="p">)</span>
+	<span class="n">nameTable</span> <span class="o">=</span> <span class="n">font</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+
+	<span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">axes</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+		<span class="n">axis</span> <span class="o">=</span> <span class="n">Axis</span><span class="p">()</span>
+		<span class="n">axis</span><span class="o">.</span><span class="n">axisTag</span> <span class="o">=</span> <span class="n">Tag</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">tag</span><span class="p">)</span>
+		<span class="c1"># TODO Skip axes that have no variation.</span>
+		<span class="n">axis</span><span class="o">.</span><span class="n">minValue</span><span class="p">,</span> <span class="n">axis</span><span class="o">.</span><span class="n">defaultValue</span><span class="p">,</span> <span class="n">axis</span><span class="o">.</span><span class="n">maxValue</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">minimum</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">default</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">maximum</span>
+		<span class="n">axis</span><span class="o">.</span><span class="n">axisNameID</span> <span class="o">=</span> <span class="n">nameTable</span><span class="o">.</span><span class="n">addName</span><span class="p">(</span><span class="n">tounicode</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">labelname</span><span class="p">[</span><span class="s1">&#39;en&#39;</span><span class="p">]))</span>
+		<span class="c1"># TODO:</span>
+		<span class="c1"># Replace previous line with the following when the following issues are resolved:</span>
+		<span class="c1"># https://github.com/fonttools/fonttools/issues/930</span>
+		<span class="c1"># https://github.com/fonttools/fonttools/issues/931</span>
+		<span class="c1"># axis.axisNameID = nameTable.addMultilingualName(a.labelname, font)</span>
+		<span class="n">fvar</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+
+	<span class="k">for</span> <span class="n">instance</span> <span class="ow">in</span> <span class="n">instances</span><span class="p">:</span>
+		<span class="n">coordinates</span> <span class="o">=</span> <span class="n">instance</span><span class="p">[</span><span class="s1">&#39;location&#39;</span><span class="p">]</span>
+		<span class="n">name</span> <span class="o">=</span> <span class="n">tounicode</span><span class="p">(</span><span class="n">instance</span><span class="p">[</span><span class="s1">&#39;stylename&#39;</span><span class="p">])</span>
+		<span class="n">psname</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;postscriptfontname&#39;</span><span class="p">)</span>
+
+		<span class="n">inst</span> <span class="o">=</span> <span class="n">NamedInstance</span><span class="p">()</span>
+		<span class="n">inst</span><span class="o">.</span><span class="n">subfamilyNameID</span> <span class="o">=</span> <span class="n">nameTable</span><span class="o">.</span><span class="n">addName</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">psname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">psname</span> <span class="o">=</span> <span class="n">tounicode</span><span class="p">(</span><span class="n">psname</span><span class="p">)</span>
+			<span class="n">inst</span><span class="o">.</span><span class="n">postscriptNameID</span> <span class="o">=</span> <span class="n">nameTable</span><span class="o">.</span><span class="n">addName</span><span class="p">(</span><span class="n">psname</span><span class="p">)</span>
+		<span class="n">inst</span><span class="o">.</span><span class="n">coordinates</span> <span class="o">=</span> <span class="p">{</span><span class="n">axes</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">tag</span><span class="p">:</span><span class="n">axes</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">map_backward</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+		<span class="c1">#inst.coordinates = {axes[k].tag:v for k,v in coordinates.items()}</span>
+		<span class="n">fvar</span><span class="o">.</span><span class="n">instances</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inst</span><span class="p">)</span>
+
+	<span class="k">assert</span> <span class="s2">&quot;fvar&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">font</span>
+	<span class="n">font</span><span class="p">[</span><span class="s1">&#39;fvar&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fvar</span>
+
+	<span class="k">return</span> <span class="n">fvar</span>
+
+<span class="k">def</span> <span class="nf">_add_avar</span><span class="p">(</span><span class="n">font</span><span class="p">,</span> <span class="n">axes</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Add &#39;avar&#39; table to font.</span>
+
+<span class="sd">	axes is an ordered dictionary of DesignspaceAxis objects.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="k">assert</span> <span class="n">axes</span>
+	<span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">)</span>
+
+	<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Generating avar&quot;</span><span class="p">)</span>
+
+	<span class="n">avar</span> <span class="o">=</span> <span class="n">newTable</span><span class="p">(</span><span class="s1">&#39;avar&#39;</span><span class="p">)</span>
+
+	<span class="n">interesting</span> <span class="o">=</span> <span class="kc">False</span>
+	<span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="n">axes</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+		<span class="c1"># Currently, some rasterizers require that the default value maps</span>
+		<span class="c1"># (-1 to -1, 0 to 0, and 1 to 1) be present for all the segment</span>
+		<span class="c1"># maps, even when the default normalization mapping for the axis</span>
+		<span class="c1"># was not modified.</span>
+		<span class="c1"># https://github.com/googlei18n/fontmake/issues/295</span>
+		<span class="c1"># https://github.com/fonttools/fonttools/issues/1011</span>
+		<span class="c1"># TODO(anthrotype) revert this (and 19c4b37) when issue is fixed</span>
+		<span class="n">curve</span> <span class="o">=</span> <span class="n">avar</span><span class="o">.</span><span class="n">segments</span><span class="p">[</span><span class="n">axis</span><span class="o">.</span><span class="n">tag</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="o">-</span><span class="mf">1.0</span><span class="p">:</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">}</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">axis</span><span class="o">.</span><span class="n">map</span><span class="p">:</span>
+			<span class="k">continue</span>
+
+		<span class="n">items</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">axis</span><span class="o">.</span><span class="n">map</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+		<span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">]</span>
+		<span class="n">vals</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">]</span>
+
+		<span class="c1"># Current avar requirements.  We don&#39;t have to enforce</span>
+		<span class="c1"># these on the designer and can deduce some ourselves,</span>
+		<span class="c1"># but for now just enforce them.</span>
+		<span class="k">assert</span> <span class="n">axis</span><span class="o">.</span><span class="n">minimum</span> <span class="o">==</span> <span class="nb">min</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span>
+		<span class="k">assert</span> <span class="n">axis</span><span class="o">.</span><span class="n">maximum</span> <span class="o">==</span> <span class="nb">max</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span>
+		<span class="k">assert</span> <span class="n">axis</span><span class="o">.</span><span class="n">default</span> <span class="ow">in</span> <span class="n">keys</span>
+		<span class="c1"># No duplicates</span>
+		<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">keys</span><span class="p">))</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span>
+		<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">vals</span><span class="p">))</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
+		<span class="c1"># Ascending values</span>
+		<span class="k">assert</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span> <span class="o">==</span> <span class="n">vals</span>
+
+		<span class="n">keys_triple</span> <span class="o">=</span> <span class="p">(</span><span class="n">axis</span><span class="o">.</span><span class="n">minimum</span><span class="p">,</span> <span class="n">axis</span><span class="o">.</span><span class="n">default</span><span class="p">,</span> <span class="n">axis</span><span class="o">.</span><span class="n">maximum</span><span class="p">)</span>
+		<span class="n">vals_triple</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">axis</span><span class="o">.</span><span class="n">map_forward</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">keys_triple</span><span class="p">)</span>
+
+		<span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">models</span><span class="o">.</span><span class="n">normalizeValue</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">keys_triple</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">]</span>
+		<span class="n">vals</span> <span class="o">=</span> <span class="p">[</span><span class="n">models</span><span class="o">.</span><span class="n">normalizeValue</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">vals_triple</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">]</span>
+
+		<span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">k</span> <span class="o">==</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">vals</span><span class="p">)):</span>
+			<span class="k">continue</span>
+		<span class="n">interesting</span> <span class="o">=</span> <span class="kc">True</span>
+
+		<span class="n">curve</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">vals</span><span class="p">))</span>
+
+		<span class="k">assert</span> <span class="mf">0.0</span> <span class="ow">in</span> <span class="n">curve</span> <span class="ow">and</span> <span class="n">curve</span><span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">==</span> <span class="mf">0.0</span>
+		<span class="k">assert</span> <span class="o">-</span><span class="mf">1.0</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">curve</span> <span class="ow">or</span> <span class="n">curve</span><span class="p">[</span><span class="o">-</span><span class="mf">1.0</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mf">1.0</span>
+		<span class="k">assert</span> <span class="o">+</span><span class="mf">1.0</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">curve</span> <span class="ow">or</span> <span class="n">curve</span><span class="p">[</span><span class="o">+</span><span class="mf">1.0</span><span class="p">]</span> <span class="o">==</span> <span class="o">+</span><span class="mf">1.0</span>
+		<span class="c1"># curve.update({-1.0: -1.0, 0.0: 0.0, 1.0: 1.0})</span>
+
+	<span class="k">assert</span> <span class="s2">&quot;avar&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">font</span>
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">interesting</span><span class="p">:</span>
+		<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No need for avar&quot;</span><span class="p">)</span>
+		<span class="n">avar</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">font</span><span class="p">[</span><span class="s1">&#39;avar&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">avar</span>
+
+	<span class="k">return</span> <span class="n">avar</span>
+
+<span class="k">def</span> <span class="nf">_add_stat</span><span class="p">(</span><span class="n">font</span><span class="p">,</span> <span class="n">axes</span><span class="p">):</span>
+	<span class="c1"># for now we just get the axis tags and nameIDs from the fvar,</span>
+	<span class="c1"># so we can reuse the same nameIDs which were defined in there.</span>
+	<span class="c1"># TODO make use of &#39;axes&#39; once it adds style attributes info:</span>
+	<span class="c1"># https://github.com/LettError/designSpaceDocument/issues/8</span>
+
+	<span class="k">if</span> <span class="s2">&quot;STAT&quot;</span> <span class="ow">in</span> <span class="n">font</span><span class="p">:</span>
+		<span class="k">return</span>
+
+	<span class="n">fvarTable</span> <span class="o">=</span> <span class="n">font</span><span class="p">[</span><span class="s1">&#39;fvar&#39;</span><span class="p">]</span>
+
+	<span class="n">STAT</span> <span class="o">=</span> <span class="n">font</span><span class="p">[</span><span class="s2">&quot;STAT&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">newTable</span><span class="p">(</span><span class="s1">&#39;STAT&#39;</span><span class="p">)</span>
+	<span class="n">stat</span> <span class="o">=</span> <span class="n">STAT</span><span class="o">.</span><span class="n">table</span> <span class="o">=</span> <span class="n">ot</span><span class="o">.</span><span class="n">STAT</span><span class="p">()</span>
+	<span class="n">stat</span><span class="o">.</span><span class="n">Version</span> <span class="o">=</span> <span class="mh">0x00010002</span>
+
+	<span class="n">axisRecords</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fvarTable</span><span class="o">.</span><span class="n">axes</span><span class="p">):</span>
+		<span class="n">axis</span> <span class="o">=</span> <span class="n">ot</span><span class="o">.</span><span class="n">AxisRecord</span><span class="p">()</span>
+		<span class="n">axis</span><span class="o">.</span><span class="n">AxisTag</span> <span class="o">=</span> <span class="n">Tag</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">axisTag</span><span class="p">)</span>
+		<span class="n">axis</span><span class="o">.</span><span class="n">AxisNameID</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">axisNameID</span>
+		<span class="n">axis</span><span class="o">.</span><span class="n">AxisOrdering</span> <span class="o">=</span> <span class="n">i</span>
+		<span class="n">axisRecords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+
+	<span class="n">axisRecordArray</span> <span class="o">=</span> <span class="n">ot</span><span class="o">.</span><span class="n">AxisRecordArray</span><span class="p">()</span>
+	<span class="n">axisRecordArray</span><span class="o">.</span><span class="n">Axis</span> <span class="o">=</span> <span class="n">axisRecords</span>
+	<span class="c1"># XXX these should not be hard-coded but computed automatically</span>
+	<span class="n">stat</span><span class="o">.</span><span class="n">DesignAxisRecordSize</span> <span class="o">=</span> <span class="mi">8</span>
+	<span class="n">stat</span><span class="o">.</span><span class="n">DesignAxisCount</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">axisRecords</span><span class="p">)</span>
+	<span class="n">stat</span><span class="o">.</span><span class="n">DesignAxisRecord</span> <span class="o">=</span> <span class="n">axisRecordArray</span>
+
+	<span class="c1"># for the elided fallback name, we default to the base style name.</span>
+	<span class="c1"># TODO make this user-configurable via designspace document</span>
+	<span class="n">stat</span><span class="o">.</span><span class="n">ElidedFallbackNameID</span> <span class="o">=</span> <span class="mi">2</span>
+
+<span class="c1"># TODO Move to glyf or gvar table proper</span>
+<span class="k">def</span> <span class="nf">_GetCoordinates</span><span class="p">(</span><span class="n">font</span><span class="p">,</span> <span class="n">glyphName</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;font, glyphName --&gt; glyph coordinates as expected by &quot;gvar&quot; table</span>
+
+<span class="sd">	The result includes four &quot;phantom points&quot; for the glyph metrics,</span>
+<span class="sd">	as mandated by the &quot;gvar&quot; spec.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">glyf</span> <span class="o">=</span> <span class="n">font</span><span class="p">[</span><span class="s2">&quot;glyf&quot;</span><span class="p">]</span>
+	<span class="k">if</span> <span class="n">glyphName</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">glyf</span><span class="o">.</span><span class="n">glyphs</span><span class="p">:</span> <span class="k">return</span> <span class="kc">None</span>
+	<span class="n">glyph</span> <span class="o">=</span> <span class="n">glyf</span><span class="p">[</span><span class="n">glyphName</span><span class="p">]</span>
+	<span class="k">if</span> <span class="n">glyph</span><span class="o">.</span><span class="n">isComposite</span><span class="p">():</span>
+		<span class="n">coord</span> <span class="o">=</span> <span class="n">GlyphCoordinates</span><span class="p">([(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span><span class="nb">getattr</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">glyph</span><span class="o">.</span><span class="n">components</span><span class="p">])</span>
+		<span class="n">control</span> <span class="o">=</span> <span class="p">(</span><span class="n">glyph</span><span class="o">.</span><span class="n">numberOfContours</span><span class="p">,[</span><span class="n">c</span><span class="o">.</span><span class="n">glyphName</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">glyph</span><span class="o">.</span><span class="n">components</span><span class="p">])</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">allData</span> <span class="o">=</span> <span class="n">glyph</span><span class="o">.</span><span class="n">getCoordinates</span><span class="p">(</span><span class="n">glyf</span><span class="p">)</span>
+		<span class="n">coord</span> <span class="o">=</span> <span class="n">allData</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+		<span class="n">control</span> <span class="o">=</span> <span class="p">(</span><span class="n">glyph</span><span class="o">.</span><span class="n">numberOfContours</span><span class="p">,)</span><span class="o">+</span><span class="n">allData</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+	<span class="c1"># Add phantom points for (left, right, top, bottom) positions.</span>
+	<span class="n">horizontalAdvanceWidth</span><span class="p">,</span> <span class="n">leftSideBearing</span> <span class="o">=</span> <span class="n">font</span><span class="p">[</span><span class="s2">&quot;hmtx&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">metrics</span><span class="p">[</span><span class="n">glyphName</span><span class="p">]</span>
+	<span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">glyph</span><span class="p">,</span> <span class="s1">&#39;xMin&#39;</span><span class="p">):</span>
+		<span class="n">glyph</span><span class="o">.</span><span class="n">recalcBounds</span><span class="p">(</span><span class="n">glyf</span><span class="p">)</span>
+	<span class="n">leftSideX</span> <span class="o">=</span> <span class="n">glyph</span><span class="o">.</span><span class="n">xMin</span> <span class="o">-</span> <span class="n">leftSideBearing</span>
+	<span class="n">rightSideX</span> <span class="o">=</span> <span class="n">leftSideX</span> <span class="o">+</span> <span class="n">horizontalAdvanceWidth</span>
+	<span class="c1"># XXX these are incorrect.  Load vmtx and fix.</span>
+	<span class="n">topSideY</span> <span class="o">=</span> <span class="n">glyph</span><span class="o">.</span><span class="n">yMax</span>
+	<span class="n">bottomSideY</span> <span class="o">=</span> <span class="o">-</span><span class="n">glyph</span><span class="o">.</span><span class="n">yMin</span>
+	<span class="n">coord</span> <span class="o">=</span> <span class="n">coord</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+	<span class="n">coord</span><span class="o">.</span><span class="n">extend</span><span class="p">([(</span><span class="n">leftSideX</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+	              <span class="p">(</span><span class="n">rightSideX</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+	              <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">topSideY</span><span class="p">),</span>
+	              <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">bottomSideY</span><span class="p">)])</span>
+
+	<span class="k">return</span> <span class="n">coord</span><span class="p">,</span> <span class="n">control</span>
+
+<span class="c1"># TODO Move to glyf or gvar table proper</span>
+<span class="k">def</span> <span class="nf">_SetCoordinates</span><span class="p">(</span><span class="n">font</span><span class="p">,</span> <span class="n">glyphName</span><span class="p">,</span> <span class="n">coord</span><span class="p">):</span>
+	<span class="n">glyf</span> <span class="o">=</span> <span class="n">font</span><span class="p">[</span><span class="s2">&quot;glyf&quot;</span><span class="p">]</span>
+	<span class="k">assert</span> <span class="n">glyphName</span> <span class="ow">in</span> <span class="n">glyf</span><span class="o">.</span><span class="n">glyphs</span>
+	<span class="n">glyph</span> <span class="o">=</span> <span class="n">glyf</span><span class="p">[</span><span class="n">glyphName</span><span class="p">]</span>
+
+	<span class="c1"># Handle phantom points for (left, right, top, bottom) positions.</span>
+	<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">coord</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">4</span>
+	<span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">glyph</span><span class="p">,</span> <span class="s1">&#39;xMin&#39;</span><span class="p">):</span>
+		<span class="n">glyph</span><span class="o">.</span><span class="n">recalcBounds</span><span class="p">(</span><span class="n">glyf</span><span class="p">)</span>
+	<span class="n">leftSideX</span> <span class="o">=</span> <span class="n">coord</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+	<span class="n">rightSideX</span> <span class="o">=</span> <span class="n">coord</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+	<span class="n">topSideY</span> <span class="o">=</span> <span class="n">coord</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+	<span class="n">bottomSideY</span> <span class="o">=</span> <span class="n">coord</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+
+	<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+		<span class="k">del</span> <span class="n">coord</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+	<span class="k">if</span> <span class="n">glyph</span><span class="o">.</span><span class="n">isComposite</span><span class="p">():</span>
+		<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">coord</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">glyph</span><span class="o">.</span><span class="n">components</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">p</span><span class="p">,</span><span class="n">comp</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">coord</span><span class="p">,</span> <span class="n">glyph</span><span class="o">.</span><span class="n">components</span><span class="p">):</span>
+			<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">comp</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">):</span>
+				<span class="n">comp</span><span class="o">.</span><span class="n">x</span><span class="p">,</span><span class="n">comp</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">p</span>
+	<span class="k">elif</span> <span class="n">glyph</span><span class="o">.</span><span class="n">numberOfContours</span> <span class="ow">is</span> <span class="mi">0</span><span class="p">:</span>
+		<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">coord</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">coord</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">glyph</span><span class="o">.</span><span class="n">coordinates</span><span class="p">)</span>
+		<span class="n">glyph</span><span class="o">.</span><span class="n">coordinates</span> <span class="o">=</span> <span class="n">coord</span>
+
+	<span class="n">glyph</span><span class="o">.</span><span class="n">recalcBounds</span><span class="p">(</span><span class="n">glyf</span><span class="p">)</span>
+
+	<span class="n">horizontalAdvanceWidth</span> <span class="o">=</span> <span class="n">otRound</span><span class="p">(</span><span class="n">rightSideX</span> <span class="o">-</span> <span class="n">leftSideX</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">horizontalAdvanceWidth</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+		<span class="c1"># unlikely, but it can happen, see:</span>
+		<span class="c1"># https://github.com/fonttools/fonttools/pull/1198</span>
+		<span class="n">horizontalAdvanceWidth</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="n">leftSideBearing</span> <span class="o">=</span> <span class="n">otRound</span><span class="p">(</span><span class="n">glyph</span><span class="o">.</span><span class="n">xMin</span> <span class="o">-</span> <span class="n">leftSideX</span><span class="p">)</span>
+	<span class="c1"># XXX Handle vertical</span>
+	<span class="n">font</span><span class="p">[</span><span class="s2">&quot;hmtx&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">metrics</span><span class="p">[</span><span class="n">glyphName</span><span class="p">]</span> <span class="o">=</span> <span class="n">horizontalAdvanceWidth</span><span class="p">,</span> <span class="n">leftSideBearing</span>
+
+<span class="k">def</span> <span class="nf">_add_gvar</span><span class="p">(</span><span class="n">font</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">master_ttfs</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">optimize</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+	<span class="k">assert</span> <span class="n">tolerance</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+
+	<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Generating gvar&quot;</span><span class="p">)</span>
+	<span class="k">assert</span> <span class="s2">&quot;gvar&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">font</span>
+	<span class="n">gvar</span> <span class="o">=</span> <span class="n">font</span><span class="p">[</span><span class="s2">&quot;gvar&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">newTable</span><span class="p">(</span><span class="s1">&#39;gvar&#39;</span><span class="p">)</span>
+	<span class="n">gvar</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="mi">1</span>
+	<span class="n">gvar</span><span class="o">.</span><span class="n">reserved</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="n">gvar</span><span class="o">.</span><span class="n">variations</span> <span class="o">=</span> <span class="p">{}</span>
+
+	<span class="k">for</span> <span class="n">glyph</span> <span class="ow">in</span> <span class="n">font</span><span class="o">.</span><span class="n">getGlyphOrder</span><span class="p">():</span>
+
+		<span class="n">allData</span> <span class="o">=</span> <span class="p">[</span><span class="n">_GetCoordinates</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">glyph</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">master_ttfs</span><span class="p">]</span>
+		<span class="n">allCoords</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">allData</span><span class="p">]</span>
+		<span class="n">allControls</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">allData</span><span class="p">]</span>
+		<span class="n">control</span> <span class="o">=</span> <span class="n">allControls</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+		<span class="k">if</span> <span class="p">(</span><span class="nb">any</span><span class="p">(</span><span class="n">c</span> <span class="o">!=</span> <span class="n">control</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">allControls</span><span class="p">)):</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;glyph </span><span class="si">%s</span><span class="s2"> has incompatible masters; skipping&quot;</span> <span class="o">%</span> <span class="n">glyph</span><span class="p">)</span>
+			<span class="k">continue</span>
+		<span class="k">del</span> <span class="n">allControls</span>
+
+		<span class="c1"># Update gvar</span>
+		<span class="n">gvar</span><span class="o">.</span><span class="n">variations</span><span class="p">[</span><span class="n">glyph</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="n">deltas</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">getDeltas</span><span class="p">(</span><span class="n">allCoords</span><span class="p">)</span>
+		<span class="n">supports</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">supports</span>
+		<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">deltas</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">supports</span><span class="p">)</span>
+
+		<span class="c1"># Prepare for IUP optimization</span>
+		<span class="n">origCoords</span> <span class="o">=</span> <span class="n">deltas</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+		<span class="n">endPts</span> <span class="o">=</span> <span class="n">control</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">control</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">control</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span>
+
+		<span class="k">for</span> <span class="n">i</span><span class="p">,(</span><span class="n">delta</span><span class="p">,</span><span class="n">support</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">deltas</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">supports</span><span class="p">[</span><span class="mi">1</span><span class="p">:])):</span>
+			<span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">tolerance</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">delta</span><span class="o">.</span><span class="n">array</span><span class="p">):</span>
+				<span class="k">continue</span>
+			<span class="n">var</span> <span class="o">=</span> <span class="n">TupleVariation</span><span class="p">(</span><span class="n">support</span><span class="p">,</span> <span class="n">delta</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">optimize</span><span class="p">:</span>
+				<span class="n">delta_opt</span> <span class="o">=</span> <span class="n">iup_delta_optimize</span><span class="p">(</span><span class="n">delta</span><span class="p">,</span> <span class="n">origCoords</span><span class="p">,</span> <span class="n">endPts</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="n">tolerance</span><span class="p">)</span>
+
+				<span class="k">if</span> <span class="kc">None</span> <span class="ow">in</span> <span class="n">delta_opt</span><span class="p">:</span>
+					<span class="c1"># Use &quot;optimized&quot; version only if smaller...</span>
+					<span class="n">var_opt</span> <span class="o">=</span> <span class="n">TupleVariation</span><span class="p">(</span><span class="n">support</span><span class="p">,</span> <span class="n">delta_opt</span><span class="p">)</span>
+
+					<span class="n">axis_tags</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">support</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="c1"># Shouldn&#39;t matter that this is different from fvar...?</span>
+					<span class="n">tupleData</span><span class="p">,</span> <span class="n">auxData</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">axis_tags</span><span class="p">,</span> <span class="p">[],</span> <span class="kc">None</span><span class="p">)</span>
+					<span class="n">unoptimized_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tupleData</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">auxData</span><span class="p">)</span>
+					<span class="n">tupleData</span><span class="p">,</span> <span class="n">auxData</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">var_opt</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">axis_tags</span><span class="p">,</span> <span class="p">[],</span> <span class="kc">None</span><span class="p">)</span>
+					<span class="n">optimized_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tupleData</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">auxData</span><span class="p">)</span>
+
+					<span class="k">if</span> <span class="n">optimized_len</span> <span class="o">&lt;</span> <span class="n">unoptimized_len</span><span class="p">:</span>
+						<span class="n">var</span> <span class="o">=</span> <span class="n">var_opt</span>
+
+			<span class="n">gvar</span><span class="o">.</span><span class="n">variations</span><span class="p">[</span><span class="n">glyph</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_remove_TTHinting</span><span class="p">(</span><span class="n">font</span><span class="p">):</span>
+	<span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;cvar&quot;</span><span class="p">,</span> <span class="s2">&quot;cvt &quot;</span><span class="p">,</span> <span class="s2">&quot;fpgm&quot;</span><span class="p">,</span> <span class="s2">&quot;prep&quot;</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">font</span><span class="p">:</span>
+			<span class="k">del</span> <span class="n">font</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span>
+	<span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;maxTwilightPoints&quot;</span><span class="p">,</span> <span class="s2">&quot;maxStorage&quot;</span><span class="p">,</span> <span class="s2">&quot;maxFunctionDefs&quot;</span><span class="p">,</span> <span class="s2">&quot;maxInstructionDefs&quot;</span><span class="p">,</span> <span class="s2">&quot;maxStackElements&quot;</span><span class="p">,</span> <span class="s2">&quot;maxSizeOfInstructions&quot;</span><span class="p">):</span>
+		<span class="nb">setattr</span><span class="p">(</span><span class="n">font</span><span class="p">[</span><span class="s2">&quot;maxp&quot;</span><span class="p">],</span> <span class="n">attr</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+	<span class="n">font</span><span class="p">[</span><span class="s2">&quot;maxp&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">maxZones</span> <span class="o">=</span> <span class="mi">1</span>
+	<span class="n">font</span><span class="p">[</span><span class="s2">&quot;glyf&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">removeHinting</span><span class="p">()</span>
+	<span class="c1"># TODO: Modify gasp table to deactivate gridfitting for all ranges?</span>
+
+<span class="k">def</span> <span class="nf">_merge_TTHinting</span><span class="p">(</span><span class="n">font</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">master_ttfs</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
+
+	<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Merging TT hinting&quot;</span><span class="p">)</span>
+	<span class="k">assert</span> <span class="s2">&quot;cvar&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">font</span>
+
+	<span class="c1"># Check that the existing hinting is compatible</span>
+
+	<span class="c1"># fpgm and prep table</span>
+
+	<span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;fpgm&quot;</span><span class="p">,</span> <span class="s2">&quot;prep&quot;</span><span class="p">):</span>
+		<span class="n">all_pgms</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span><span class="o">.</span><span class="n">program</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">master_ttfs</span> <span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">m</span><span class="p">]</span>
+		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_pgms</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+			<span class="k">continue</span>
+		<span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">font</span><span class="p">:</span>
+			<span class="n">font_pgm</span> <span class="o">=</span> <span class="n">font</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span><span class="o">.</span><span class="n">program</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">font_pgm</span> <span class="o">=</span> <span class="n">Program</span><span class="p">()</span>
+		<span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">pgm</span> <span class="o">!=</span> <span class="n">font_pgm</span> <span class="k">for</span> <span class="n">pgm</span> <span class="ow">in</span> <span class="n">all_pgms</span><span class="p">):</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Masters have incompatible </span><span class="si">%s</span><span class="s2"> tables, hinting is discarded.&quot;</span> <span class="o">%</span> <span class="n">tag</span><span class="p">)</span>
+			<span class="n">_remove_TTHinting</span><span class="p">(</span><span class="n">font</span><span class="p">)</span>
+			<span class="k">return</span>
+
+	<span class="c1"># glyf table</span>
+
+	<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">glyph</span> <span class="ow">in</span> <span class="n">font</span><span class="p">[</span><span class="s2">&quot;glyf&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">glyphs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+		<span class="n">all_pgms</span> <span class="o">=</span> <span class="p">[</span>
+			<span class="n">m</span><span class="p">[</span><span class="s2">&quot;glyf&quot;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">program</span>
+			<span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">master_ttfs</span>
+			<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="s2">&quot;glyf&quot;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span> <span class="s2">&quot;program&quot;</span><span class="p">)</span>
+		<span class="p">]</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">all_pgms</span><span class="p">):</span>
+			<span class="k">continue</span>
+		<span class="n">glyph</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="n">font</span><span class="p">[</span><span class="s2">&quot;glyf&quot;</span><span class="p">])</span>
+		<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">glyph</span><span class="p">,</span> <span class="s2">&quot;program&quot;</span><span class="p">):</span>
+			<span class="n">font_pgm</span> <span class="o">=</span> <span class="n">glyph</span><span class="o">.</span><span class="n">program</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">font_pgm</span> <span class="o">=</span> <span class="n">Program</span><span class="p">()</span>
+		<span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">pgm</span> <span class="o">!=</span> <span class="n">font_pgm</span> <span class="k">for</span> <span class="n">pgm</span> <span class="ow">in</span> <span class="n">all_pgms</span> <span class="k">if</span> <span class="n">pgm</span><span class="p">):</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Masters have incompatible glyph programs in glyph &#39;</span><span class="si">%s</span><span class="s2">&#39;, hinting is discarded.&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
+			<span class="n">_remove_TTHinting</span><span class="p">(</span><span class="n">font</span><span class="p">)</span>
+			<span class="k">return</span>
+
+	<span class="c1"># cvt table</span>
+
+	<span class="n">all_cvs</span> <span class="o">=</span> <span class="p">[</span><span class="n">Vector</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="s2">&quot;cvt &quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">master_ttfs</span> <span class="k">if</span> <span class="s2">&quot;cvt &quot;</span> <span class="ow">in</span> <span class="n">m</span><span class="p">]</span>
+	
+	<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_cvs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+		<span class="c1"># There is no cvt table to make a cvar table from, we&#39;re done here.</span>
+		<span class="k">return</span>
+
+	<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_cvs</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">master_ttfs</span><span class="p">):</span>
+		<span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Some masters have no cvt table, hinting is discarded.&quot;</span><span class="p">)</span>
+		<span class="n">_remove_TTHinting</span><span class="p">(</span><span class="n">font</span><span class="p">)</span>
+		<span class="k">return</span>
+
+	<span class="n">num_cvt0</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_cvs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+	<span class="k">if</span> <span class="p">(</span><span class="nb">any</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">!=</span> <span class="n">num_cvt0</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">all_cvs</span><span class="p">)):</span>
+		<span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Masters have incompatible cvt tables, hinting is discarded.&quot;</span><span class="p">)</span>
+		<span class="n">_remove_TTHinting</span><span class="p">(</span><span class="n">font</span><span class="p">)</span>
+		<span class="k">return</span>
+
+	<span class="c1"># We can build the cvar table now.</span>
+
+	<span class="n">cvar</span> <span class="o">=</span> <span class="n">font</span><span class="p">[</span><span class="s2">&quot;cvar&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">newTable</span><span class="p">(</span><span class="s1">&#39;cvar&#39;</span><span class="p">)</span>
+	<span class="n">cvar</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="mi">1</span>
+	<span class="n">cvar</span><span class="o">.</span><span class="n">variations</span> <span class="o">=</span> <span class="p">[]</span>
+
+	<span class="n">deltas</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">getDeltas</span><span class="p">(</span><span class="n">all_cvs</span><span class="p">)</span>
+	<span class="n">supports</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">supports</span>
+	<span class="k">for</span> <span class="n">i</span><span class="p">,(</span><span class="n">delta</span><span class="p">,</span><span class="n">support</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">deltas</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">supports</span><span class="p">[</span><span class="mi">1</span><span class="p">:])):</span>
+		<span class="n">delta</span> <span class="o">=</span> <span class="p">[</span><span class="n">otRound</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">delta</span><span class="p">]</span>
+		<span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">tolerance</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">delta</span><span class="p">):</span>
+			<span class="k">continue</span>
+		<span class="n">var</span> <span class="o">=</span> <span class="n">TupleVariation</span><span class="p">(</span><span class="n">support</span><span class="p">,</span> <span class="n">delta</span><span class="p">)</span>
+		<span class="n">cvar</span><span class="o">.</span><span class="n">variations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_add_HVAR</span><span class="p">(</span><span class="n">font</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">master_ttfs</span><span class="p">,</span> <span class="n">axisTags</span><span class="p">):</span>
+
+	<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Generating HVAR&quot;</span><span class="p">)</span>
+
+	<span class="n">hAdvanceDeltas</span> <span class="o">=</span> <span class="p">{}</span>
+	<span class="n">metricses</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="p">[</span><span class="s2">&quot;hmtx&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">metrics</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">master_ttfs</span><span class="p">]</span>
+	<span class="k">for</span> <span class="n">glyph</span> <span class="ow">in</span> <span class="n">font</span><span class="o">.</span><span class="n">getGlyphOrder</span><span class="p">():</span>
+		<span class="n">hAdvances</span> <span class="o">=</span> <span class="p">[</span><span class="n">metrics</span><span class="p">[</span><span class="n">glyph</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">metrics</span> <span class="ow">in</span> <span class="n">metricses</span><span class="p">]</span>
+		<span class="c1"># TODO move round somewhere else?</span>
+		<span class="n">hAdvanceDeltas</span><span class="p">[</span><span class="n">glyph</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">otRound</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">getDeltas</span><span class="p">(</span><span class="n">hAdvances</span><span class="p">)[</span><span class="mi">1</span><span class="p">:])</span>
+
+	<span class="c1"># Direct mapping</span>
+	<span class="n">supports</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">supports</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+	<span class="n">varTupleList</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">buildVarRegionList</span><span class="p">(</span><span class="n">supports</span><span class="p">,</span> <span class="n">axisTags</span><span class="p">)</span>
+	<span class="n">varTupleIndexes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">supports</span><span class="p">)))</span>
+	<span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">supports</span><span class="p">)</span>
+	<span class="n">items</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="k">for</span> <span class="n">glyphName</span> <span class="ow">in</span> <span class="n">font</span><span class="o">.</span><span class="n">getGlyphOrder</span><span class="p">():</span>
+		<span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hAdvanceDeltas</span><span class="p">[</span><span class="n">glyphName</span><span class="p">])</span>
+
+	<span class="c1"># Build indirect mapping to save on duplicates, compare both sizes</span>
+	<span class="n">uniq</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">items</span><span class="p">))</span>
+	<span class="n">mapper</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">uniq</span><span class="p">)}</span>
+	<span class="n">mapping</span> <span class="o">=</span> <span class="p">[</span><span class="n">mapper</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">]</span>
+	<span class="n">advanceMapping</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">buildVarIdxMap</span><span class="p">(</span><span class="n">mapping</span><span class="p">,</span> <span class="n">font</span><span class="o">.</span><span class="n">getGlyphOrder</span><span class="p">())</span>
+
+	<span class="c1"># Direct</span>
+	<span class="n">varData</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">buildVarData</span><span class="p">(</span><span class="n">varTupleIndexes</span><span class="p">,</span> <span class="n">items</span><span class="p">)</span>
+	<span class="n">directStore</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">buildVarStore</span><span class="p">(</span><span class="n">varTupleList</span><span class="p">,</span> <span class="p">[</span><span class="n">varData</span><span class="p">])</span>
+
+	<span class="c1"># Indirect</span>
+	<span class="n">varData</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">buildVarData</span><span class="p">(</span><span class="n">varTupleIndexes</span><span class="p">,</span> <span class="n">uniq</span><span class="p">)</span>
+	<span class="n">indirectStore</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">buildVarStore</span><span class="p">(</span><span class="n">varTupleList</span><span class="p">,</span> <span class="p">[</span><span class="n">varData</span><span class="p">])</span>
+	<span class="n">mapping</span> <span class="o">=</span> <span class="n">indirectStore</span><span class="o">.</span><span class="n">optimize</span><span class="p">()</span>
+	<span class="n">advanceMapping</span><span class="o">.</span><span class="n">mapping</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="n">mapping</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">advanceMapping</span><span class="o">.</span><span class="n">mapping</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+	<span class="c1"># Compile both, see which is more compact</span>
+
+	<span class="n">writer</span> <span class="o">=</span> <span class="n">OTTableWriter</span><span class="p">()</span>
+	<span class="n">directStore</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="n">font</span><span class="p">)</span>
+	<span class="n">directSize</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">writer</span><span class="o">.</span><span class="n">getAllData</span><span class="p">())</span>
+
+	<span class="n">writer</span> <span class="o">=</span> <span class="n">OTTableWriter</span><span class="p">()</span>
+	<span class="n">indirectStore</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="n">font</span><span class="p">)</span>
+	<span class="n">advanceMapping</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="n">font</span><span class="p">)</span>
+	<span class="n">indirectSize</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">writer</span><span class="o">.</span><span class="n">getAllData</span><span class="p">())</span>
+
+	<span class="n">use_direct</span> <span class="o">=</span> <span class="n">directSize</span> <span class="o">&lt;</span> <span class="n">indirectSize</span>
+
+	<span class="c1"># Done; put it all together.</span>
+	<span class="k">assert</span> <span class="s2">&quot;HVAR&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">font</span>
+	<span class="n">HVAR</span> <span class="o">=</span> <span class="n">font</span><span class="p">[</span><span class="s2">&quot;HVAR&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">newTable</span><span class="p">(</span><span class="s1">&#39;HVAR&#39;</span><span class="p">)</span>
+	<span class="n">hvar</span> <span class="o">=</span> <span class="n">HVAR</span><span class="o">.</span><span class="n">table</span> <span class="o">=</span> <span class="n">ot</span><span class="o">.</span><span class="n">HVAR</span><span class="p">()</span>
+	<span class="n">hvar</span><span class="o">.</span><span class="n">Version</span> <span class="o">=</span> <span class="mh">0x00010000</span>
+	<span class="n">hvar</span><span class="o">.</span><span class="n">LsbMap</span> <span class="o">=</span> <span class="n">hvar</span><span class="o">.</span><span class="n">RsbMap</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="k">if</span> <span class="n">use_direct</span><span class="p">:</span>
+		<span class="n">hvar</span><span class="o">.</span><span class="n">VarStore</span> <span class="o">=</span> <span class="n">directStore</span>
+		<span class="n">hvar</span><span class="o">.</span><span class="n">AdvWidthMap</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">hvar</span><span class="o">.</span><span class="n">VarStore</span> <span class="o">=</span> <span class="n">indirectStore</span>
+		<span class="n">hvar</span><span class="o">.</span><span class="n">AdvWidthMap</span> <span class="o">=</span> <span class="n">advanceMapping</span>
+
+<span class="k">def</span> <span class="nf">_add_MVAR</span><span class="p">(</span><span class="n">font</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">master_ttfs</span><span class="p">,</span> <span class="n">axisTags</span><span class="p">):</span>
+
+	<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Generating MVAR&quot;</span><span class="p">)</span>
+
+	<span class="n">store_builder</span> <span class="o">=</span> <span class="n">varStore</span><span class="o">.</span><span class="n">OnlineVarStoreBuilder</span><span class="p">(</span><span class="n">axisTags</span><span class="p">)</span>
+	<span class="n">store_builder</span><span class="o">.</span><span class="n">setModel</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+
+	<span class="n">records</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="n">lastTableTag</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="n">fontTable</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="n">tables</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="k">for</span> <span class="n">tag</span><span class="p">,</span> <span class="p">(</span><span class="n">tableTag</span><span class="p">,</span> <span class="n">itemName</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">MVAR_ENTRIES</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">kv</span><span class="p">:</span> <span class="n">kv</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+		<span class="k">if</span> <span class="n">tableTag</span> <span class="o">!=</span> <span class="n">lastTableTag</span><span class="p">:</span>
+			<span class="n">tables</span> <span class="o">=</span> <span class="n">fontTable</span> <span class="o">=</span> <span class="kc">None</span>
+			<span class="k">if</span> <span class="n">tableTag</span> <span class="ow">in</span> <span class="n">font</span><span class="p">:</span>
+				<span class="c1"># TODO Check all masters have same table set?</span>
+				<span class="n">fontTable</span> <span class="o">=</span> <span class="n">font</span><span class="p">[</span><span class="n">tableTag</span><span class="p">]</span>
+				<span class="n">tables</span> <span class="o">=</span> <span class="p">[</span><span class="n">master</span><span class="p">[</span><span class="n">tableTag</span><span class="p">]</span> <span class="k">for</span> <span class="n">master</span> <span class="ow">in</span> <span class="n">master_ttfs</span><span class="p">]</span>
+			<span class="n">lastTableTag</span> <span class="o">=</span> <span class="n">tableTag</span>
+		<span class="k">if</span> <span class="n">tables</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">continue</span>
+
+		<span class="c1"># TODO support gasp entries</span>
+
+		<span class="n">master_values</span> <span class="o">=</span> <span class="p">[</span><span class="nb">getattr</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">itemName</span><span class="p">)</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">tables</span><span class="p">]</span>
+		<span class="k">if</span> <span class="n">_all_equal</span><span class="p">(</span><span class="n">master_values</span><span class="p">):</span>
+			<span class="n">base</span><span class="p">,</span> <span class="n">varIdx</span> <span class="o">=</span> <span class="n">master_values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="kc">None</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">base</span><span class="p">,</span> <span class="n">varIdx</span> <span class="o">=</span> <span class="n">store_builder</span><span class="o">.</span><span class="n">storeMasters</span><span class="p">(</span><span class="n">master_values</span><span class="p">)</span>
+		<span class="nb">setattr</span><span class="p">(</span><span class="n">fontTable</span><span class="p">,</span> <span class="n">itemName</span><span class="p">,</span> <span class="n">base</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="n">varIdx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">continue</span>
+		<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;	</span><span class="si">%s</span><span class="s1">: </span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1">	</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">tableTag</span><span class="p">,</span> <span class="n">itemName</span><span class="p">,</span> <span class="n">master_values</span><span class="p">)</span>
+		<span class="n">rec</span> <span class="o">=</span> <span class="n">ot</span><span class="o">.</span><span class="n">MetricsValueRecord</span><span class="p">()</span>
+		<span class="n">rec</span><span class="o">.</span><span class="n">ValueTag</span> <span class="o">=</span> <span class="n">tag</span>
+		<span class="n">rec</span><span class="o">.</span><span class="n">VarIdx</span> <span class="o">=</span> <span class="n">varIdx</span>
+		<span class="n">records</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rec</span><span class="p">)</span>
+
+	<span class="k">assert</span> <span class="s2">&quot;MVAR&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">font</span>
+	<span class="k">if</span> <span class="n">records</span><span class="p">:</span>
+		<span class="n">store</span> <span class="o">=</span> <span class="n">store_builder</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+		<span class="c1"># Optimize</span>
+		<span class="n">mapping</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">optimize</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">rec</span> <span class="ow">in</span> <span class="n">records</span><span class="p">:</span>
+			<span class="n">rec</span><span class="o">.</span><span class="n">VarIdx</span> <span class="o">=</span> <span class="n">mapping</span><span class="p">[</span><span class="n">rec</span><span class="o">.</span><span class="n">VarIdx</span><span class="p">]</span>
+
+		<span class="n">MVAR</span> <span class="o">=</span> <span class="n">font</span><span class="p">[</span><span class="s2">&quot;MVAR&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">newTable</span><span class="p">(</span><span class="s1">&#39;MVAR&#39;</span><span class="p">)</span>
+		<span class="n">mvar</span> <span class="o">=</span> <span class="n">MVAR</span><span class="o">.</span><span class="n">table</span> <span class="o">=</span> <span class="n">ot</span><span class="o">.</span><span class="n">MVAR</span><span class="p">()</span>
+		<span class="n">mvar</span><span class="o">.</span><span class="n">Version</span> <span class="o">=</span> <span class="mh">0x00010000</span>
+		<span class="n">mvar</span><span class="o">.</span><span class="n">Reserved</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="n">mvar</span><span class="o">.</span><span class="n">VarStore</span> <span class="o">=</span> <span class="n">store</span>
+		<span class="c1"># XXX these should not be hard-coded but computed automatically</span>
+		<span class="n">mvar</span><span class="o">.</span><span class="n">ValueRecordSize</span> <span class="o">=</span> <span class="mi">8</span>
+		<span class="n">mvar</span><span class="o">.</span><span class="n">ValueRecordCount</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">records</span><span class="p">)</span>
+		<span class="n">mvar</span><span class="o">.</span><span class="n">ValueRecord</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">records</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="n">r</span><span class="o">.</span><span class="n">ValueTag</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_merge_OTL</span><span class="p">(</span><span class="n">font</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">master_fonts</span><span class="p">,</span> <span class="n">axisTags</span><span class="p">):</span>
+
+	<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Merging OpenType Layout tables&quot;</span><span class="p">)</span>
+	<span class="n">merger</span> <span class="o">=</span> <span class="n">VariationMerger</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">axisTags</span><span class="p">,</span> <span class="n">font</span><span class="p">)</span>
+
+	<span class="n">merger</span><span class="o">.</span><span class="n">mergeTables</span><span class="p">(</span><span class="n">font</span><span class="p">,</span> <span class="n">master_fonts</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;GPOS&#39;</span><span class="p">])</span>
+	<span class="c1"># TODO Merge GSUB</span>
+	<span class="c1"># TODO Merge GDEF itself!</span>
+	<span class="n">store</span> <span class="o">=</span> <span class="n">merger</span><span class="o">.</span><span class="n">store_builder</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">store</span><span class="o">.</span><span class="n">VarData</span><span class="p">:</span>
+		<span class="k">return</span>
+	<span class="k">try</span><span class="p">:</span>
+		<span class="n">GDEF</span> <span class="o">=</span> <span class="n">font</span><span class="p">[</span><span class="s1">&#39;GDEF&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">table</span>
+		<span class="k">assert</span> <span class="n">GDEF</span><span class="o">.</span><span class="n">Version</span> <span class="o">&lt;=</span> <span class="mh">0x00010002</span>
+	<span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+		<span class="n">font</span><span class="p">[</span><span class="s1">&#39;GDEF&#39;</span><span class="p">]</span><span class="o">=</span> <span class="n">newTable</span><span class="p">(</span><span class="s1">&#39;GDEF&#39;</span><span class="p">)</span>
+		<span class="n">GDEFTable</span> <span class="o">=</span> <span class="n">font</span><span class="p">[</span><span class="s2">&quot;GDEF&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">newTable</span><span class="p">(</span><span class="s1">&#39;GDEF&#39;</span><span class="p">)</span>
+		<span class="n">GDEF</span> <span class="o">=</span> <span class="n">GDEFTable</span><span class="o">.</span><span class="n">table</span> <span class="o">=</span> <span class="n">ot</span><span class="o">.</span><span class="n">GDEF</span><span class="p">()</span>
+	<span class="n">GDEF</span><span class="o">.</span><span class="n">Version</span> <span class="o">=</span> <span class="mh">0x00010003</span>
+	<span class="n">GDEF</span><span class="o">.</span><span class="n">VarStore</span> <span class="o">=</span> <span class="n">store</span>
+
+	<span class="c1"># Optimize</span>
+	<span class="n">varidx_map</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">optimize</span><span class="p">()</span>
+	<span class="n">GDEF</span><span class="o">.</span><span class="n">remap_device_varidxes</span><span class="p">(</span><span class="n">varidx_map</span><span class="p">)</span>
+	<span class="k">if</span> <span class="s1">&#39;GPOS&#39;</span> <span class="ow">in</span> <span class="n">font</span><span class="p">:</span>
+		<span class="n">font</span><span class="p">[</span><span class="s1">&#39;GPOS&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">remap_device_varidxes</span><span class="p">(</span><span class="n">varidx_map</span><span class="p">)</span>
+
+
+
+<span class="c1"># Pretty much all of this file should be redesigned and moved inot submodules...</span>
+<span class="c1"># Such a mess right now, but kludging along...</span>
+<span class="k">class</span> <span class="nc">_DesignspaceAxis</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+	<span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
+
+	<span class="nd">@staticmethod</span>
+	<span class="k">def</span> <span class="nf">_map</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">map</span><span class="p">):</span>
+		<span class="n">keys</span> <span class="o">=</span> <span class="nb">map</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">keys</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">v</span>
+		<span class="k">if</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+			<span class="k">return</span> <span class="nb">map</span><span class="p">[</span><span class="n">v</span><span class="p">]</span>
+		<span class="n">k</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">v</span> <span class="o">&lt;</span> <span class="n">k</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">v</span> <span class="o">+</span> <span class="nb">map</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">-</span> <span class="n">k</span>
+		<span class="n">k</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">v</span> <span class="o">&gt;</span> <span class="n">k</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">v</span> <span class="o">+</span> <span class="nb">map</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">-</span> <span class="n">k</span>
+		<span class="c1"># Interpolate</span>
+		<span class="n">a</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span> <span class="k">if</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="n">v</span><span class="p">)</span>
+		<span class="n">b</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span> <span class="k">if</span> <span class="n">k</span> <span class="o">&gt;</span> <span class="n">v</span><span class="p">)</span>
+		<span class="n">va</span> <span class="o">=</span> <span class="nb">map</span><span class="p">[</span><span class="n">a</span><span class="p">]</span>
+		<span class="n">vb</span> <span class="o">=</span> <span class="nb">map</span><span class="p">[</span><span class="n">b</span><span class="p">]</span>
+		<span class="k">return</span> <span class="n">va</span> <span class="o">+</span> <span class="p">(</span><span class="n">vb</span> <span class="o">-</span> <span class="n">va</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">v</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">map_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">map</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="n">v</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">map</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">map_backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">map</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="n">v</span>
+		<span class="nb">map</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">map</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">map</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="load_designspace"><a class="viewcode-back" href="../../varLib/index.html#fontTools.varLib.load_designspace">[docs]</a><span class="k">def</span> <span class="nf">load_designspace</span><span class="p">(</span><span class="n">designspace_filename</span><span class="p">):</span>
+
+	<span class="n">ds</span> <span class="o">=</span> <span class="n">designspace</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">designspace_filename</span><span class="p">)</span>
+	<span class="n">axes</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;axes&#39;</span><span class="p">)</span>
+	<span class="n">masters</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sources&#39;</span><span class="p">)</span>
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">masters</span><span class="p">:</span>
+		<span class="k">raise</span> <span class="n">VarLibError</span><span class="p">(</span><span class="s2">&quot;no sources found in .designspace&quot;</span><span class="p">)</span>
+	<span class="n">instances</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;instances&#39;</span><span class="p">,</span> <span class="p">[])</span>
+
+	<span class="n">standard_axis_map</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([</span>
+		<span class="p">(</span><span class="s1">&#39;weight&#39;</span><span class="p">,</span>  <span class="p">(</span><span class="s1">&#39;wght&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;en&#39;</span><span class="p">:</span><span class="s1">&#39;Weight&#39;</span><span class="p">})),</span>
+		<span class="p">(</span><span class="s1">&#39;width&#39;</span><span class="p">,</span>   <span class="p">(</span><span class="s1">&#39;wdth&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;en&#39;</span><span class="p">:</span><span class="s1">&#39;Width&#39;</span><span class="p">})),</span>
+		<span class="p">(</span><span class="s1">&#39;slant&#39;</span><span class="p">,</span>   <span class="p">(</span><span class="s1">&#39;slnt&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;en&#39;</span><span class="p">:</span><span class="s1">&#39;Slant&#39;</span><span class="p">})),</span>
+		<span class="p">(</span><span class="s1">&#39;optical&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;opsz&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;en&#39;</span><span class="p">:</span><span class="s1">&#39;Optical Size&#39;</span><span class="p">})),</span>
+		<span class="p">])</span>
+
+
+	<span class="c1"># Setup axes</span>
+	<span class="n">axis_objects</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+	<span class="k">if</span> <span class="n">axes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="k">for</span> <span class="n">axis_dict</span> <span class="ow">in</span> <span class="n">axes</span><span class="p">:</span>
+			<span class="n">axis_name</span> <span class="o">=</span> <span class="n">axis_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">axis_name</span><span class="p">:</span>
+				<span class="n">axis_name</span> <span class="o">=</span> <span class="n">axis_dict</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">axis_dict</span><span class="p">[</span><span class="s1">&#39;tag&#39;</span><span class="p">]</span>
+			<span class="k">if</span> <span class="s1">&#39;map&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">axis_dict</span><span class="p">:</span>
+				<span class="n">axis_dict</span><span class="p">[</span><span class="s1">&#39;map&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">axis_dict</span><span class="p">[</span><span class="s1">&#39;map&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">m</span><span class="p">[</span><span class="s1">&#39;input&#39;</span><span class="p">]:</span><span class="n">m</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">axis_dict</span><span class="p">[</span><span class="s1">&#39;map&#39;</span><span class="p">]}</span>
+
+			<span class="k">if</span> <span class="n">axis_name</span> <span class="ow">in</span> <span class="n">standard_axis_map</span><span class="p">:</span>
+				<span class="k">if</span> <span class="s1">&#39;tag&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">axis_dict</span><span class="p">:</span>
+					<span class="n">axis_dict</span><span class="p">[</span><span class="s1">&#39;tag&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">standard_axis_map</span><span class="p">[</span><span class="n">axis_name</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+				<span class="k">if</span> <span class="s1">&#39;labelname&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">axis_dict</span><span class="p">:</span>
+					<span class="n">axis_dict</span><span class="p">[</span><span class="s1">&#39;labelname&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">standard_axis_map</span><span class="p">[</span><span class="n">axis_name</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+			<span class="n">axis</span> <span class="o">=</span> <span class="n">_DesignspaceAxis</span><span class="p">()</span>
+			<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;tag&#39;</span><span class="p">,</span> <span class="s1">&#39;minimum&#39;</span><span class="p">,</span> <span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="s1">&#39;maximum&#39;</span><span class="p">,</span> <span class="s1">&#39;map&#39;</span><span class="p">]:</span>
+				<span class="k">assert</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">axis_dict</span><span class="p">,</span> <span class="s1">&#39;Axis does not have &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">item</span>
+			<span class="k">if</span> <span class="s1">&#39;labelname&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">axis_dict</span><span class="p">:</span>
+				<span class="n">axis_dict</span><span class="p">[</span><span class="s1">&#39;labelname&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;en&#39;</span><span class="p">:</span> <span class="n">axis_name</span><span class="p">}</span>
+			<span class="n">axis</span><span class="o">.</span><span class="vm">__dict__</span> <span class="o">=</span> <span class="n">axis_dict</span>
+			<span class="n">axis_objects</span><span class="p">[</span><span class="n">axis_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">axis</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="c1"># No &lt;axes&gt; element. Guess things...</span>
+		<span class="n">base_idx</span> <span class="o">=</span> <span class="kc">None</span>
+		<span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">m</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">masters</span><span class="p">):</span>
+			<span class="k">if</span> <span class="s1">&#39;info&#39;</span> <span class="ow">in</span> <span class="n">m</span> <span class="ow">and</span> <span class="n">m</span><span class="p">[</span><span class="s1">&#39;info&#39;</span><span class="p">][</span><span class="s1">&#39;copy&#39;</span><span class="p">]:</span>
+				<span class="k">assert</span> <span class="n">base_idx</span> <span class="ow">is</span> <span class="kc">None</span>
+				<span class="n">base_idx</span> <span class="o">=</span> <span class="n">i</span>
+		<span class="k">assert</span> <span class="n">base_idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Cannot find &#39;base&#39; master; Either add &lt;axes&gt; element to .designspace document, or add &lt;info&gt; element to one of the sources in the .designspace document.&quot;</span>
+
+		<span class="n">master_locs</span> <span class="o">=</span> <span class="p">[</span><span class="n">o</span><span class="p">[</span><span class="s1">&#39;location&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">masters</span><span class="p">]</span>
+		<span class="n">base_loc</span> <span class="o">=</span> <span class="n">master_locs</span><span class="p">[</span><span class="n">base_idx</span><span class="p">]</span>
+		<span class="n">axis_names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">base_loc</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+		<span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">name</span> <span class="ow">in</span> <span class="n">standard_axis_map</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">axis_names</span><span class="p">),</span> <span class="s2">&quot;Non-standard axis found and there exist no &lt;axes&gt; element.&quot;</span>
+
+		<span class="k">for</span> <span class="n">name</span><span class="p">,(</span><span class="n">tag</span><span class="p">,</span><span class="n">labelname</span><span class="p">)</span> <span class="ow">in</span> <span class="n">standard_axis_map</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+			<span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">axis_names</span><span class="p">:</span>
+				<span class="k">continue</span>
+
+			<span class="n">axis</span> <span class="o">=</span> <span class="n">_DesignspaceAxis</span><span class="p">()</span>
+			<span class="n">axis</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+			<span class="n">axis</span><span class="o">.</span><span class="n">tag</span> <span class="o">=</span> <span class="n">tag</span>
+			<span class="n">axis</span><span class="o">.</span><span class="n">labelname</span> <span class="o">=</span> <span class="n">labelname</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+			<span class="n">axis</span><span class="o">.</span><span class="n">default</span> <span class="o">=</span> <span class="n">base_loc</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+			<span class="n">axis</span><span class="o">.</span><span class="n">minimum</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">master_locs</span> <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">m</span><span class="p">)</span>
+			<span class="n">axis</span><span class="o">.</span><span class="n">maximum</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">master_locs</span> <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">m</span><span class="p">)</span>
+			<span class="n">axis</span><span class="o">.</span><span class="n">map</span> <span class="o">=</span> <span class="kc">None</span>
+			<span class="c1"># TODO Fill in weight / width mapping from OS/2 table? Need loading fonts...</span>
+			<span class="n">axis_objects</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">axis</span>
+		<span class="k">del</span> <span class="n">base_idx</span><span class="p">,</span> <span class="n">base_loc</span><span class="p">,</span> <span class="n">axis_names</span><span class="p">,</span> <span class="n">master_locs</span>
+	<span class="n">axes</span> <span class="o">=</span> <span class="n">axis_objects</span>
+	<span class="k">del</span> <span class="n">axis_objects</span>
+	<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Axes:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">pformat</span><span class="p">(</span><span class="n">axes</span><span class="p">))</span>
+
+
+	<span class="c1"># Check all master and instance locations are valid and fill in defaults</span>
+	<span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">masters</span><span class="o">+</span><span class="n">instances</span><span class="p">:</span>
+		<span class="n">obj_name</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;stylename&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+		<span class="n">loc</span> <span class="o">=</span> <span class="n">obj</span><span class="p">[</span><span class="s1">&#39;location&#39;</span><span class="p">]</span>
+		<span class="k">for</span> <span class="n">axis_name</span> <span class="ow">in</span> <span class="n">loc</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+			<span class="k">assert</span> <span class="n">axis_name</span> <span class="ow">in</span> <span class="n">axes</span><span class="p">,</span> <span class="s2">&quot;Location axis &#39;</span><span class="si">%s</span><span class="s2">&#39; unknown for &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">axis_name</span><span class="p">,</span> <span class="n">obj_name</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">axis_name</span><span class="p">,</span><span class="n">axis</span> <span class="ow">in</span> <span class="n">axes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+			<span class="k">if</span> <span class="n">axis_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">loc</span><span class="p">:</span>
+				<span class="n">loc</span><span class="p">[</span><span class="n">axis_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">axis</span><span class="o">.</span><span class="n">default</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">v</span> <span class="o">=</span> <span class="n">axis</span><span class="o">.</span><span class="n">map_backward</span><span class="p">(</span><span class="n">loc</span><span class="p">[</span><span class="n">axis_name</span><span class="p">])</span>
+				<span class="k">assert</span> <span class="n">axis</span><span class="o">.</span><span class="n">minimum</span> <span class="o">&lt;=</span> <span class="n">v</span> <span class="o">&lt;=</span> <span class="n">axis</span><span class="o">.</span><span class="n">maximum</span><span class="p">,</span> <span class="s2">&quot;Location for axis &#39;</span><span class="si">%s</span><span class="s2">&#39; (mapped to </span><span class="si">%s</span><span class="s2">) out of range for &#39;</span><span class="si">%s</span><span class="s2">&#39; [</span><span class="si">%s</span><span class="s2">..</span><span class="si">%s</span><span class="s2">]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">axis_name</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">obj_name</span><span class="p">,</span> <span class="n">axis</span><span class="o">.</span><span class="n">minimum</span><span class="p">,</span> <span class="n">axis</span><span class="o">.</span><span class="n">maximum</span><span class="p">)</span>
+
+
+	<span class="c1"># Normalize master locations</span>
+
+	<span class="n">internal_master_locs</span> <span class="o">=</span> <span class="p">[</span><span class="n">o</span><span class="p">[</span><span class="s1">&#39;location&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">masters</span><span class="p">]</span>
+	<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Internal master locations:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">pformat</span><span class="p">(</span><span class="n">internal_master_locs</span><span class="p">))</span>
+
+	<span class="c1"># TODO This mapping should ideally be moved closer to logic in _add_fvar/avar</span>
+	<span class="n">internal_axis_supports</span> <span class="o">=</span> <span class="p">{}</span>
+	<span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="n">axes</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+		<span class="n">triple</span> <span class="o">=</span> <span class="p">(</span><span class="n">axis</span><span class="o">.</span><span class="n">minimum</span><span class="p">,</span> <span class="n">axis</span><span class="o">.</span><span class="n">default</span><span class="p">,</span> <span class="n">axis</span><span class="o">.</span><span class="n">maximum</span><span class="p">)</span>
+		<span class="n">internal_axis_supports</span><span class="p">[</span><span class="n">axis</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">axis</span><span class="o">.</span><span class="n">map_forward</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">triple</span><span class="p">]</span>
+	<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Internal axis supports:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">pformat</span><span class="p">(</span><span class="n">internal_axis_supports</span><span class="p">))</span>
+
+	<span class="n">normalized_master_locs</span> <span class="o">=</span> <span class="p">[</span><span class="n">models</span><span class="o">.</span><span class="n">normalizeLocation</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">internal_axis_supports</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">internal_master_locs</span><span class="p">]</span>
+	<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Normalized master locations:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">pformat</span><span class="p">(</span><span class="n">normalized_master_locs</span><span class="p">))</span>
+
+
+	<span class="c1"># Find base master</span>
+	<span class="n">base_idx</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">m</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">normalized_master_locs</span><span class="p">):</span>
+		<span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">v</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+			<span class="k">assert</span> <span class="n">base_idx</span> <span class="ow">is</span> <span class="kc">None</span>
+			<span class="n">base_idx</span> <span class="o">=</span> <span class="n">i</span>
+	<span class="k">assert</span> <span class="n">base_idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Base master not found; no master at default location?&quot;</span>
+	<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Index of base master: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">base_idx</span><span class="p">)</span>
+
+	<span class="k">return</span> <span class="n">axes</span><span class="p">,</span> <span class="n">internal_axis_supports</span><span class="p">,</span> <span class="n">base_idx</span><span class="p">,</span> <span class="n">normalized_master_locs</span><span class="p">,</span> <span class="n">masters</span><span class="p">,</span> <span class="n">instances</span></div>
+
+
+<div class="viewcode-block" id="build"><a class="viewcode-back" href="../../varLib/index.html#fontTools.varLib.build">[docs]</a><span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="n">designspace_filename</span><span class="p">,</span> <span class="n">master_finder</span><span class="o">=</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span><span class="n">s</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="p">[],</span> <span class="n">optimize</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Build variation font from a designspace file.</span>
+
+<span class="sd">	If master_finder is set, it should be a callable that takes master</span>
+<span class="sd">	filename as found in designspace file and map it to master font</span>
+<span class="sd">	binary as to be opened (eg. .ttf or .otf).</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">axes</span><span class="p">,</span> <span class="n">internal_axis_supports</span><span class="p">,</span> <span class="n">base_idx</span><span class="p">,</span> <span class="n">normalized_master_locs</span><span class="p">,</span> <span class="n">masters</span><span class="p">,</span> <span class="n">instances</span> <span class="o">=</span> <span class="n">load_designspace</span><span class="p">(</span><span class="n">designspace_filename</span><span class="p">)</span>
+
+	<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Building variable font&quot;</span><span class="p">)</span>
+	<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Loading master fonts&quot;</span><span class="p">)</span>
+	<span class="n">basedir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">designspace_filename</span><span class="p">)</span>
+	<span class="n">master_ttfs</span> <span class="o">=</span> <span class="p">[</span><span class="n">master_finder</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">basedir</span><span class="p">,</span> <span class="n">m</span><span class="p">[</span><span class="s1">&#39;filename&#39;</span><span class="p">]))</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">masters</span><span class="p">]</span>
+	<span class="n">master_fonts</span> <span class="o">=</span> <span class="p">[</span><span class="n">TTFont</span><span class="p">(</span><span class="n">ttf_path</span><span class="p">)</span> <span class="k">for</span> <span class="n">ttf_path</span> <span class="ow">in</span> <span class="n">master_ttfs</span><span class="p">]</span>
+	<span class="c1"># Reload base font as target font</span>
+	<span class="n">vf</span> <span class="o">=</span> <span class="n">TTFont</span><span class="p">(</span><span class="n">master_ttfs</span><span class="p">[</span><span class="n">base_idx</span><span class="p">])</span>
+
+	<span class="c1"># TODO append masters as named-instances as well; needs .designspace change.</span>
+	<span class="n">fvar</span> <span class="o">=</span> <span class="n">_add_fvar</span><span class="p">(</span><span class="n">vf</span><span class="p">,</span> <span class="n">axes</span><span class="p">,</span> <span class="n">instances</span><span class="p">)</span>
+	<span class="k">if</span> <span class="s1">&#39;STAT&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exclude</span><span class="p">:</span>
+		<span class="n">_add_stat</span><span class="p">(</span><span class="n">vf</span><span class="p">,</span> <span class="n">axes</span><span class="p">)</span>
+	<span class="k">if</span> <span class="s1">&#39;avar&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exclude</span><span class="p">:</span>
+		<span class="n">_add_avar</span><span class="p">(</span><span class="n">vf</span><span class="p">,</span> <span class="n">axes</span><span class="p">)</span>
+	<span class="k">del</span> <span class="n">instances</span>
+
+	<span class="c1"># Map from axis names to axis tags...</span>
+	<span class="n">normalized_master_locs</span> <span class="o">=</span> <span class="p">[{</span><span class="n">axes</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">tag</span><span class="p">:</span><span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">loc</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span> <span class="k">for</span> <span class="n">loc</span> <span class="ow">in</span> <span class="n">normalized_master_locs</span><span class="p">]</span>
+	<span class="c1">#del axes</span>
+	<span class="c1"># From here on, we use fvar axes only</span>
+	<span class="n">axisTags</span> <span class="o">=</span> <span class="p">[</span><span class="n">axis</span><span class="o">.</span><span class="n">axisTag</span> <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="n">fvar</span><span class="o">.</span><span class="n">axes</span><span class="p">]</span>
+
+	<span class="c1"># Assume single-model for now.</span>
+	<span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">VariationModel</span><span class="p">(</span><span class="n">normalized_master_locs</span><span class="p">,</span> <span class="n">axisOrder</span><span class="o">=</span><span class="n">axisTags</span><span class="p">)</span>
+	<span class="k">assert</span> <span class="mi">0</span> <span class="o">==</span> <span class="n">model</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="n">base_idx</span><span class="p">]</span>
+
+	<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Building variations tables&quot;</span><span class="p">)</span>
+	<span class="k">if</span> <span class="s1">&#39;MVAR&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exclude</span><span class="p">:</span>
+		<span class="n">_add_MVAR</span><span class="p">(</span><span class="n">vf</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">master_fonts</span><span class="p">,</span> <span class="n">axisTags</span><span class="p">)</span>
+	<span class="k">if</span> <span class="s1">&#39;HVAR&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exclude</span><span class="p">:</span>
+		<span class="n">_add_HVAR</span><span class="p">(</span><span class="n">vf</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">master_fonts</span><span class="p">,</span> <span class="n">axisTags</span><span class="p">)</span>
+	<span class="k">if</span> <span class="s1">&#39;GDEF&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exclude</span> <span class="ow">or</span> <span class="s1">&#39;GPOS&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exclude</span><span class="p">:</span>
+		<span class="n">_merge_OTL</span><span class="p">(</span><span class="n">vf</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">master_fonts</span><span class="p">,</span> <span class="n">axisTags</span><span class="p">)</span>
+	<span class="k">if</span> <span class="s1">&#39;gvar&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exclude</span> <span class="ow">and</span> <span class="s1">&#39;glyf&#39;</span> <span class="ow">in</span> <span class="n">vf</span><span class="p">:</span>
+		<span class="n">_add_gvar</span><span class="p">(</span><span class="n">vf</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">master_fonts</span><span class="p">,</span> <span class="n">optimize</span><span class="o">=</span><span class="n">optimize</span><span class="p">)</span>
+	<span class="k">if</span> <span class="s1">&#39;cvar&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exclude</span> <span class="ow">and</span> <span class="s1">&#39;glyf&#39;</span> <span class="ow">in</span> <span class="n">vf</span><span class="p">:</span>
+		<span class="n">_merge_TTHinting</span><span class="p">(</span><span class="n">vf</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">master_fonts</span><span class="p">)</span>
+
+	<span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">exclude</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">vf</span><span class="p">:</span>
+			<span class="k">del</span> <span class="n">vf</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span>
+
+	<span class="k">return</span> <span class="n">vf</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">master_ttfs</span></div>
+
+
+<div class="viewcode-block" id="MasterFinder"><a class="viewcode-back" href="../../varLib/index.html#fontTools.varLib.MasterFinder">[docs]</a><span class="k">class</span> <span class="nc">MasterFinder</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">template</span> <span class="o">=</span> <span class="n">template</span>
+
+	<span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src_path</span><span class="p">):</span>
+		<span class="n">fullname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span>
+		<span class="n">dirname</span><span class="p">,</span> <span class="n">basename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">fullname</span><span class="p">)</span>
+		<span class="n">stem</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">basename</span><span class="p">)</span>
+		<span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+			<span class="n">fullname</span><span class="o">=</span><span class="n">fullname</span><span class="p">,</span>
+			<span class="n">dirname</span><span class="o">=</span><span class="n">dirname</span><span class="p">,</span>
+			<span class="n">basename</span><span class="o">=</span><span class="n">basename</span><span class="p">,</span>
+			<span class="n">stem</span><span class="o">=</span><span class="n">stem</span><span class="p">,</span>
+			<span class="n">ext</span><span class="o">=</span><span class="n">ext</span><span class="p">,</span>
+		<span class="p">)</span>
+		<span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../varLib/index.html#fontTools.varLib.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+	<span class="kn">from</span> <span class="nn">argparse</span> <span class="k">import</span> <span class="n">ArgumentParser</span>
+	<span class="kn">from</span> <span class="nn">fontTools</span> <span class="k">import</span> <span class="n">configLogger</span>
+
+	<span class="n">parser</span> <span class="o">=</span> <span class="n">ArgumentParser</span><span class="p">(</span><span class="n">prog</span><span class="o">=</span><span class="s1">&#39;varLib&#39;</span><span class="p">)</span>
+	<span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;designspace&#39;</span><span class="p">)</span>
+	<span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+		<span class="s1">&#39;-o&#39;</span><span class="p">,</span>
+		<span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;OUTPUTFILE&#39;</span><span class="p">,</span>
+		<span class="n">dest</span><span class="o">=</span><span class="s1">&#39;outfile&#39;</span><span class="p">,</span>
+		<span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">help</span><span class="o">=</span><span class="s1">&#39;output file&#39;</span>
+	<span class="p">)</span>
+	<span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+		<span class="s1">&#39;-x&#39;</span><span class="p">,</span>
+		<span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;TAG&#39;</span><span class="p">,</span>
+		<span class="n">dest</span><span class="o">=</span><span class="s1">&#39;exclude&#39;</span><span class="p">,</span>
+		<span class="n">action</span><span class="o">=</span><span class="s1">&#39;append&#39;</span><span class="p">,</span>
+		<span class="n">default</span><span class="o">=</span><span class="p">[],</span>
+		<span class="n">help</span><span class="o">=</span><span class="s1">&#39;exclude table&#39;</span>
+	<span class="p">)</span>
+	<span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+		<span class="s1">&#39;--disable-iup&#39;</span><span class="p">,</span>
+		<span class="n">dest</span><span class="o">=</span><span class="s1">&#39;optimize&#39;</span><span class="p">,</span>
+		<span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_false&#39;</span><span class="p">,</span>
+		<span class="n">help</span><span class="o">=</span><span class="s1">&#39;do not perform IUP optimization&#39;</span>
+	<span class="p">)</span>
+	<span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+		<span class="s1">&#39;--master-finder&#39;</span><span class="p">,</span>
+		<span class="n">default</span><span class="o">=</span><span class="s1">&#39;master_ttf_interpolatable/</span><span class="si">{stem}</span><span class="s1">.ttf&#39;</span><span class="p">,</span>
+		<span class="n">help</span><span class="o">=</span><span class="p">(</span>
+			<span class="s1">&#39;templated string used for finding binary font &#39;</span>
+			<span class="s1">&#39;files given the source file names defined in the &#39;</span>
+			<span class="s1">&#39;designspace document. The following special strings &#39;</span>
+			<span class="s1">&#39;are defined: </span><span class="si">{fullname}</span><span class="s1"> is the absolute source file &#39;</span>
+			<span class="s1">&#39;name; </span><span class="si">{basename}</span><span class="s1"> is the file name without its &#39;</span>
+			<span class="s1">&#39;directory; </span><span class="si">{stem}</span><span class="s1"> is the basename without the file &#39;</span>
+			<span class="s1">&#39;extension; </span><span class="si">{ext}</span><span class="s1"> is the source file extension; &#39;</span>
+			<span class="s1">&#39;</span><span class="si">{dirname}</span><span class="s1"> is the directory of the absolute file &#39;</span>
+			<span class="s1">&#39;name. The default value is &quot;</span><span class="si">%(default)s</span><span class="s1">&quot;.&#39;</span>
+		<span class="p">)</span>
+	<span class="p">)</span>
+	<span class="n">options</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+	<span class="c1"># TODO: allow user to configure logging via command-line options</span>
+	<span class="n">configLogger</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s2">&quot;INFO&quot;</span><span class="p">)</span>
+
+	<span class="n">designspace_filename</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">designspace</span>
+	<span class="n">finder</span> <span class="o">=</span> <span class="n">MasterFinder</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">master_finder</span><span class="p">)</span>
+	<span class="n">outfile</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">outfile</span>
+	<span class="k">if</span> <span class="n">outfile</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">outfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">designspace_filename</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;-VF.ttf&#39;</span>
+
+	<span class="n">vf</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">master_ttfs</span> <span class="o">=</span> <span class="n">build</span><span class="p">(</span>
+		<span class="n">designspace_filename</span><span class="p">,</span>
+		<span class="n">finder</span><span class="p">,</span>
+		<span class="n">exclude</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">exclude</span><span class="p">,</span>
+		<span class="n">optimize</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">optimize</span>
+	<span class="p">)</span>
+
+	<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Saving variation font </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">outfile</span><span class="p">)</span>
+	<span class="n">vf</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">outfile</span><span class="p">)</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+	<span class="kn">import</span> <span class="nn">sys</span>
+	<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+		<span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+	<span class="kn">import</span> <span class="nn">doctest</span>
+	<span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">doctest</span><span class="o">.</span><span class="n">testmod</span><span class="p">()</span><span class="o">.</span><span class="n">failed</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

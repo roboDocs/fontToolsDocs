@@ -1,0 +1,304 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>sfnt &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="tables" href="tables.html" />
+    <link rel="prev" title="macUtils" href="macUtils.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="tables.html" title="tables"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="macUtils.html" title="macUtils"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">ttLib</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-fontTools.ttLib.sfnt">
+<span id="sfnt"></span><h1>sfnt<a class="headerlink" href="#module-fontTools.ttLib.sfnt" title="Permalink to this headline">¶</a></h1>
+<p>ttLib/sfnt.py &#8211; low-level module to deal with the sfnt file format.</p>
+<dl class="docutils">
+<dt>Defines two public classes:</dt>
+<dd>SFNTReader
+SFNTWriter</dd>
+</dl>
+<p>(Normally you don&#8217;t have to use these classes explicitly; they are
+used automatically by ttLib.TTFont.)</p>
+<p>The reading and writing of sfnt files is separated in two distinct
+classes, since whenever to number of tables changes or whenever
+a table&#8217;s length chages you need to rewrite the whole file anyway.</p>
+<dl class="class">
+<dt id="fontTools.ttLib.sfnt.DirectoryEntry">
+<em class="property">class </em><code class="descclassname">fontTools.ttLib.sfnt.</code><code class="descname">DirectoryEntry</code><a class="reference internal" href="../_modules/fontTools/ttLib/sfnt.html#DirectoryEntry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.sfnt.DirectoryEntry" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="fontTools.ttLib.sfnt.DirectoryEntry.decodeData">
+<code class="descname">decodeData</code><span class="sig-paren">(</span><em>rawData</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/sfnt.html#DirectoryEntry.decodeData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.sfnt.DirectoryEntry.decodeData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.ttLib.sfnt.DirectoryEntry.encodeData">
+<code class="descname">encodeData</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/sfnt.html#DirectoryEntry.encodeData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.sfnt.DirectoryEntry.encodeData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.ttLib.sfnt.DirectoryEntry.fromFile">
+<code class="descname">fromFile</code><span class="sig-paren">(</span><em>file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/sfnt.html#DirectoryEntry.fromFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.sfnt.DirectoryEntry.fromFile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.ttLib.sfnt.DirectoryEntry.fromString">
+<code class="descname">fromString</code><span class="sig-paren">(</span><em>str</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/sfnt.html#DirectoryEntry.fromString"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.sfnt.DirectoryEntry.fromString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.ttLib.sfnt.DirectoryEntry.loadData">
+<code class="descname">loadData</code><span class="sig-paren">(</span><em>file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/sfnt.html#DirectoryEntry.loadData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.sfnt.DirectoryEntry.loadData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.ttLib.sfnt.DirectoryEntry.saveData">
+<code class="descname">saveData</code><span class="sig-paren">(</span><em>file</em>, <em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/sfnt.html#DirectoryEntry.saveData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.sfnt.DirectoryEntry.saveData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.ttLib.sfnt.DirectoryEntry.toString">
+<code class="descname">toString</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/sfnt.html#DirectoryEntry.toString"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.sfnt.DirectoryEntry.toString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.ttLib.sfnt.SFNTDirectoryEntry">
+<em class="property">class </em><code class="descclassname">fontTools.ttLib.sfnt.</code><code class="descname">SFNTDirectoryEntry</code><a class="reference internal" href="../_modules/fontTools/ttLib/sfnt.html#SFNTDirectoryEntry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.sfnt.SFNTDirectoryEntry" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="fontTools.ttLib.sfnt.SFNTDirectoryEntry.format">
+<code class="descname">format</code><em class="property"> = '\n\t\t&gt; # big endian\n\t\ttag:            4s\n\t\tcheckSum:       L\n\t\toffset:         L\n\t\tlength:         L\n'</em><a class="headerlink" href="#fontTools.ttLib.sfnt.SFNTDirectoryEntry.format" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.ttLib.sfnt.SFNTDirectoryEntry.formatSize">
+<code class="descname">formatSize</code><em class="property"> = 16</em><a class="headerlink" href="#fontTools.ttLib.sfnt.SFNTDirectoryEntry.formatSize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.ttLib.sfnt.SFNTReader">
+<em class="property">class </em><code class="descclassname">fontTools.ttLib.sfnt.</code><code class="descname">SFNTReader</code><span class="sig-paren">(</span><em>file</em>, <em>checkChecksums=1</em>, <em>fontNumber=-1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/sfnt.html#SFNTReader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.sfnt.SFNTReader" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="fontTools.ttLib.sfnt.SFNTReader.close">
+<code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/sfnt.html#SFNTReader.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.sfnt.SFNTReader.close" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.ttLib.sfnt.SFNTReader.has_key">
+<code class="descname">has_key</code><span class="sig-paren">(</span><em>tag</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/sfnt.html#SFNTReader.has_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.sfnt.SFNTReader.has_key" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.ttLib.sfnt.SFNTReader.keys">
+<code class="descname">keys</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/sfnt.html#SFNTReader.keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.sfnt.SFNTReader.keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.ttLib.sfnt.SFNTWriter">
+<em class="property">class </em><code class="descclassname">fontTools.ttLib.sfnt.</code><code class="descname">SFNTWriter</code><span class="sig-paren">(</span><em>file</em>, <em>numTables</em>, <em>sfntVersion='x00x01x00x00'</em>, <em>flavor=None</em>, <em>flavorData=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/sfnt.html#SFNTWriter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.sfnt.SFNTWriter" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="fontTools.ttLib.sfnt.SFNTWriter.close">
+<code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/sfnt.html#SFNTWriter.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.sfnt.SFNTWriter.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>All tables must have been written to disk. Now write the
+directory.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fontTools.ttLib.sfnt.SFNTWriter.reordersTables">
+<code class="descname">reordersTables</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/sfnt.html#SFNTWriter.reordersTables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.sfnt.SFNTWriter.reordersTables" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.ttLib.sfnt.SFNTWriter.setEntry">
+<code class="descname">setEntry</code><span class="sig-paren">(</span><em>tag</em>, <em>entry</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/sfnt.html#SFNTWriter.setEntry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.sfnt.SFNTWriter.setEntry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.ttLib.sfnt.SFNTWriter.writeMasterChecksum">
+<code class="descname">writeMasterChecksum</code><span class="sig-paren">(</span><em>directory</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/sfnt.html#SFNTWriter.writeMasterChecksum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.sfnt.SFNTWriter.writeMasterChecksum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.ttLib.sfnt.WOFFDirectoryEntry">
+<em class="property">class </em><code class="descclassname">fontTools.ttLib.sfnt.</code><code class="descname">WOFFDirectoryEntry</code><a class="reference internal" href="../_modules/fontTools/ttLib/sfnt.html#WOFFDirectoryEntry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.sfnt.WOFFDirectoryEntry" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="fontTools.ttLib.sfnt.WOFFDirectoryEntry.decodeData">
+<code class="descname">decodeData</code><span class="sig-paren">(</span><em>rawData</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/sfnt.html#WOFFDirectoryEntry.decodeData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.sfnt.WOFFDirectoryEntry.decodeData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.ttLib.sfnt.WOFFDirectoryEntry.encodeData">
+<code class="descname">encodeData</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/sfnt.html#WOFFDirectoryEntry.encodeData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.sfnt.WOFFDirectoryEntry.encodeData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.ttLib.sfnt.WOFFDirectoryEntry.format">
+<code class="descname">format</code><em class="property"> = '\n\t\t&gt; # big endian\n\t\ttag:            4s\n\t\toffset:         L\n\t\tlength:         L    # compressed length\n\t\torigLength:     L    # original length\n\t\tcheckSum:       L    # original checksum\n'</em><a class="headerlink" href="#fontTools.ttLib.sfnt.WOFFDirectoryEntry.format" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.ttLib.sfnt.WOFFDirectoryEntry.formatSize">
+<code class="descname">formatSize</code><em class="property"> = 20</em><a class="headerlink" href="#fontTools.ttLib.sfnt.WOFFDirectoryEntry.formatSize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.ttLib.sfnt.WOFFFlavorData">
+<em class="property">class </em><code class="descclassname">fontTools.ttLib.sfnt.</code><code class="descname">WOFFFlavorData</code><span class="sig-paren">(</span><em>reader=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/sfnt.html#WOFFFlavorData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.sfnt.WOFFFlavorData" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="fontTools.ttLib.sfnt.WOFFFlavorData.Flavor">
+<code class="descname">Flavor</code><em class="property"> = 'woff'</em><a class="headerlink" href="#fontTools.ttLib.sfnt.WOFFFlavorData.Flavor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="fontTools.ttLib.sfnt.calcChecksum">
+<code class="descclassname">fontTools.ttLib.sfnt.</code><code class="descname">calcChecksum</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/sfnt.html#calcChecksum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.sfnt.calcChecksum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the checksum for an arbitrary block of data.
+Optionally takes a &#8216;start&#8217; argument, which allows you to
+calculate a checksum in chunks by feeding it a previous
+result.</p>
+<p>If the data length is not a multiple of four, it assumes
+it is to be padded with null byte.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">calcChecksum</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;abcd&quot;</span><span class="p">))</span>
+<span class="go">1633837924</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">calcChecksum</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;abcdxyz&quot;</span><span class="p">))</span>
+<span class="go">3655064932</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="fontTools.ttLib.sfnt.compress">
+<code class="descclassname">fontTools.ttLib.sfnt.</code><code class="descname">compress</code><span class="sig-paren">(</span><em>data</em>, <em>level=6</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/sfnt.html#compress"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.sfnt.compress" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compress &#8216;data&#8217; to Zlib format. If &#8216;USE_ZOPFLI&#8217; variable is True,
+zopfli is used instead of the zlib module.
+The compression &#8216;level&#8217; must be between 0 and 9. 1 gives best speed,
+9 gives best compression (0 gives no compression at all).
+The default value is a compromise between speed and compression (6).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fontTools.ttLib.sfnt.readTTCHeader">
+<code class="descclassname">fontTools.ttLib.sfnt.</code><code class="descname">readTTCHeader</code><span class="sig-paren">(</span><em>file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/sfnt.html#readTTCHeader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.sfnt.readTTCHeader" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.ttLib.sfnt.writeTTCHeader">
+<code class="descclassname">fontTools.ttLib.sfnt.</code><code class="descname">writeTTCHeader</code><span class="sig-paren">(</span><em>file</em>, <em>numFonts</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/ttLib/sfnt.html#writeTTCHeader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttLib.sfnt.writeTTCHeader" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="macUtils.html"
+                        title="previous chapter">macUtils</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="tables.html"
+                        title="next chapter">tables</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/ttLib/sfnt.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="tables.html" title="tables"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="macUtils.html" title="macUtils"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >ttLib</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

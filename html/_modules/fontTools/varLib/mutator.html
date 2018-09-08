@@ -1,0 +1,304 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fontTools.varLib.mutator &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../varLib.html" accesskey="U">fontTools.varLib</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fontTools.varLib.mutator</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Instantiate a variation font.  Run, eg:</span>
+
+<span class="sd">$ fonttools varLib.mutator ./NotoSansArabic-VF.ttf wght=140 wdth=85</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.py23</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.fixedTools</span> <span class="k">import</span> <span class="n">floatToFixedToFloat</span><span class="p">,</span> <span class="n">otRound</span>
+<span class="kn">from</span> <span class="nn">fontTools.ttLib</span> <span class="k">import</span> <span class="n">TTFont</span>
+<span class="kn">from</span> <span class="nn">fontTools.ttLib.tables._g_l_y_f</span> <span class="k">import</span> <span class="n">GlyphCoordinates</span>
+<span class="kn">from</span> <span class="nn">fontTools.varLib</span> <span class="k">import</span> <span class="n">_GetCoordinates</span><span class="p">,</span> <span class="n">_SetCoordinates</span><span class="p">,</span> <span class="n">_DesignspaceAxis</span>
+<span class="kn">from</span> <span class="nn">fontTools.varLib.models</span> <span class="k">import</span> <span class="n">supportScalar</span><span class="p">,</span> <span class="n">normalizeLocation</span>
+<span class="kn">from</span> <span class="nn">fontTools.varLib.merger</span> <span class="k">import</span> <span class="n">MutatorMerger</span>
+<span class="kn">from</span> <span class="nn">fontTools.varLib.varStore</span> <span class="k">import</span> <span class="n">VarStoreInstancer</span>
+<span class="kn">from</span> <span class="nn">fontTools.varLib.mvar</span> <span class="k">import</span> <span class="n">MVAR_ENTRIES</span>
+<span class="kn">from</span> <span class="nn">fontTools.varLib.iup</span> <span class="k">import</span> <span class="n">iup_delta</span>
+<span class="kn">import</span> <span class="nn">os.path</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;fontTools.varlib.mutator&quot;</span><span class="p">)</span>
+
+<span class="c1"># map &#39;wdth&#39; axis (1..200) to OS/2.usWidthClass (1..9), rounding to closest</span>
+<span class="n">OS2_WIDTH_CLASS_VALUES</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">percents</span> <span class="o">=</span> <span class="p">[</span><span class="mf">50.0</span><span class="p">,</span> <span class="mf">62.5</span><span class="p">,</span> <span class="mf">75.0</span><span class="p">,</span> <span class="mf">87.5</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">,</span> <span class="mf">112.5</span><span class="p">,</span> <span class="mf">125.0</span><span class="p">,</span> <span class="mf">150.0</span><span class="p">,</span> <span class="mf">200.0</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">prev</span><span class="p">,</span> <span class="n">curr</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">percents</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">percents</span><span class="p">[</span><span class="mi">1</span><span class="p">:]),</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+	<span class="n">half</span> <span class="o">=</span> <span class="p">(</span><span class="n">prev</span> <span class="o">+</span> <span class="n">curr</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+	<span class="n">OS2_WIDTH_CLASS_VALUES</span><span class="p">[</span><span class="n">half</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+
+
+<div class="viewcode-block" id="instantiateVariableFont"><a class="viewcode-back" href="../../../varLib/mutator.html#fontTools.varLib.mutator.instantiateVariableFont">[docs]</a><span class="k">def</span> <span class="nf">instantiateVariableFont</span><span class="p">(</span><span class="n">varfont</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot; Generate a static instance from a variable TTFont and a dictionary</span>
+<span class="sd">	defining the desired location along the variable font&#39;s axes.</span>
+<span class="sd">	The location values must be specified as user-space coordinates, e.g.:</span>
+
+<span class="sd">		{&#39;wght&#39;: 400, &#39;wdth&#39;: 100}</span>
+
+<span class="sd">	By default, a new TTFont object is returned. If ``inplace`` is True, the</span>
+<span class="sd">	input varfont is modified and reduced to a static font.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">inplace</span><span class="p">:</span>
+		<span class="c1"># make a copy to leave input varfont unmodified</span>
+		<span class="n">stream</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
+		<span class="n">varfont</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span>
+		<span class="n">stream</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+		<span class="n">varfont</span> <span class="o">=</span> <span class="n">TTFont</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span>
+
+	<span class="n">fvar</span> <span class="o">=</span> <span class="n">varfont</span><span class="p">[</span><span class="s1">&#39;fvar&#39;</span><span class="p">]</span>
+	<span class="n">axes</span> <span class="o">=</span> <span class="p">{</span><span class="n">a</span><span class="o">.</span><span class="n">axisTag</span><span class="p">:(</span><span class="n">a</span><span class="o">.</span><span class="n">minValue</span><span class="p">,</span><span class="n">a</span><span class="o">.</span><span class="n">defaultValue</span><span class="p">,</span><span class="n">a</span><span class="o">.</span><span class="n">maxValue</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">fvar</span><span class="o">.</span><span class="n">axes</span><span class="p">}</span>
+	<span class="n">loc</span> <span class="o">=</span> <span class="n">normalizeLocation</span><span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="n">axes</span><span class="p">)</span>
+	<span class="k">if</span> <span class="s1">&#39;avar&#39;</span> <span class="ow">in</span> <span class="n">varfont</span><span class="p">:</span>
+		<span class="n">maps</span> <span class="o">=</span> <span class="n">varfont</span><span class="p">[</span><span class="s1">&#39;avar&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">segments</span>
+		<span class="n">loc</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="n">_DesignspaceAxis</span><span class="o">.</span><span class="n">_map</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">maps</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">loc</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+	<span class="c1"># Quantize to F2Dot14, to avoid surprise interpolations.</span>
+	<span class="n">loc</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="n">floatToFixedToFloat</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="mi">14</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">loc</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+	<span class="c1"># Location is normalized now</span>
+	<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Normalized location: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">loc</span><span class="p">)</span>
+
+	<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Mutating glyf/gvar tables&quot;</span><span class="p">)</span>
+	<span class="n">gvar</span> <span class="o">=</span> <span class="n">varfont</span><span class="p">[</span><span class="s1">&#39;gvar&#39;</span><span class="p">]</span>
+	<span class="n">glyf</span> <span class="o">=</span> <span class="n">varfont</span><span class="p">[</span><span class="s1">&#39;glyf&#39;</span><span class="p">]</span>
+	<span class="c1"># get list of glyph names in gvar sorted by component depth</span>
+	<span class="n">glyphnames</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+		<span class="n">gvar</span><span class="o">.</span><span class="n">variations</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span>
+		<span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">name</span><span class="p">:</span> <span class="p">(</span>
+			<span class="n">glyf</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">getCompositeMaxpValues</span><span class="p">(</span><span class="n">glyf</span><span class="p">)</span><span class="o">.</span><span class="n">maxComponentDepth</span>
+			<span class="k">if</span> <span class="n">glyf</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">isComposite</span><span class="p">()</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+			<span class="n">name</span><span class="p">))</span>
+	<span class="k">for</span> <span class="n">glyphname</span> <span class="ow">in</span> <span class="n">glyphnames</span><span class="p">:</span>
+		<span class="n">variations</span> <span class="o">=</span> <span class="n">gvar</span><span class="o">.</span><span class="n">variations</span><span class="p">[</span><span class="n">glyphname</span><span class="p">]</span>
+		<span class="n">coordinates</span><span class="p">,</span><span class="n">_</span> <span class="o">=</span> <span class="n">_GetCoordinates</span><span class="p">(</span><span class="n">varfont</span><span class="p">,</span> <span class="n">glyphname</span><span class="p">)</span>
+		<span class="n">origCoords</span><span class="p">,</span> <span class="n">endPts</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+		<span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">variations</span><span class="p">:</span>
+			<span class="n">scalar</span> <span class="o">=</span> <span class="n">supportScalar</span><span class="p">(</span><span class="n">loc</span><span class="p">,</span> <span class="n">var</span><span class="o">.</span><span class="n">axes</span><span class="p">)</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">scalar</span><span class="p">:</span> <span class="k">continue</span>
+			<span class="n">delta</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">coordinates</span>
+			<span class="k">if</span> <span class="kc">None</span> <span class="ow">in</span> <span class="n">delta</span><span class="p">:</span>
+				<span class="k">if</span> <span class="n">origCoords</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+					<span class="n">origCoords</span><span class="p">,</span><span class="n">control</span> <span class="o">=</span> <span class="n">_GetCoordinates</span><span class="p">(</span><span class="n">varfont</span><span class="p">,</span> <span class="n">glyphname</span><span class="p">)</span>
+					<span class="n">endPts</span> <span class="o">=</span> <span class="n">control</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">control</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">control</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span>
+				<span class="n">delta</span> <span class="o">=</span> <span class="n">iup_delta</span><span class="p">(</span><span class="n">delta</span><span class="p">,</span> <span class="n">origCoords</span><span class="p">,</span> <span class="n">endPts</span><span class="p">)</span>
+			<span class="n">coordinates</span> <span class="o">+=</span> <span class="n">GlyphCoordinates</span><span class="p">(</span><span class="n">delta</span><span class="p">)</span> <span class="o">*</span> <span class="n">scalar</span>
+		<span class="n">_SetCoordinates</span><span class="p">(</span><span class="n">varfont</span><span class="p">,</span> <span class="n">glyphname</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="s1">&#39;cvar&#39;</span> <span class="ow">in</span> <span class="n">varfont</span><span class="p">:</span>
+		<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Mutating cvt/cvar tables&quot;</span><span class="p">)</span>
+		<span class="n">cvar</span> <span class="o">=</span> <span class="n">varfont</span><span class="p">[</span><span class="s1">&#39;cvar&#39;</span><span class="p">]</span>
+		<span class="n">cvt</span> <span class="o">=</span> <span class="n">varfont</span><span class="p">[</span><span class="s1">&#39;cvt &#39;</span><span class="p">]</span>
+		<span class="n">deltas</span> <span class="o">=</span> <span class="p">{}</span>
+		<span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">cvar</span><span class="o">.</span><span class="n">variations</span><span class="p">:</span>
+			<span class="n">scalar</span> <span class="o">=</span> <span class="n">supportScalar</span><span class="p">(</span><span class="n">loc</span><span class="p">,</span> <span class="n">var</span><span class="o">.</span><span class="n">axes</span><span class="p">)</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">scalar</span><span class="p">:</span> <span class="k">continue</span>
+			<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">coordinates</span><span class="p">):</span>
+				<span class="k">if</span> <span class="n">c</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+					<span class="n">deltas</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">deltas</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">scalar</span> <span class="o">*</span> <span class="n">c</span>
+		<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">delta</span> <span class="ow">in</span> <span class="n">deltas</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+			<span class="n">cvt</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">otRound</span><span class="p">(</span><span class="n">delta</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="s1">&#39;MVAR&#39;</span> <span class="ow">in</span> <span class="n">varfont</span><span class="p">:</span>
+		<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Mutating MVAR table&quot;</span><span class="p">)</span>
+		<span class="n">mvar</span> <span class="o">=</span> <span class="n">varfont</span><span class="p">[</span><span class="s1">&#39;MVAR&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">table</span>
+		<span class="n">varStoreInstancer</span> <span class="o">=</span> <span class="n">VarStoreInstancer</span><span class="p">(</span><span class="n">mvar</span><span class="o">.</span><span class="n">VarStore</span><span class="p">,</span> <span class="n">fvar</span><span class="o">.</span><span class="n">axes</span><span class="p">,</span> <span class="n">loc</span><span class="p">)</span>
+		<span class="n">records</span> <span class="o">=</span> <span class="n">mvar</span><span class="o">.</span><span class="n">ValueRecord</span>
+		<span class="k">for</span> <span class="n">rec</span> <span class="ow">in</span> <span class="n">records</span><span class="p">:</span>
+			<span class="n">mvarTag</span> <span class="o">=</span> <span class="n">rec</span><span class="o">.</span><span class="n">ValueTag</span>
+			<span class="k">if</span> <span class="n">mvarTag</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">MVAR_ENTRIES</span><span class="p">:</span>
+				<span class="k">continue</span>
+			<span class="n">tableTag</span><span class="p">,</span> <span class="n">itemName</span> <span class="o">=</span> <span class="n">MVAR_ENTRIES</span><span class="p">[</span><span class="n">mvarTag</span><span class="p">]</span>
+			<span class="n">delta</span> <span class="o">=</span> <span class="n">otRound</span><span class="p">(</span><span class="n">varStoreInstancer</span><span class="p">[</span><span class="n">rec</span><span class="o">.</span><span class="n">VarIdx</span><span class="p">])</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">delta</span><span class="p">:</span>
+				<span class="k">continue</span>
+			<span class="nb">setattr</span><span class="p">(</span><span class="n">varfont</span><span class="p">[</span><span class="n">tableTag</span><span class="p">],</span> <span class="n">itemName</span><span class="p">,</span>
+				<span class="nb">getattr</span><span class="p">(</span><span class="n">varfont</span><span class="p">[</span><span class="n">tableTag</span><span class="p">],</span> <span class="n">itemName</span><span class="p">)</span> <span class="o">+</span> <span class="n">delta</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="s1">&#39;GDEF&#39;</span> <span class="ow">in</span> <span class="n">varfont</span><span class="p">:</span>
+		<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Mutating GDEF/GPOS/GSUB tables&quot;</span><span class="p">)</span>
+		<span class="n">merger</span> <span class="o">=</span> <span class="n">MutatorMerger</span><span class="p">(</span><span class="n">varfont</span><span class="p">,</span> <span class="n">loc</span><span class="p">)</span>
+
+		<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Building interpolated tables&quot;</span><span class="p">)</span>
+		<span class="n">merger</span><span class="o">.</span><span class="n">instantiate</span><span class="p">()</span>
+
+	<span class="k">if</span> <span class="s1">&#39;name&#39;</span> <span class="ow">in</span> <span class="n">varfont</span><span class="p">:</span>
+		<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Pruning name table&quot;</span><span class="p">)</span>
+		<span class="n">exclude</span> <span class="o">=</span> <span class="p">{</span><span class="n">a</span><span class="o">.</span><span class="n">axisNameID</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">fvar</span><span class="o">.</span><span class="n">axes</span><span class="p">}</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">fvar</span><span class="o">.</span><span class="n">instances</span><span class="p">:</span>
+			<span class="n">exclude</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">subfamilyNameID</span><span class="p">)</span>
+			<span class="n">exclude</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">postscriptNameID</span><span class="p">)</span>
+		<span class="n">varfont</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">names</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span>
+			<span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">varfont</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">names</span>
+			<span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">nameID</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exclude</span>
+		<span class="p">]</span>
+
+	<span class="k">if</span> <span class="s2">&quot;wght&quot;</span> <span class="ow">in</span> <span class="n">location</span> <span class="ow">and</span> <span class="s2">&quot;OS/2&quot;</span> <span class="ow">in</span> <span class="n">varfont</span><span class="p">:</span>
+		<span class="n">varfont</span><span class="p">[</span><span class="s2">&quot;OS/2&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">usWeightClass</span> <span class="o">=</span> <span class="n">otRound</span><span class="p">(</span>
+			<span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">location</span><span class="p">[</span><span class="s2">&quot;wght&quot;</span><span class="p">],</span> <span class="mi">1000</span><span class="p">))</span>
+		<span class="p">)</span>
+	<span class="k">if</span> <span class="s2">&quot;wdth&quot;</span> <span class="ow">in</span> <span class="n">location</span><span class="p">:</span>
+		<span class="n">wdth</span> <span class="o">=</span> <span class="n">location</span><span class="p">[</span><span class="s2">&quot;wdth&quot;</span><span class="p">]</span>
+		<span class="k">for</span> <span class="n">percent</span><span class="p">,</span> <span class="n">widthClass</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">OS2_WIDTH_CLASS_VALUES</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+			<span class="k">if</span> <span class="n">wdth</span> <span class="o">&lt;</span> <span class="n">percent</span><span class="p">:</span>
+				<span class="n">varfont</span><span class="p">[</span><span class="s2">&quot;OS/2&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">usWidthClass</span> <span class="o">=</span> <span class="n">widthClass</span>
+				<span class="k">break</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">varfont</span><span class="p">[</span><span class="s2">&quot;OS/2&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">usWidthClass</span> <span class="o">=</span> <span class="mi">9</span>
+	<span class="k">if</span> <span class="s2">&quot;slnt&quot;</span> <span class="ow">in</span> <span class="n">location</span> <span class="ow">and</span> <span class="s2">&quot;post&quot;</span> <span class="ow">in</span> <span class="n">varfont</span><span class="p">:</span>
+		<span class="n">varfont</span><span class="p">[</span><span class="s2">&quot;post&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">italicAngle</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="o">-</span><span class="mi">90</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">location</span><span class="p">[</span><span class="s2">&quot;slnt&quot;</span><span class="p">],</span> <span class="mi">90</span><span class="p">))</span>
+
+	<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Removing variable tables&quot;</span><span class="p">)</span>
+	<span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;avar&#39;</span><span class="p">,</span><span class="s1">&#39;cvar&#39;</span><span class="p">,</span><span class="s1">&#39;fvar&#39;</span><span class="p">,</span><span class="s1">&#39;gvar&#39;</span><span class="p">,</span><span class="s1">&#39;HVAR&#39;</span><span class="p">,</span><span class="s1">&#39;MVAR&#39;</span><span class="p">,</span><span class="s1">&#39;VVAR&#39;</span><span class="p">,</span><span class="s1">&#39;STAT&#39;</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">varfont</span><span class="p">:</span>
+			<span class="k">del</span> <span class="n">varfont</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span>
+
+	<span class="k">return</span> <span class="n">varfont</span></div>
+
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../varLib/mutator.html#fontTools.varLib.mutator.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+	<span class="kn">from</span> <span class="nn">fontTools</span> <span class="k">import</span> <span class="n">configLogger</span>
+	<span class="kn">import</span> <span class="nn">argparse</span>
+
+	<span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
+		<span class="s2">&quot;fonttools varLib.mutator&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Instantiate a variable font&quot;</span><span class="p">)</span>
+	<span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+		<span class="s2">&quot;input&quot;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s2">&quot;INPUT.ttf&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Input variable TTF file.&quot;</span><span class="p">)</span>
+	<span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+		<span class="s2">&quot;locargs&quot;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s2">&quot;AXIS=LOC&quot;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">,</span>
+		<span class="n">help</span><span class="o">=</span><span class="s2">&quot;List of space separated locations. A location consist in &quot;</span>
+		<span class="s2">&quot;the name of a variation axis, followed by &#39;=&#39; and a number. E.g.: &quot;</span>
+		<span class="s2">&quot; wght=700 wdth=80. The default is the location of the base master.&quot;</span><span class="p">)</span>
+	<span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+		<span class="s2">&quot;-o&quot;</span><span class="p">,</span> <span class="s2">&quot;--output&quot;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s2">&quot;OUTPUT.ttf&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">help</span><span class="o">=</span><span class="s2">&quot;Output instance TTF file (default: INPUT-instance.ttf).&quot;</span><span class="p">)</span>
+	<span class="n">logging_group</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_mutually_exclusive_group</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+	<span class="n">logging_group</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+		<span class="s2">&quot;-v&quot;</span><span class="p">,</span> <span class="s2">&quot;--verbose&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Run more verbosely.&quot;</span><span class="p">)</span>
+	<span class="n">logging_group</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+		<span class="s2">&quot;-q&quot;</span><span class="p">,</span> <span class="s2">&quot;--quiet&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Turn verbosity off.&quot;</span><span class="p">)</span>
+	<span class="n">options</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+	<span class="n">varfilename</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">input</span>
+	<span class="n">outfile</span> <span class="o">=</span> <span class="p">(</span>
+		<span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">varfilename</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;-instance.ttf&#39;</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">output</span> <span class="k">else</span> <span class="n">options</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>
+	<span class="n">configLogger</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="p">(</span>
+		<span class="s2">&quot;DEBUG&quot;</span> <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">verbose</span> <span class="k">else</span>
+		<span class="s2">&quot;ERROR&quot;</span> <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">quiet</span> <span class="k">else</span>
+		<span class="s2">&quot;INFO&quot;</span><span class="p">))</span>
+
+	<span class="n">loc</span> <span class="o">=</span> <span class="p">{}</span>
+	<span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">options</span><span class="o">.</span><span class="n">locargs</span><span class="p">:</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="n">tag</span><span class="p">,</span> <span class="n">val</span> <span class="o">=</span> <span class="n">arg</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)</span>
+			<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">4</span>
+			<span class="n">loc</span><span class="p">[</span><span class="n">tag</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">4</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+		<span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">AssertionError</span><span class="p">):</span>
+			<span class="n">parser</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;invalid location argument format: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">arg</span><span class="p">)</span>
+	<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Location: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">loc</span><span class="p">)</span>
+
+	<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Loading variable font&quot;</span><span class="p">)</span>
+	<span class="n">varfont</span> <span class="o">=</span> <span class="n">TTFont</span><span class="p">(</span><span class="n">varfilename</span><span class="p">)</span>
+
+	<span class="n">instantiateVariableFont</span><span class="p">(</span><span class="n">varfont</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+	<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Saving instance font </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">outfile</span><span class="p">)</span>
+	<span class="n">varfont</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">outfile</span><span class="p">)</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+	<span class="kn">import</span> <span class="nn">sys</span>
+	<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+		<span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+	<span class="kn">import</span> <span class="nn">doctest</span>
+	<span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">doctest</span><span class="o">.</span><span class="n">testmod</span><span class="p">()</span><span class="o">.</span><span class="n">failed</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../varLib.html" >fontTools.varLib</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

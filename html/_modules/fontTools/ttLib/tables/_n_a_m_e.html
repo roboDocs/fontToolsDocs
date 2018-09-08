@@ -1,0 +1,1041 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fontTools.ttLib.tables._n_a_m_e &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../ttLib.html" accesskey="U">fontTools.ttLib</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fontTools.ttLib.tables._n_a_m_e</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.py23</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc</span> <span class="k">import</span> <span class="n">sstruct</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.textTools</span> <span class="k">import</span> <span class="n">safeEval</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.encodingTools</span> <span class="k">import</span> <span class="n">getEncoding</span>
+<span class="kn">from</span> <span class="nn">fontTools.ttLib</span> <span class="k">import</span> <span class="n">newTable</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">DefaultTable</span>
+<span class="kn">import</span> <span class="nn">struct</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="n">nameRecordFormat</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">		&gt;	# big endian</span>
+<span class="s2">		platformID:	H</span>
+<span class="s2">		platEncID:	H</span>
+<span class="s2">		langID:		H</span>
+<span class="s2">		nameID:		H</span>
+<span class="s2">		length:		H</span>
+<span class="s2">		offset:		H</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="n">nameRecordSize</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">nameRecordFormat</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="table__n_a_m_e"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e">[docs]</a><span class="k">class</span> <span class="nc">table__n_a_m_e</span><span class="p">(</span><span class="n">DefaultTable</span><span class="o">.</span><span class="n">DefaultTable</span><span class="p">):</span>
+	<span class="n">dependencies</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ltag&quot;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="table__n_a_m_e.decompile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e.decompile">[docs]</a>	<span class="k">def</span> <span class="nf">decompile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="nb">format</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">stringOffset</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;&gt;HHH&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">[:</span><span class="mi">6</span><span class="p">])</span>
+		<span class="n">expectedStringOffset</span> <span class="o">=</span> <span class="mi">6</span> <span class="o">+</span> <span class="n">n</span> <span class="o">*</span> <span class="n">nameRecordSize</span>
+		<span class="k">if</span> <span class="n">stringOffset</span> <span class="o">!=</span> <span class="n">expectedStringOffset</span><span class="p">:</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+				<span class="s2">&quot;&#39;name&#39; table stringOffset incorrect. Expected: </span><span class="si">%s</span><span class="s2">; Actual: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
+				<span class="n">expectedStringOffset</span><span class="p">,</span> <span class="n">stringOffset</span><span class="p">)</span>
+		<span class="n">stringData</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">stringOffset</span><span class="p">:]</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">6</span><span class="p">:]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+			<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">12</span><span class="p">:</span>
+				<span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;skipping malformed name record #</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+				<span class="k">continue</span>
+			<span class="n">name</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">unpack2</span><span class="p">(</span><span class="n">nameRecordFormat</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">NameRecord</span><span class="p">())</span>
+			<span class="n">name</span><span class="o">.</span><span class="n">string</span> <span class="o">=</span> <span class="n">stringData</span><span class="p">[</span><span class="n">name</span><span class="o">.</span><span class="n">offset</span><span class="p">:</span><span class="n">name</span><span class="o">.</span><span class="n">offset</span><span class="o">+</span><span class="n">name</span><span class="o">.</span><span class="n">length</span><span class="p">]</span>
+			<span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">offset</span> <span class="o">+</span> <span class="n">name</span><span class="o">.</span><span class="n">length</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">stringData</span><span class="p">):</span>
+				<span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;skipping malformed name record #</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+				<span class="k">continue</span>
+			<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="o">.</span><span class="n">string</span><span class="p">)</span> <span class="o">==</span> <span class="n">name</span><span class="o">.</span><span class="n">length</span>
+			<span class="c1">#if (name.platEncID, name.platformID) in ((0, 0), (1, 3)):</span>
+			<span class="c1">#	if len(name.string) % 2:</span>
+			<span class="c1">#		print &quot;2-byte string doesn&#39;t have even length!&quot;</span>
+			<span class="c1">#		print name.__dict__</span>
+			<span class="k">del</span> <span class="n">name</span><span class="o">.</span><span class="n">offset</span><span class="p">,</span> <span class="n">name</span><span class="o">.</span><span class="n">length</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="table__n_a_m_e.compile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e.compile">[docs]</a>	<span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;names&quot;</span><span class="p">):</span>
+			<span class="c1"># only happens when there are NO name table entries read</span>
+			<span class="c1"># from the TTX file</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="n">names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span>
+		<span class="n">names</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span> <span class="c1"># sort according to the spec; see NameRecord.__lt__()</span>
+		<span class="n">stringData</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span>
+		<span class="nb">format</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)</span>
+		<span class="n">stringOffset</span> <span class="o">=</span> <span class="mi">6</span> <span class="o">+</span> <span class="n">n</span> <span class="o">*</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">nameRecordFormat</span><span class="p">)</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;&gt;HHH&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">stringOffset</span><span class="p">)</span>
+		<span class="n">lastoffset</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="n">done</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># remember the data so we can reuse the &quot;pointers&quot;</span>
+		<span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+			<span class="n">string</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">toBytes</span><span class="p">()</span>
+			<span class="k">if</span> <span class="n">string</span> <span class="ow">in</span> <span class="n">done</span><span class="p">:</span>
+				<span class="n">name</span><span class="o">.</span><span class="n">offset</span><span class="p">,</span> <span class="n">name</span><span class="o">.</span><span class="n">length</span> <span class="o">=</span> <span class="n">done</span><span class="p">[</span><span class="n">string</span><span class="p">]</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">name</span><span class="o">.</span><span class="n">offset</span><span class="p">,</span> <span class="n">name</span><span class="o">.</span><span class="n">length</span> <span class="o">=</span> <span class="n">done</span><span class="p">[</span><span class="n">string</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">stringData</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+				<span class="n">stringData</span> <span class="o">=</span> <span class="n">bytesjoin</span><span class="p">([</span><span class="n">stringData</span><span class="p">,</span> <span class="n">string</span><span class="p">])</span>
+			<span class="n">data</span> <span class="o">=</span> <span class="n">data</span> <span class="o">+</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">nameRecordFormat</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">data</span> <span class="o">+</span> <span class="n">stringData</span></div>
+
+<div class="viewcode-block" id="table__n_a_m_e.toXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e.toXML">[docs]</a>	<span class="k">def</span> <span class="nf">toXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
+			<span class="n">name</span><span class="o">.</span><span class="n">toXML</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="table__n_a_m_e.fromXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e.fromXML">[docs]</a>	<span class="k">def</span> <span class="nf">fromXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;namerecord&quot;</span><span class="p">:</span>
+			<span class="k">return</span> <span class="c1"># ignore unknown tags</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;names&quot;</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="n">name</span> <span class="o">=</span> <span class="n">NameRecord</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+		<span class="n">name</span><span class="o">.</span><span class="n">fromXML</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="table__n_a_m_e.getName"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e.getName">[docs]</a>	<span class="k">def</span> <span class="nf">getName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nameID</span><span class="p">,</span> <span class="n">platformID</span><span class="p">,</span> <span class="n">platEncID</span><span class="p">,</span> <span class="n">langID</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+		<span class="k">for</span> <span class="n">namerecord</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
+			<span class="k">if</span> <span class="p">(</span>	<span class="n">namerecord</span><span class="o">.</span><span class="n">nameID</span> <span class="o">==</span> <span class="n">nameID</span> <span class="ow">and</span>
+					<span class="n">namerecord</span><span class="o">.</span><span class="n">platformID</span> <span class="o">==</span> <span class="n">platformID</span> <span class="ow">and</span>
+					<span class="n">namerecord</span><span class="o">.</span><span class="n">platEncID</span> <span class="o">==</span> <span class="n">platEncID</span><span class="p">):</span>
+				<span class="k">if</span> <span class="n">langID</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">namerecord</span><span class="o">.</span><span class="n">langID</span> <span class="o">==</span> <span class="n">langID</span><span class="p">:</span>
+					<span class="k">return</span> <span class="n">namerecord</span>
+		<span class="k">return</span> <span class="kc">None</span> <span class="c1"># not found</span></div>
+
+<div class="viewcode-block" id="table__n_a_m_e.getDebugName"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e.getDebugName">[docs]</a>	<span class="k">def</span> <span class="nf">getDebugName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nameID</span><span class="p">):</span>
+		<span class="n">englishName</span> <span class="o">=</span> <span class="n">someName</span> <span class="o">=</span> <span class="kc">None</span>
+		<span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">nameID</span> <span class="o">!=</span> <span class="n">nameID</span><span class="p">:</span>
+				<span class="k">continue</span>
+			<span class="k">try</span><span class="p">:</span>
+				<span class="n">unistr</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">toUnicode</span><span class="p">()</span>
+			<span class="k">except</span> <span class="ne">UnicodeDecodeError</span><span class="p">:</span>
+				<span class="k">continue</span>
+
+			<span class="n">someName</span> <span class="o">=</span> <span class="n">unistr</span>
+			<span class="k">if</span> <span class="p">(</span><span class="n">name</span><span class="o">.</span><span class="n">platformID</span><span class="p">,</span> <span class="n">name</span><span class="o">.</span><span class="n">langID</span><span class="p">)</span> <span class="ow">in</span> <span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mh">0x409</span><span class="p">)):</span>
+				<span class="n">englishName</span> <span class="o">=</span> <span class="n">unistr</span>
+				<span class="k">break</span>
+		<span class="k">if</span> <span class="n">englishName</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">englishName</span>
+		<span class="k">elif</span> <span class="n">someName</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">someName</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="table__n_a_m_e.setName"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e.setName">[docs]</a>	<span class="k">def</span> <span class="nf">setName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">,</span> <span class="n">nameID</span><span class="p">,</span> <span class="n">platformID</span><span class="p">,</span> <span class="n">platEncID</span><span class="p">,</span> <span class="n">langID</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; Set the &#39;string&#39; for the name record identified by &#39;nameID&#39;, &#39;platformID&#39;,</span>
+<span class="sd">		&#39;platEncID&#39; and &#39;langID&#39;. If a record with that nameID doesn&#39;t exist, create it</span>
+<span class="sd">		and append to the name table.</span>
+
+<span class="sd">		&#39;string&#39; can be of type `str` (`unicode` in PY2) or `bytes`. In the latter case,</span>
+<span class="sd">		it is assumed to be already encoded with the correct plaform-specific encoding</span>
+<span class="sd">		identified by the (platformID, platEncID, langID) triplet. A warning is issued</span>
+<span class="sd">		to prevent unexpected results.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;names&#39;</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">unicode</span><span class="p">):</span>
+			<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+				<span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+					<span class="s2">&quot;name string is bytes, ensure it&#39;s correctly encoded: </span><span class="si">%r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">string</span><span class="p">)</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+					<span class="s2">&quot;expected unicode or bytes, found </span><span class="si">%s</span><span class="s2">: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+						<span class="nb">type</span><span class="p">(</span><span class="n">string</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">string</span><span class="p">))</span>
+		<span class="n">namerecord</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getName</span><span class="p">(</span><span class="n">nameID</span><span class="p">,</span> <span class="n">platformID</span><span class="p">,</span> <span class="n">platEncID</span><span class="p">,</span> <span class="n">langID</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">namerecord</span><span class="p">:</span>
+			<span class="n">namerecord</span><span class="o">.</span><span class="n">string</span> <span class="o">=</span> <span class="n">string</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">makeName</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">nameID</span><span class="p">,</span> <span class="n">platformID</span><span class="p">,</span> <span class="n">platEncID</span><span class="p">,</span> <span class="n">langID</span><span class="p">))</span></div>
+
+	<span class="k">def</span> <span class="nf">_findUnusedNameID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">minNameID</span><span class="o">=</span><span class="mi">256</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Finds an unused name id.</span>
+
+<span class="sd">		The nameID is assigned in the range between &#39;minNameID&#39; and 32767 (inclusive),</span>
+<span class="sd">		following the last nameID in the name table.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">names</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;names&#39;</span><span class="p">,</span> <span class="p">[])</span>
+		<span class="n">nameID</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="nb">max</span><span class="p">([</span><span class="n">n</span><span class="o">.</span><span class="n">nameID</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">names</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">minNameID</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+		<span class="k">if</span> <span class="n">nameID</span> <span class="o">&gt;</span> <span class="mi">32767</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;nameID must be less than 32768&quot;</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">nameID</span>
+
+<div class="viewcode-block" id="table__n_a_m_e.addMultilingualName"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e.addMultilingualName">[docs]</a>	<span class="k">def</span> <span class="nf">addMultilingualName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">ttFont</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nameID</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Add a multilingual name, returning its name ID</span>
+
+<span class="sd">		&#39;names&#39; is a dictionary with the name in multiple languages,</span>
+<span class="sd">		such as {&#39;en&#39;: &#39;Pale&#39;, &#39;de&#39;: &#39;Blaß&#39;, &#39;de-CH&#39;: &#39;Blass&#39;}.</span>
+<span class="sd">		The keys can be arbitrary IETF BCP 47 language codes;</span>
+<span class="sd">		the values are Unicode strings.</span>
+
+<span class="sd">		&#39;ttFont&#39; is the TTFont to which the names are added, or None.</span>
+<span class="sd">		If present, the font&#39;s &#39;ltag&#39; table can get populated</span>
+<span class="sd">		to store exotic language codes, which allows encoding</span>
+<span class="sd">		names that otherwise cannot get encoded at all.</span>
+
+<span class="sd">		&#39;nameID&#39; is the name ID to be used, or None to let the library</span>
+<span class="sd">		pick an unused name ID.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;names&#39;</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">if</span> <span class="n">nameID</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">nameID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_findUnusedNameID</span><span class="p">()</span>
+		<span class="c1"># TODO: Should minimize BCP 47 language codes.</span>
+		<span class="c1"># https://github.com/fonttools/fonttools/issues/930</span>
+		<span class="k">for</span> <span class="n">lang</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">names</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+			<span class="c1"># Apple platforms have been recognizing Windows names</span>
+			<span class="c1"># since early OSX (~2001), so we only add names</span>
+			<span class="c1"># for the Macintosh platform when we cannot not make</span>
+			<span class="c1"># a Windows name. This can happen for exotic BCP47</span>
+			<span class="c1"># language tags that have no Windows language code.</span>
+			<span class="n">windowsName</span> <span class="o">=</span> <span class="n">_makeWindowsName</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">nameID</span><span class="p">,</span> <span class="n">lang</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">windowsName</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">windowsName</span><span class="p">)</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">macName</span> <span class="o">=</span> <span class="n">_makeMacName</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">nameID</span><span class="p">,</span> <span class="n">lang</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span>
+				<span class="k">if</span> <span class="n">macName</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">macName</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">nameID</span></div>
+
+<div class="viewcode-block" id="table__n_a_m_e.addName"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e.addName">[docs]</a>	<span class="k">def</span> <span class="nf">addName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">,</span> <span class="n">platforms</span><span class="o">=</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mh">0x409</span><span class="p">)),</span> <span class="n">minNameID</span><span class="o">=</span><span class="mi">255</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; Add a new name record containing &#39;string&#39; for each (platformID, platEncID,</span>
+<span class="sd">		langID) tuple specified in the &#39;platforms&#39; list.</span>
+
+<span class="sd">		The nameID is assigned in the range between &#39;minNameID&#39;+1 and 32767 (inclusive),</span>
+<span class="sd">		following the last nameID in the name table.</span>
+<span class="sd">		If no &#39;platforms&#39; are specified, two English name records are added, one for the</span>
+<span class="sd">		Macintosh (platformID=0), and one for the Windows platform (3).</span>
+
+<span class="sd">		The &#39;string&#39; must be a Unicode string, so it can be encoded with different,</span>
+<span class="sd">		platform-specific encodings.</span>
+
+<span class="sd">		Return the new nameID.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">platforms</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> \
+			<span class="s2">&quot;&#39;platforms&#39; must contain at least one (platformID, platEncID, langID) tuple&quot;</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;names&#39;</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">unicode</span><span class="p">):</span>
+			<span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+				<span class="s2">&quot;expected </span><span class="si">%s</span><span class="s2">, found </span><span class="si">%s</span><span class="s2">: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+					<span class="n">unicode</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">string</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span><span class="n">string</span> <span class="p">))</span>
+		<span class="n">nameID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_findUnusedNameID</span><span class="p">(</span><span class="n">minNameID</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">platformID</span><span class="p">,</span> <span class="n">platEncID</span><span class="p">,</span> <span class="n">langID</span> <span class="ow">in</span> <span class="n">platforms</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">makeName</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">nameID</span><span class="p">,</span> <span class="n">platformID</span><span class="p">,</span> <span class="n">platEncID</span><span class="p">,</span> <span class="n">langID</span><span class="p">))</span>
+		<span class="k">return</span> <span class="n">nameID</span></div></div>
+
+
+<div class="viewcode-block" id="makeName"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._n_a_m_e.makeName">[docs]</a><span class="k">def</span> <span class="nf">makeName</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">nameID</span><span class="p">,</span> <span class="n">platformID</span><span class="p">,</span> <span class="n">platEncID</span><span class="p">,</span> <span class="n">langID</span><span class="p">):</span>
+	<span class="n">name</span> <span class="o">=</span> <span class="n">NameRecord</span><span class="p">()</span>
+	<span class="n">name</span><span class="o">.</span><span class="n">string</span><span class="p">,</span> <span class="n">name</span><span class="o">.</span><span class="n">nameID</span><span class="p">,</span> <span class="n">name</span><span class="o">.</span><span class="n">platformID</span><span class="p">,</span> <span class="n">name</span><span class="o">.</span><span class="n">platEncID</span><span class="p">,</span> <span class="n">name</span><span class="o">.</span><span class="n">langID</span> <span class="o">=</span> <span class="p">(</span>
+		<span class="n">string</span><span class="p">,</span> <span class="n">nameID</span><span class="p">,</span> <span class="n">platformID</span><span class="p">,</span> <span class="n">platEncID</span><span class="p">,</span> <span class="n">langID</span><span class="p">)</span>
+	<span class="k">return</span> <span class="n">name</span></div>
+
+
+<span class="k">def</span> <span class="nf">_makeWindowsName</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">nameID</span><span class="p">,</span> <span class="n">language</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Create a NameRecord for the Microsoft Windows platform</span>
+
+<span class="sd">	&#39;language&#39; is an arbitrary IETF BCP 47 language identifier such</span>
+<span class="sd">	as &#39;en&#39;, &#39;de-CH&#39;, &#39;de-AT-1901&#39;, or &#39;fa-Latn&#39;. If Microsoft Windows</span>
+<span class="sd">	does not support the desired language, the result will be None.</span>
+<span class="sd">	Future versions of fonttools might return a NameRecord for the</span>
+<span class="sd">	OpenType &#39;name&#39; table format 1, but this is not implemented yet.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">langID</span> <span class="o">=</span> <span class="n">_WINDOWS_LANGUAGE_CODES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">language</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+	<span class="k">if</span> <span class="n">langID</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">makeName</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">nameID</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">langID</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;cannot add Windows name in language </span><span class="si">%s</span><span class="s2"> &quot;</span>
+		            <span class="s2">&quot;because fonttools does not yet support &quot;</span>
+		            <span class="s2">&quot;name table format 1&quot;</span> <span class="o">%</span> <span class="n">language</span><span class="p">)</span>
+		<span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="k">def</span> <span class="nf">_makeMacName</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">nameID</span><span class="p">,</span> <span class="n">language</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Create a NameRecord for Apple platforms</span>
+
+<span class="sd">	&#39;language&#39; is an arbitrary IETF BCP 47 language identifier such</span>
+<span class="sd">	as &#39;en&#39;, &#39;de-CH&#39;, &#39;de-AT-1901&#39;, or &#39;fa-Latn&#39;. When possible, we</span>
+<span class="sd">	create a Macintosh NameRecord that is understood by old applications</span>
+<span class="sd">	(platform ID 1 and an old-style Macintosh language enum). If this</span>
+<span class="sd">	is not possible, we create a Unicode NameRecord (platform ID 0)</span>
+<span class="sd">	whose language points to the font’s &#39;ltag&#39; table. The latter</span>
+<span class="sd">	can encode any string in any language, but legacy applications</span>
+<span class="sd">	might not recognize the format (in which case they will ignore</span>
+<span class="sd">	those names).</span>
+
+<span class="sd">	&#39;font&#39; should be the TTFont for which you want to create a name.</span>
+<span class="sd">	If &#39;font&#39; is None, we only return NameRecords for legacy Macintosh;</span>
+<span class="sd">	in that case, the result will be None for names that need to</span>
+<span class="sd">	be encoded with an &#39;ltag&#39; table.</span>
+
+<span class="sd">	See the section “The language identifier” in Apple’s specification:</span>
+<span class="sd">	https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6name.html</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">macLang</span> <span class="o">=</span> <span class="n">_MAC_LANGUAGE_CODES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">language</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+	<span class="n">macScript</span> <span class="o">=</span> <span class="n">_MAC_LANGUAGE_TO_SCRIPT</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">macLang</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">macLang</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">macScript</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">encoding</span> <span class="o">=</span> <span class="n">getEncoding</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">macScript</span><span class="p">,</span> <span class="n">macLang</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;ascii&quot;</span><span class="p">)</span>
+		<span class="c1"># Check if we can actually encode this name. If we can&#39;t,</span>
+		<span class="c1"># for example because we have no support for the legacy</span>
+		<span class="c1"># encoding, or because the name string contains Unicode</span>
+		<span class="c1"># characters that the legacy encoding cannot represent,</span>
+		<span class="c1"># we fall back to encoding the name in Unicode and put</span>
+		<span class="c1"># the language tag into the ltag table.</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="n">_</span> <span class="o">=</span> <span class="n">tobytes</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">encoding</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;strict&quot;</span><span class="p">)</span>
+			<span class="k">return</span> <span class="n">makeName</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">nameID</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">macScript</span><span class="p">,</span> <span class="n">macLang</span><span class="p">)</span>
+		<span class="k">except</span> <span class="ne">UnicodeEncodeError</span><span class="p">:</span>
+			<span class="k">pass</span>
+	<span class="k">if</span> <span class="n">font</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">ltag</span> <span class="o">=</span> <span class="n">font</span><span class="o">.</span><span class="n">tables</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ltag&quot;</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">ltag</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">ltag</span> <span class="o">=</span> <span class="n">font</span><span class="p">[</span><span class="s2">&quot;ltag&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">newTable</span><span class="p">(</span><span class="s2">&quot;ltag&quot;</span><span class="p">)</span>
+		<span class="c1"># 0 = Unicode; 4 = “Unicode 2.0 or later semantics (non-BMP characters allowed)”</span>
+		<span class="c1"># “The preferred platform-specific code for Unicode would be 3 or 4.”</span>
+		<span class="c1"># https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6name.html</span>
+		<span class="k">return</span> <span class="n">makeName</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">nameID</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">ltag</span><span class="o">.</span><span class="n">addTag</span><span class="p">(</span><span class="n">language</span><span class="p">))</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;cannot store language </span><span class="si">%s</span><span class="s2"> into &#39;ltag&#39; table &quot;</span>
+		            <span class="s2">&quot;without having access to the TTFont object&quot;</span> <span class="o">%</span>
+		            <span class="n">language</span><span class="p">)</span>
+		<span class="k">return</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="NameRecord"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._n_a_m_e.NameRecord">[docs]</a><span class="k">class</span> <span class="nc">NameRecord</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+<div class="viewcode-block" id="NameRecord.getEncoding"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._n_a_m_e.NameRecord.getEncoding">[docs]</a>	<span class="k">def</span> <span class="nf">getEncoding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;ascii&#39;</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Returns the Python encoding name for this name entry based on its platformID,</span>
+<span class="sd">		platEncID, and langID.  If encoding for these values is not known, by default</span>
+<span class="sd">		&#39;ascii&#39; is returned.  That can be overriden by passing a value to the default</span>
+<span class="sd">		argument.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="n">getEncoding</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">platformID</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">platEncID</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">langID</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="NameRecord.encodingIsUnicodeCompatible"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._n_a_m_e.NameRecord.encodingIsUnicodeCompatible">[docs]</a>	<span class="k">def</span> <span class="nf">encodingIsUnicodeCompatible</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getEncoding</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;utf_16_be&#39;</span><span class="p">,</span> <span class="s1">&#39;ucs2be&#39;</span><span class="p">,</span> <span class="s1">&#39;ascii&#39;</span><span class="p">,</span> <span class="s1">&#39;latin1&#39;</span><span class="p">]</span></div>
+
+	<span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">toStr</span><span class="p">(</span><span class="n">errors</span><span class="o">=</span><span class="s1">&#39;backslashreplace&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="NameRecord.isUnicode"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._n_a_m_e.NameRecord.isUnicode">[docs]</a>	<span class="k">def</span> <span class="nf">isUnicode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">platformID</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span>
+			<span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">platformID</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">platEncID</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">]))</span></div>
+
+<div class="viewcode-block" id="NameRecord.toUnicode"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._n_a_m_e.NameRecord.toUnicode">[docs]</a>	<span class="k">def</span> <span class="nf">toUnicode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s1">&#39;strict&#39;</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		If self.string is a Unicode string, return it; otherwise try decoding the</span>
+<span class="sd">		bytes in self.string to a Unicode string using the encoding of this</span>
+<span class="sd">		entry as returned by self.getEncoding(); Note that  self.getEncoding()</span>
+<span class="sd">		returns &#39;ascii&#39; if the encoding is unknown to the library.</span>
+
+<span class="sd">		Certain heuristics are performed to recover data from bytes that are</span>
+<span class="sd">		ill-formed in the chosen encoding, or that otherwise look misencoded</span>
+<span class="sd">		(mostly around bad UTF-16BE encoded bytes, or bytes that look like UTF-16BE</span>
+<span class="sd">		but marked otherwise).  If the bytes are ill-formed and the heuristics fail,</span>
+<span class="sd">		the error is handled according to the errors parameter to this function, which is</span>
+<span class="sd">		passed to the underlying decode() function; by default it throws a</span>
+<span class="sd">		UnicodeDecodeError exception.</span>
+
+<span class="sd">		Note: The mentioned heuristics mean that roundtripping a font to XML and back</span>
+<span class="sd">		to binary might recover some misencoded data whereas just loading the font</span>
+<span class="sd">		and saving it back will not change them.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">def</span> <span class="nf">isascii</span><span class="p">(</span><span class="n">b</span><span class="p">):</span>
+			<span class="k">return</span> <span class="p">(</span><span class="n">b</span> <span class="o">&gt;=</span> <span class="mh">0x20</span> <span class="ow">and</span> <span class="n">b</span> <span class="o">&lt;=</span> <span class="mh">0x7E</span><span class="p">)</span> <span class="ow">or</span> <span class="n">b</span> <span class="ow">in</span> <span class="p">[</span><span class="mh">0x09</span><span class="p">,</span> <span class="mh">0x0A</span><span class="p">,</span> <span class="mh">0x0D</span><span class="p">]</span>
+		<span class="n">encoding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getEncoding</span><span class="p">()</span>
+		<span class="n">string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">string</span>
+
+		<span class="k">if</span> <span class="n">encoding</span> <span class="o">==</span> <span class="s1">&#39;utf_16_be&#39;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">string</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+			<span class="c1"># Recover badly encoded UTF-16 strings that have an odd number of bytes:</span>
+			<span class="c1"># - If the last byte is zero, drop it.  Otherwise,</span>
+			<span class="c1"># - If all the odd bytes are zero and all the even bytes are ASCII,</span>
+			<span class="c1">#   prepend one zero byte.  Otherwise,</span>
+			<span class="c1"># - If first byte is zero and all other bytes are ASCII, insert zero</span>
+			<span class="c1">#   bytes between consecutive ASCII bytes.</span>
+			<span class="c1">#</span>
+			<span class="c1"># (Yes, I&#39;ve seen all of these in the wild... sigh)</span>
+			<span class="k">if</span> <span class="n">byteord</span><span class="p">(</span><span class="n">string</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+				<span class="n">string</span> <span class="o">=</span> <span class="n">string</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+			<span class="k">elif</span> <span class="nb">all</span><span class="p">(</span><span class="n">byteord</span><span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">2</span> <span class="k">else</span> <span class="n">isascii</span><span class="p">(</span><span class="n">byteord</span><span class="p">(</span><span class="n">b</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">b</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">string</span><span class="p">)):</span>
+				<span class="n">string</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\0</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">string</span>
+			<span class="k">elif</span> <span class="n">byteord</span><span class="p">(</span><span class="n">string</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="n">isascii</span><span class="p">(</span><span class="n">byteord</span><span class="p">(</span><span class="n">b</span><span class="p">))</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">string</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+				<span class="n">string</span> <span class="o">=</span> <span class="n">bytesjoin</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;</span><span class="se">\0</span><span class="s1">&#39;</span><span class="o">+</span><span class="n">bytechr</span><span class="p">(</span><span class="n">byteord</span><span class="p">(</span><span class="n">b</span><span class="p">))</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">string</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+
+		<span class="n">string</span> <span class="o">=</span> <span class="n">tounicode</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="n">errors</span><span class="p">)</span>
+
+		<span class="c1"># If decoded strings still looks like UTF-16BE, it suggests a double-encoding.</span>
+		<span class="c1"># Fix it up.</span>
+		<span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="nb">ord</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">isascii</span><span class="p">(</span><span class="nb">ord</span><span class="p">(</span><span class="n">c</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">string</span><span class="p">)):</span>
+			<span class="c1"># If string claims to be Mac encoding, but looks like UTF-16BE with ASCII text,</span>
+			<span class="c1"># narrow it down.</span>
+			<span class="n">string</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">string</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">])</span>
+
+		<span class="k">return</span> <span class="n">string</span></div>
+
+<div class="viewcode-block" id="NameRecord.toBytes"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._n_a_m_e.NameRecord.toBytes">[docs]</a>	<span class="k">def</span> <span class="nf">toBytes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s1">&#39;strict&#39;</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; If self.string is a bytes object, return it; otherwise try encoding</span>
+<span class="sd">		the Unicode string in self.string to bytes using the encoding of this</span>
+<span class="sd">		entry as returned by self.getEncoding(); Note that self.getEncoding()</span>
+<span class="sd">		returns &#39;ascii&#39; if the encoding is unknown to the library.</span>
+
+<span class="sd">		If the Unicode string cannot be encoded to bytes in the chosen encoding,</span>
+<span class="sd">		the error is handled according to the errors parameter to this function,</span>
+<span class="sd">		which is passed to the underlying encode() function; by default it throws a</span>
+<span class="sd">		UnicodeEncodeError exception.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="n">tobytes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">string</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getEncoding</span><span class="p">(),</span> <span class="n">errors</span><span class="o">=</span><span class="n">errors</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="NameRecord.toStr"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._n_a_m_e.NameRecord.toStr">[docs]</a>	<span class="k">def</span> <span class="nf">toStr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s1">&#39;strict&#39;</span><span class="p">):</span>
+		<span class="k">if</span> <span class="nb">str</span> <span class="o">==</span> <span class="nb">bytes</span><span class="p">:</span>
+			<span class="c1"># python 2</span>
+			<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">toBytes</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="c1"># python 3</span>
+			<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">toUnicode</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="NameRecord.toXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._n_a_m_e.NameRecord.toXML">[docs]</a>	<span class="k">def</span> <span class="nf">toXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="n">unistr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">toUnicode</span><span class="p">()</span>
+		<span class="k">except</span> <span class="ne">UnicodeDecodeError</span><span class="p">:</span>
+			<span class="n">unistr</span> <span class="o">=</span> <span class="kc">None</span>
+		<span class="n">attrs</span> <span class="o">=</span> <span class="p">[</span>
+				<span class="p">(</span><span class="s2">&quot;nameID&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nameID</span><span class="p">),</span>
+				<span class="p">(</span><span class="s2">&quot;platformID&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">platformID</span><span class="p">),</span>
+				<span class="p">(</span><span class="s2">&quot;platEncID&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">platEncID</span><span class="p">),</span>
+				<span class="p">(</span><span class="s2">&quot;langID&quot;</span><span class="p">,</span> <span class="nb">hex</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">langID</span><span class="p">)),</span>
+			<span class="p">]</span>
+
+		<span class="k">if</span> <span class="n">unistr</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">encodingIsUnicodeCompatible</span><span class="p">():</span>
+			<span class="n">attrs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;unicode&quot;</span><span class="p">,</span> <span class="n">unistr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">))</span>
+
+		<span class="n">writer</span><span class="o">.</span><span class="n">begintag</span><span class="p">(</span><span class="s2">&quot;namerecord&quot;</span><span class="p">,</span> <span class="n">attrs</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="k">if</span> <span class="n">unistr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">unistr</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">write8bit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">string</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">endtag</span><span class="p">(</span><span class="s2">&quot;namerecord&quot;</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="NameRecord.fromXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._n_a_m_e.NameRecord.fromXML">[docs]</a>	<span class="k">def</span> <span class="nf">fromXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">nameID</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;nameID&quot;</span><span class="p">])</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">platformID</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;platformID&quot;</span><span class="p">])</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">platEncID</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;platEncID&quot;</span><span class="p">])</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">langID</span> <span class="o">=</span>  <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;langID&quot;</span><span class="p">])</span>
+		<span class="n">s</span> <span class="o">=</span> <span class="n">strjoin</span><span class="p">(</span><span class="n">content</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+		<span class="n">encoding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getEncoding</span><span class="p">()</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">encodingIsUnicodeCompatible</span><span class="p">()</span> <span class="ow">or</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;unicode&quot;</span><span class="p">,</span> <span class="s2">&quot;False&quot;</span><span class="p">)):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">string</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">encoding</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="c1"># This is the inverse of write8bit...</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">string</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;latin1&quot;</span><span class="p">)</span></div>
+
+	<span class="k">def</span> <span class="nf">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+		<span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">):</span>
+			<span class="k">return</span> <span class="bp">NotImplemented</span>
+
+		<span class="c1"># implemented so that list.sort() sorts according to the spec.</span>
+		<span class="n">selfTuple</span> <span class="o">=</span> <span class="p">(</span>
+			<span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;platformID&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+			<span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;platEncID&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+			<span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;langID&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+			<span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;nameID&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+			<span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+		<span class="p">)</span>
+		<span class="n">otherTuple</span> <span class="o">=</span> <span class="p">(</span>
+			<span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s2">&quot;platformID&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+			<span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s2">&quot;platEncID&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+			<span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s2">&quot;langID&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+			<span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s2">&quot;nameID&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+			<span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+		<span class="p">)</span>
+		<span class="k">return</span> <span class="n">selfTuple</span> <span class="o">&lt;</span> <span class="n">otherTuple</span>
+
+	<span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="s2">&quot;&lt;NameRecord NameID=</span><span class="si">%d</span><span class="s2">; PlatformID=</span><span class="si">%d</span><span class="s2">; LanguageID=</span><span class="si">%d</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">nameID</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">platformID</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">langID</span><span class="p">)</span></div>
+
+
+<span class="c1"># Windows language ID → IETF BCP-47 language tag</span>
+<span class="c1">#</span>
+<span class="c1"># While Microsoft indicates a region/country for all its language</span>
+<span class="c1"># IDs, we follow Unicode practice by omitting “most likely subtags”</span>
+<span class="c1"># as per Unicode CLDR. For example, English is simply “en” and not</span>
+<span class="c1"># “en-Latn” because according to Unicode, the default script</span>
+<span class="c1"># for English is Latin.</span>
+<span class="c1">#</span>
+<span class="c1"># http://www.unicode.org/cldr/charts/latest/supplemental/likely_subtags.html</span>
+<span class="c1"># http://www.iana.org/assignments/language-subtag-registry/language-subtag-registry</span>
+<span class="n">_WINDOWS_LANGUAGES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="mh">0x0436</span><span class="p">:</span> <span class="s1">&#39;af&#39;</span><span class="p">,</span>
+    <span class="mh">0x041C</span><span class="p">:</span> <span class="s1">&#39;sq&#39;</span><span class="p">,</span>
+    <span class="mh">0x0484</span><span class="p">:</span> <span class="s1">&#39;gsw&#39;</span><span class="p">,</span>
+    <span class="mh">0x045E</span><span class="p">:</span> <span class="s1">&#39;am&#39;</span><span class="p">,</span>
+    <span class="mh">0x1401</span><span class="p">:</span> <span class="s1">&#39;ar-DZ&#39;</span><span class="p">,</span>
+    <span class="mh">0x3C01</span><span class="p">:</span> <span class="s1">&#39;ar-BH&#39;</span><span class="p">,</span>
+    <span class="mh">0x0C01</span><span class="p">:</span> <span class="s1">&#39;ar&#39;</span><span class="p">,</span>
+    <span class="mh">0x0801</span><span class="p">:</span> <span class="s1">&#39;ar-IQ&#39;</span><span class="p">,</span>
+    <span class="mh">0x2C01</span><span class="p">:</span> <span class="s1">&#39;ar-JO&#39;</span><span class="p">,</span>
+    <span class="mh">0x3401</span><span class="p">:</span> <span class="s1">&#39;ar-KW&#39;</span><span class="p">,</span>
+    <span class="mh">0x3001</span><span class="p">:</span> <span class="s1">&#39;ar-LB&#39;</span><span class="p">,</span>
+    <span class="mh">0x1001</span><span class="p">:</span> <span class="s1">&#39;ar-LY&#39;</span><span class="p">,</span>
+    <span class="mh">0x1801</span><span class="p">:</span> <span class="s1">&#39;ary&#39;</span><span class="p">,</span>
+    <span class="mh">0x2001</span><span class="p">:</span> <span class="s1">&#39;ar-OM&#39;</span><span class="p">,</span>
+    <span class="mh">0x4001</span><span class="p">:</span> <span class="s1">&#39;ar-QA&#39;</span><span class="p">,</span>
+    <span class="mh">0x0401</span><span class="p">:</span> <span class="s1">&#39;ar-SA&#39;</span><span class="p">,</span>
+    <span class="mh">0x2801</span><span class="p">:</span> <span class="s1">&#39;ar-SY&#39;</span><span class="p">,</span>
+    <span class="mh">0x1C01</span><span class="p">:</span> <span class="s1">&#39;aeb&#39;</span><span class="p">,</span>
+    <span class="mh">0x3801</span><span class="p">:</span> <span class="s1">&#39;ar-AE&#39;</span><span class="p">,</span>
+    <span class="mh">0x2401</span><span class="p">:</span> <span class="s1">&#39;ar-YE&#39;</span><span class="p">,</span>
+    <span class="mh">0x042B</span><span class="p">:</span> <span class="s1">&#39;hy&#39;</span><span class="p">,</span>
+    <span class="mh">0x044D</span><span class="p">:</span> <span class="s1">&#39;as&#39;</span><span class="p">,</span>
+    <span class="mh">0x082C</span><span class="p">:</span> <span class="s1">&#39;az-Cyrl&#39;</span><span class="p">,</span>
+    <span class="mh">0x042C</span><span class="p">:</span> <span class="s1">&#39;az&#39;</span><span class="p">,</span>
+    <span class="mh">0x046D</span><span class="p">:</span> <span class="s1">&#39;ba&#39;</span><span class="p">,</span>
+    <span class="mh">0x042D</span><span class="p">:</span> <span class="s1">&#39;eu&#39;</span><span class="p">,</span>
+    <span class="mh">0x0423</span><span class="p">:</span> <span class="s1">&#39;be&#39;</span><span class="p">,</span>
+    <span class="mh">0x0845</span><span class="p">:</span> <span class="s1">&#39;bn&#39;</span><span class="p">,</span>
+    <span class="mh">0x0445</span><span class="p">:</span> <span class="s1">&#39;bn-IN&#39;</span><span class="p">,</span>
+    <span class="mh">0x201A</span><span class="p">:</span> <span class="s1">&#39;bs-Cyrl&#39;</span><span class="p">,</span>
+    <span class="mh">0x141A</span><span class="p">:</span> <span class="s1">&#39;bs&#39;</span><span class="p">,</span>
+    <span class="mh">0x047E</span><span class="p">:</span> <span class="s1">&#39;br&#39;</span><span class="p">,</span>
+    <span class="mh">0x0402</span><span class="p">:</span> <span class="s1">&#39;bg&#39;</span><span class="p">,</span>
+    <span class="mh">0x0403</span><span class="p">:</span> <span class="s1">&#39;ca&#39;</span><span class="p">,</span>
+    <span class="mh">0x0C04</span><span class="p">:</span> <span class="s1">&#39;zh-HK&#39;</span><span class="p">,</span>
+    <span class="mh">0x1404</span><span class="p">:</span> <span class="s1">&#39;zh-MO&#39;</span><span class="p">,</span>
+    <span class="mh">0x0804</span><span class="p">:</span> <span class="s1">&#39;zh&#39;</span><span class="p">,</span>
+    <span class="mh">0x1004</span><span class="p">:</span> <span class="s1">&#39;zh-SG&#39;</span><span class="p">,</span>
+    <span class="mh">0x0404</span><span class="p">:</span> <span class="s1">&#39;zh-TW&#39;</span><span class="p">,</span>
+    <span class="mh">0x0483</span><span class="p">:</span> <span class="s1">&#39;co&#39;</span><span class="p">,</span>
+    <span class="mh">0x041A</span><span class="p">:</span> <span class="s1">&#39;hr&#39;</span><span class="p">,</span>
+    <span class="mh">0x101A</span><span class="p">:</span> <span class="s1">&#39;hr-BA&#39;</span><span class="p">,</span>
+    <span class="mh">0x0405</span><span class="p">:</span> <span class="s1">&#39;cs&#39;</span><span class="p">,</span>
+    <span class="mh">0x0406</span><span class="p">:</span> <span class="s1">&#39;da&#39;</span><span class="p">,</span>
+    <span class="mh">0x048C</span><span class="p">:</span> <span class="s1">&#39;prs&#39;</span><span class="p">,</span>
+    <span class="mh">0x0465</span><span class="p">:</span> <span class="s1">&#39;dv&#39;</span><span class="p">,</span>
+    <span class="mh">0x0813</span><span class="p">:</span> <span class="s1">&#39;nl-BE&#39;</span><span class="p">,</span>
+    <span class="mh">0x0413</span><span class="p">:</span> <span class="s1">&#39;nl&#39;</span><span class="p">,</span>
+    <span class="mh">0x0C09</span><span class="p">:</span> <span class="s1">&#39;en-AU&#39;</span><span class="p">,</span>
+    <span class="mh">0x2809</span><span class="p">:</span> <span class="s1">&#39;en-BZ&#39;</span><span class="p">,</span>
+    <span class="mh">0x1009</span><span class="p">:</span> <span class="s1">&#39;en-CA&#39;</span><span class="p">,</span>
+    <span class="mh">0x2409</span><span class="p">:</span> <span class="s1">&#39;en-029&#39;</span><span class="p">,</span>
+    <span class="mh">0x4009</span><span class="p">:</span> <span class="s1">&#39;en-IN&#39;</span><span class="p">,</span>
+    <span class="mh">0x1809</span><span class="p">:</span> <span class="s1">&#39;en-IE&#39;</span><span class="p">,</span>
+    <span class="mh">0x2009</span><span class="p">:</span> <span class="s1">&#39;en-JM&#39;</span><span class="p">,</span>
+    <span class="mh">0x4409</span><span class="p">:</span> <span class="s1">&#39;en-MY&#39;</span><span class="p">,</span>
+    <span class="mh">0x1409</span><span class="p">:</span> <span class="s1">&#39;en-NZ&#39;</span><span class="p">,</span>
+    <span class="mh">0x3409</span><span class="p">:</span> <span class="s1">&#39;en-PH&#39;</span><span class="p">,</span>
+    <span class="mh">0x4809</span><span class="p">:</span> <span class="s1">&#39;en-SG&#39;</span><span class="p">,</span>
+    <span class="mh">0x1C09</span><span class="p">:</span> <span class="s1">&#39;en-ZA&#39;</span><span class="p">,</span>
+    <span class="mh">0x2C09</span><span class="p">:</span> <span class="s1">&#39;en-TT&#39;</span><span class="p">,</span>
+    <span class="mh">0x0809</span><span class="p">:</span> <span class="s1">&#39;en-GB&#39;</span><span class="p">,</span>
+    <span class="mh">0x0409</span><span class="p">:</span> <span class="s1">&#39;en&#39;</span><span class="p">,</span>
+    <span class="mh">0x3009</span><span class="p">:</span> <span class="s1">&#39;en-ZW&#39;</span><span class="p">,</span>
+    <span class="mh">0x0425</span><span class="p">:</span> <span class="s1">&#39;et&#39;</span><span class="p">,</span>
+    <span class="mh">0x0438</span><span class="p">:</span> <span class="s1">&#39;fo&#39;</span><span class="p">,</span>
+    <span class="mh">0x0464</span><span class="p">:</span> <span class="s1">&#39;fil&#39;</span><span class="p">,</span>
+    <span class="mh">0x040B</span><span class="p">:</span> <span class="s1">&#39;fi&#39;</span><span class="p">,</span>
+    <span class="mh">0x080C</span><span class="p">:</span> <span class="s1">&#39;fr-BE&#39;</span><span class="p">,</span>
+    <span class="mh">0x0C0C</span><span class="p">:</span> <span class="s1">&#39;fr-CA&#39;</span><span class="p">,</span>
+    <span class="mh">0x040C</span><span class="p">:</span> <span class="s1">&#39;fr&#39;</span><span class="p">,</span>
+    <span class="mh">0x140C</span><span class="p">:</span> <span class="s1">&#39;fr-LU&#39;</span><span class="p">,</span>
+    <span class="mh">0x180C</span><span class="p">:</span> <span class="s1">&#39;fr-MC&#39;</span><span class="p">,</span>
+    <span class="mh">0x100C</span><span class="p">:</span> <span class="s1">&#39;fr-CH&#39;</span><span class="p">,</span>
+    <span class="mh">0x0462</span><span class="p">:</span> <span class="s1">&#39;fy&#39;</span><span class="p">,</span>
+    <span class="mh">0x0456</span><span class="p">:</span> <span class="s1">&#39;gl&#39;</span><span class="p">,</span>
+    <span class="mh">0x0437</span><span class="p">:</span> <span class="s1">&#39;ka&#39;</span><span class="p">,</span>
+    <span class="mh">0x0C07</span><span class="p">:</span> <span class="s1">&#39;de-AT&#39;</span><span class="p">,</span>
+    <span class="mh">0x0407</span><span class="p">:</span> <span class="s1">&#39;de&#39;</span><span class="p">,</span>
+    <span class="mh">0x1407</span><span class="p">:</span> <span class="s1">&#39;de-LI&#39;</span><span class="p">,</span>
+    <span class="mh">0x1007</span><span class="p">:</span> <span class="s1">&#39;de-LU&#39;</span><span class="p">,</span>
+    <span class="mh">0x0807</span><span class="p">:</span> <span class="s1">&#39;de-CH&#39;</span><span class="p">,</span>
+    <span class="mh">0x0408</span><span class="p">:</span> <span class="s1">&#39;el&#39;</span><span class="p">,</span>
+    <span class="mh">0x046F</span><span class="p">:</span> <span class="s1">&#39;kl&#39;</span><span class="p">,</span>
+    <span class="mh">0x0447</span><span class="p">:</span> <span class="s1">&#39;gu&#39;</span><span class="p">,</span>
+    <span class="mh">0x0468</span><span class="p">:</span> <span class="s1">&#39;ha&#39;</span><span class="p">,</span>
+    <span class="mh">0x040D</span><span class="p">:</span> <span class="s1">&#39;he&#39;</span><span class="p">,</span>
+    <span class="mh">0x0439</span><span class="p">:</span> <span class="s1">&#39;hi&#39;</span><span class="p">,</span>
+    <span class="mh">0x040E</span><span class="p">:</span> <span class="s1">&#39;hu&#39;</span><span class="p">,</span>
+    <span class="mh">0x040F</span><span class="p">:</span> <span class="s1">&#39;is&#39;</span><span class="p">,</span>
+    <span class="mh">0x0470</span><span class="p">:</span> <span class="s1">&#39;ig&#39;</span><span class="p">,</span>
+    <span class="mh">0x0421</span><span class="p">:</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span>
+    <span class="mh">0x045D</span><span class="p">:</span> <span class="s1">&#39;iu&#39;</span><span class="p">,</span>
+    <span class="mh">0x085D</span><span class="p">:</span> <span class="s1">&#39;iu-Latn&#39;</span><span class="p">,</span>
+    <span class="mh">0x083C</span><span class="p">:</span> <span class="s1">&#39;ga&#39;</span><span class="p">,</span>
+    <span class="mh">0x0434</span><span class="p">:</span> <span class="s1">&#39;xh&#39;</span><span class="p">,</span>
+    <span class="mh">0x0435</span><span class="p">:</span> <span class="s1">&#39;zu&#39;</span><span class="p">,</span>
+    <span class="mh">0x0410</span><span class="p">:</span> <span class="s1">&#39;it&#39;</span><span class="p">,</span>
+    <span class="mh">0x0810</span><span class="p">:</span> <span class="s1">&#39;it-CH&#39;</span><span class="p">,</span>
+    <span class="mh">0x0411</span><span class="p">:</span> <span class="s1">&#39;ja&#39;</span><span class="p">,</span>
+    <span class="mh">0x044B</span><span class="p">:</span> <span class="s1">&#39;kn&#39;</span><span class="p">,</span>
+    <span class="mh">0x043F</span><span class="p">:</span> <span class="s1">&#39;kk&#39;</span><span class="p">,</span>
+    <span class="mh">0x0453</span><span class="p">:</span> <span class="s1">&#39;km&#39;</span><span class="p">,</span>
+    <span class="mh">0x0486</span><span class="p">:</span> <span class="s1">&#39;quc&#39;</span><span class="p">,</span>
+    <span class="mh">0x0487</span><span class="p">:</span> <span class="s1">&#39;rw&#39;</span><span class="p">,</span>
+    <span class="mh">0x0441</span><span class="p">:</span> <span class="s1">&#39;sw&#39;</span><span class="p">,</span>
+    <span class="mh">0x0457</span><span class="p">:</span> <span class="s1">&#39;kok&#39;</span><span class="p">,</span>
+    <span class="mh">0x0412</span><span class="p">:</span> <span class="s1">&#39;ko&#39;</span><span class="p">,</span>
+    <span class="mh">0x0440</span><span class="p">:</span> <span class="s1">&#39;ky&#39;</span><span class="p">,</span>
+    <span class="mh">0x0454</span><span class="p">:</span> <span class="s1">&#39;lo&#39;</span><span class="p">,</span>
+    <span class="mh">0x0426</span><span class="p">:</span> <span class="s1">&#39;lv&#39;</span><span class="p">,</span>
+    <span class="mh">0x0427</span><span class="p">:</span> <span class="s1">&#39;lt&#39;</span><span class="p">,</span>
+    <span class="mh">0x082E</span><span class="p">:</span> <span class="s1">&#39;dsb&#39;</span><span class="p">,</span>
+    <span class="mh">0x046E</span><span class="p">:</span> <span class="s1">&#39;lb&#39;</span><span class="p">,</span>
+    <span class="mh">0x042F</span><span class="p">:</span> <span class="s1">&#39;mk&#39;</span><span class="p">,</span>
+    <span class="mh">0x083E</span><span class="p">:</span> <span class="s1">&#39;ms-BN&#39;</span><span class="p">,</span>
+    <span class="mh">0x043E</span><span class="p">:</span> <span class="s1">&#39;ms&#39;</span><span class="p">,</span>
+    <span class="mh">0x044C</span><span class="p">:</span> <span class="s1">&#39;ml&#39;</span><span class="p">,</span>
+    <span class="mh">0x043A</span><span class="p">:</span> <span class="s1">&#39;mt&#39;</span><span class="p">,</span>
+    <span class="mh">0x0481</span><span class="p">:</span> <span class="s1">&#39;mi&#39;</span><span class="p">,</span>
+    <span class="mh">0x047A</span><span class="p">:</span> <span class="s1">&#39;arn&#39;</span><span class="p">,</span>
+    <span class="mh">0x044E</span><span class="p">:</span> <span class="s1">&#39;mr&#39;</span><span class="p">,</span>
+    <span class="mh">0x047C</span><span class="p">:</span> <span class="s1">&#39;moh&#39;</span><span class="p">,</span>
+    <span class="mh">0x0450</span><span class="p">:</span> <span class="s1">&#39;mn&#39;</span><span class="p">,</span>
+    <span class="mh">0x0850</span><span class="p">:</span> <span class="s1">&#39;mn-CN&#39;</span><span class="p">,</span>
+    <span class="mh">0x0461</span><span class="p">:</span> <span class="s1">&#39;ne&#39;</span><span class="p">,</span>
+    <span class="mh">0x0414</span><span class="p">:</span> <span class="s1">&#39;nb&#39;</span><span class="p">,</span>
+    <span class="mh">0x0814</span><span class="p">:</span> <span class="s1">&#39;nn&#39;</span><span class="p">,</span>
+    <span class="mh">0x0482</span><span class="p">:</span> <span class="s1">&#39;oc&#39;</span><span class="p">,</span>
+    <span class="mh">0x0448</span><span class="p">:</span> <span class="s1">&#39;or&#39;</span><span class="p">,</span>
+    <span class="mh">0x0463</span><span class="p">:</span> <span class="s1">&#39;ps&#39;</span><span class="p">,</span>
+    <span class="mh">0x0415</span><span class="p">:</span> <span class="s1">&#39;pl&#39;</span><span class="p">,</span>
+    <span class="mh">0x0416</span><span class="p">:</span> <span class="s1">&#39;pt&#39;</span><span class="p">,</span>
+    <span class="mh">0x0816</span><span class="p">:</span> <span class="s1">&#39;pt-PT&#39;</span><span class="p">,</span>
+    <span class="mh">0x0446</span><span class="p">:</span> <span class="s1">&#39;pa&#39;</span><span class="p">,</span>
+    <span class="mh">0x046B</span><span class="p">:</span> <span class="s1">&#39;qu-BO&#39;</span><span class="p">,</span>
+    <span class="mh">0x086B</span><span class="p">:</span> <span class="s1">&#39;qu-EC&#39;</span><span class="p">,</span>
+    <span class="mh">0x0C6B</span><span class="p">:</span> <span class="s1">&#39;qu&#39;</span><span class="p">,</span>
+    <span class="mh">0x0418</span><span class="p">:</span> <span class="s1">&#39;ro&#39;</span><span class="p">,</span>
+    <span class="mh">0x0417</span><span class="p">:</span> <span class="s1">&#39;rm&#39;</span><span class="p">,</span>
+    <span class="mh">0x0419</span><span class="p">:</span> <span class="s1">&#39;ru&#39;</span><span class="p">,</span>
+    <span class="mh">0x243B</span><span class="p">:</span> <span class="s1">&#39;smn&#39;</span><span class="p">,</span>
+    <span class="mh">0x103B</span><span class="p">:</span> <span class="s1">&#39;smj-NO&#39;</span><span class="p">,</span>
+    <span class="mh">0x143B</span><span class="p">:</span> <span class="s1">&#39;smj&#39;</span><span class="p">,</span>
+    <span class="mh">0x0C3B</span><span class="p">:</span> <span class="s1">&#39;se-FI&#39;</span><span class="p">,</span>
+    <span class="mh">0x043B</span><span class="p">:</span> <span class="s1">&#39;se&#39;</span><span class="p">,</span>
+    <span class="mh">0x083B</span><span class="p">:</span> <span class="s1">&#39;se-SE&#39;</span><span class="p">,</span>
+    <span class="mh">0x203B</span><span class="p">:</span> <span class="s1">&#39;sms&#39;</span><span class="p">,</span>
+    <span class="mh">0x183B</span><span class="p">:</span> <span class="s1">&#39;sma-NO&#39;</span><span class="p">,</span>
+    <span class="mh">0x1C3B</span><span class="p">:</span> <span class="s1">&#39;sms&#39;</span><span class="p">,</span>
+    <span class="mh">0x044F</span><span class="p">:</span> <span class="s1">&#39;sa&#39;</span><span class="p">,</span>
+    <span class="mh">0x1C1A</span><span class="p">:</span> <span class="s1">&#39;sr-Cyrl-BA&#39;</span><span class="p">,</span>
+    <span class="mh">0x0C1A</span><span class="p">:</span> <span class="s1">&#39;sr&#39;</span><span class="p">,</span>
+    <span class="mh">0x181A</span><span class="p">:</span> <span class="s1">&#39;sr-Latn-BA&#39;</span><span class="p">,</span>
+    <span class="mh">0x081A</span><span class="p">:</span> <span class="s1">&#39;sr-Latn&#39;</span><span class="p">,</span>
+    <span class="mh">0x046C</span><span class="p">:</span> <span class="s1">&#39;nso&#39;</span><span class="p">,</span>
+    <span class="mh">0x0432</span><span class="p">:</span> <span class="s1">&#39;tn&#39;</span><span class="p">,</span>
+    <span class="mh">0x045B</span><span class="p">:</span> <span class="s1">&#39;si&#39;</span><span class="p">,</span>
+    <span class="mh">0x041B</span><span class="p">:</span> <span class="s1">&#39;sk&#39;</span><span class="p">,</span>
+    <span class="mh">0x0424</span><span class="p">:</span> <span class="s1">&#39;sl&#39;</span><span class="p">,</span>
+    <span class="mh">0x2C0A</span><span class="p">:</span> <span class="s1">&#39;es-AR&#39;</span><span class="p">,</span>
+    <span class="mh">0x400A</span><span class="p">:</span> <span class="s1">&#39;es-BO&#39;</span><span class="p">,</span>
+    <span class="mh">0x340A</span><span class="p">:</span> <span class="s1">&#39;es-CL&#39;</span><span class="p">,</span>
+    <span class="mh">0x240A</span><span class="p">:</span> <span class="s1">&#39;es-CO&#39;</span><span class="p">,</span>
+    <span class="mh">0x140A</span><span class="p">:</span> <span class="s1">&#39;es-CR&#39;</span><span class="p">,</span>
+    <span class="mh">0x1C0A</span><span class="p">:</span> <span class="s1">&#39;es-DO&#39;</span><span class="p">,</span>
+    <span class="mh">0x300A</span><span class="p">:</span> <span class="s1">&#39;es-EC&#39;</span><span class="p">,</span>
+    <span class="mh">0x440A</span><span class="p">:</span> <span class="s1">&#39;es-SV&#39;</span><span class="p">,</span>
+    <span class="mh">0x100A</span><span class="p">:</span> <span class="s1">&#39;es-GT&#39;</span><span class="p">,</span>
+    <span class="mh">0x480A</span><span class="p">:</span> <span class="s1">&#39;es-HN&#39;</span><span class="p">,</span>
+    <span class="mh">0x080A</span><span class="p">:</span> <span class="s1">&#39;es-MX&#39;</span><span class="p">,</span>
+    <span class="mh">0x4C0A</span><span class="p">:</span> <span class="s1">&#39;es-NI&#39;</span><span class="p">,</span>
+    <span class="mh">0x180A</span><span class="p">:</span> <span class="s1">&#39;es-PA&#39;</span><span class="p">,</span>
+    <span class="mh">0x3C0A</span><span class="p">:</span> <span class="s1">&#39;es-PY&#39;</span><span class="p">,</span>
+    <span class="mh">0x280A</span><span class="p">:</span> <span class="s1">&#39;es-PE&#39;</span><span class="p">,</span>
+    <span class="mh">0x500A</span><span class="p">:</span> <span class="s1">&#39;es-PR&#39;</span><span class="p">,</span>
+
+    <span class="c1"># Microsoft has defined two different language codes for</span>
+    <span class="c1"># “Spanish with modern sorting” and “Spanish with traditional</span>
+    <span class="c1"># sorting”. This makes sense for collation APIs, and it would be</span>
+    <span class="c1"># possible to express this in BCP 47 language tags via Unicode</span>
+    <span class="c1"># extensions (eg., “es-u-co-trad” is “Spanish with traditional</span>
+    <span class="c1"># sorting”). However, for storing names in fonts, this distinction</span>
+    <span class="c1"># does not make sense, so we use “es” in both cases.</span>
+    <span class="mh">0x0C0A</span><span class="p">:</span> <span class="s1">&#39;es&#39;</span><span class="p">,</span>
+    <span class="mh">0x040A</span><span class="p">:</span> <span class="s1">&#39;es&#39;</span><span class="p">,</span>
+
+    <span class="mh">0x540A</span><span class="p">:</span> <span class="s1">&#39;es-US&#39;</span><span class="p">,</span>
+    <span class="mh">0x380A</span><span class="p">:</span> <span class="s1">&#39;es-UY&#39;</span><span class="p">,</span>
+    <span class="mh">0x200A</span><span class="p">:</span> <span class="s1">&#39;es-VE&#39;</span><span class="p">,</span>
+    <span class="mh">0x081D</span><span class="p">:</span> <span class="s1">&#39;sv-FI&#39;</span><span class="p">,</span>
+    <span class="mh">0x041D</span><span class="p">:</span> <span class="s1">&#39;sv&#39;</span><span class="p">,</span>
+    <span class="mh">0x045A</span><span class="p">:</span> <span class="s1">&#39;syr&#39;</span><span class="p">,</span>
+    <span class="mh">0x0428</span><span class="p">:</span> <span class="s1">&#39;tg&#39;</span><span class="p">,</span>
+    <span class="mh">0x085F</span><span class="p">:</span> <span class="s1">&#39;tzm&#39;</span><span class="p">,</span>
+    <span class="mh">0x0449</span><span class="p">:</span> <span class="s1">&#39;ta&#39;</span><span class="p">,</span>
+    <span class="mh">0x0444</span><span class="p">:</span> <span class="s1">&#39;tt&#39;</span><span class="p">,</span>
+    <span class="mh">0x044A</span><span class="p">:</span> <span class="s1">&#39;te&#39;</span><span class="p">,</span>
+    <span class="mh">0x041E</span><span class="p">:</span> <span class="s1">&#39;th&#39;</span><span class="p">,</span>
+    <span class="mh">0x0451</span><span class="p">:</span> <span class="s1">&#39;bo&#39;</span><span class="p">,</span>
+    <span class="mh">0x041F</span><span class="p">:</span> <span class="s1">&#39;tr&#39;</span><span class="p">,</span>
+    <span class="mh">0x0442</span><span class="p">:</span> <span class="s1">&#39;tk&#39;</span><span class="p">,</span>
+    <span class="mh">0x0480</span><span class="p">:</span> <span class="s1">&#39;ug&#39;</span><span class="p">,</span>
+    <span class="mh">0x0422</span><span class="p">:</span> <span class="s1">&#39;uk&#39;</span><span class="p">,</span>
+    <span class="mh">0x042E</span><span class="p">:</span> <span class="s1">&#39;hsb&#39;</span><span class="p">,</span>
+    <span class="mh">0x0420</span><span class="p">:</span> <span class="s1">&#39;ur&#39;</span><span class="p">,</span>
+    <span class="mh">0x0843</span><span class="p">:</span> <span class="s1">&#39;uz-Cyrl&#39;</span><span class="p">,</span>
+    <span class="mh">0x0443</span><span class="p">:</span> <span class="s1">&#39;uz&#39;</span><span class="p">,</span>
+    <span class="mh">0x042A</span><span class="p">:</span> <span class="s1">&#39;vi&#39;</span><span class="p">,</span>
+    <span class="mh">0x0452</span><span class="p">:</span> <span class="s1">&#39;cy&#39;</span><span class="p">,</span>
+    <span class="mh">0x0488</span><span class="p">:</span> <span class="s1">&#39;wo&#39;</span><span class="p">,</span>
+    <span class="mh">0x0485</span><span class="p">:</span> <span class="s1">&#39;sah&#39;</span><span class="p">,</span>
+    <span class="mh">0x0478</span><span class="p">:</span> <span class="s1">&#39;ii&#39;</span><span class="p">,</span>
+    <span class="mh">0x046A</span><span class="p">:</span> <span class="s1">&#39;yo&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="n">_MAC_LANGUAGES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="mi">0</span><span class="p">:</span> <span class="s1">&#39;en&#39;</span><span class="p">,</span>
+    <span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;fr&#39;</span><span class="p">,</span>
+    <span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;de&#39;</span><span class="p">,</span>
+    <span class="mi">3</span><span class="p">:</span> <span class="s1">&#39;it&#39;</span><span class="p">,</span>
+    <span class="mi">4</span><span class="p">:</span> <span class="s1">&#39;nl&#39;</span><span class="p">,</span>
+    <span class="mi">5</span><span class="p">:</span> <span class="s1">&#39;sv&#39;</span><span class="p">,</span>
+    <span class="mi">6</span><span class="p">:</span> <span class="s1">&#39;es&#39;</span><span class="p">,</span>
+    <span class="mi">7</span><span class="p">:</span> <span class="s1">&#39;da&#39;</span><span class="p">,</span>
+    <span class="mi">8</span><span class="p">:</span> <span class="s1">&#39;pt&#39;</span><span class="p">,</span>
+    <span class="mi">9</span><span class="p">:</span> <span class="s1">&#39;no&#39;</span><span class="p">,</span>
+    <span class="mi">10</span><span class="p">:</span> <span class="s1">&#39;he&#39;</span><span class="p">,</span>
+    <span class="mi">11</span><span class="p">:</span> <span class="s1">&#39;ja&#39;</span><span class="p">,</span>
+    <span class="mi">12</span><span class="p">:</span> <span class="s1">&#39;ar&#39;</span><span class="p">,</span>
+    <span class="mi">13</span><span class="p">:</span> <span class="s1">&#39;fi&#39;</span><span class="p">,</span>
+    <span class="mi">14</span><span class="p">:</span> <span class="s1">&#39;el&#39;</span><span class="p">,</span>
+    <span class="mi">15</span><span class="p">:</span> <span class="s1">&#39;is&#39;</span><span class="p">,</span>
+    <span class="mi">16</span><span class="p">:</span> <span class="s1">&#39;mt&#39;</span><span class="p">,</span>
+    <span class="mi">17</span><span class="p">:</span> <span class="s1">&#39;tr&#39;</span><span class="p">,</span>
+    <span class="mi">18</span><span class="p">:</span> <span class="s1">&#39;hr&#39;</span><span class="p">,</span>
+    <span class="mi">19</span><span class="p">:</span> <span class="s1">&#39;zh-Hant&#39;</span><span class="p">,</span>
+    <span class="mi">20</span><span class="p">:</span> <span class="s1">&#39;ur&#39;</span><span class="p">,</span>
+    <span class="mi">21</span><span class="p">:</span> <span class="s1">&#39;hi&#39;</span><span class="p">,</span>
+    <span class="mi">22</span><span class="p">:</span> <span class="s1">&#39;th&#39;</span><span class="p">,</span>
+    <span class="mi">23</span><span class="p">:</span> <span class="s1">&#39;ko&#39;</span><span class="p">,</span>
+    <span class="mi">24</span><span class="p">:</span> <span class="s1">&#39;lt&#39;</span><span class="p">,</span>
+    <span class="mi">25</span><span class="p">:</span> <span class="s1">&#39;pl&#39;</span><span class="p">,</span>
+    <span class="mi">26</span><span class="p">:</span> <span class="s1">&#39;hu&#39;</span><span class="p">,</span>
+    <span class="mi">27</span><span class="p">:</span> <span class="s1">&#39;es&#39;</span><span class="p">,</span>
+    <span class="mi">28</span><span class="p">:</span> <span class="s1">&#39;lv&#39;</span><span class="p">,</span>
+    <span class="mi">29</span><span class="p">:</span> <span class="s1">&#39;se&#39;</span><span class="p">,</span>
+    <span class="mi">30</span><span class="p">:</span> <span class="s1">&#39;fo&#39;</span><span class="p">,</span>
+    <span class="mi">31</span><span class="p">:</span> <span class="s1">&#39;fa&#39;</span><span class="p">,</span>
+    <span class="mi">32</span><span class="p">:</span> <span class="s1">&#39;ru&#39;</span><span class="p">,</span>
+    <span class="mi">33</span><span class="p">:</span> <span class="s1">&#39;zh&#39;</span><span class="p">,</span>
+    <span class="mi">34</span><span class="p">:</span> <span class="s1">&#39;nl-BE&#39;</span><span class="p">,</span>
+    <span class="mi">35</span><span class="p">:</span> <span class="s1">&#39;ga&#39;</span><span class="p">,</span>
+    <span class="mi">36</span><span class="p">:</span> <span class="s1">&#39;sq&#39;</span><span class="p">,</span>
+    <span class="mi">37</span><span class="p">:</span> <span class="s1">&#39;ro&#39;</span><span class="p">,</span>
+    <span class="mi">38</span><span class="p">:</span> <span class="s1">&#39;cz&#39;</span><span class="p">,</span>
+    <span class="mi">39</span><span class="p">:</span> <span class="s1">&#39;sk&#39;</span><span class="p">,</span>
+    <span class="mi">40</span><span class="p">:</span> <span class="s1">&#39;sl&#39;</span><span class="p">,</span>
+    <span class="mi">41</span><span class="p">:</span> <span class="s1">&#39;yi&#39;</span><span class="p">,</span>
+    <span class="mi">42</span><span class="p">:</span> <span class="s1">&#39;sr&#39;</span><span class="p">,</span>
+    <span class="mi">43</span><span class="p">:</span> <span class="s1">&#39;mk&#39;</span><span class="p">,</span>
+    <span class="mi">44</span><span class="p">:</span> <span class="s1">&#39;bg&#39;</span><span class="p">,</span>
+    <span class="mi">45</span><span class="p">:</span> <span class="s1">&#39;uk&#39;</span><span class="p">,</span>
+    <span class="mi">46</span><span class="p">:</span> <span class="s1">&#39;be&#39;</span><span class="p">,</span>
+    <span class="mi">47</span><span class="p">:</span> <span class="s1">&#39;uz&#39;</span><span class="p">,</span>
+    <span class="mi">48</span><span class="p">:</span> <span class="s1">&#39;kk&#39;</span><span class="p">,</span>
+    <span class="mi">49</span><span class="p">:</span> <span class="s1">&#39;az-Cyrl&#39;</span><span class="p">,</span>
+    <span class="mi">50</span><span class="p">:</span> <span class="s1">&#39;az-Arab&#39;</span><span class="p">,</span>
+    <span class="mi">51</span><span class="p">:</span> <span class="s1">&#39;hy&#39;</span><span class="p">,</span>
+    <span class="mi">52</span><span class="p">:</span> <span class="s1">&#39;ka&#39;</span><span class="p">,</span>
+    <span class="mi">53</span><span class="p">:</span> <span class="s1">&#39;mo&#39;</span><span class="p">,</span>
+    <span class="mi">54</span><span class="p">:</span> <span class="s1">&#39;ky&#39;</span><span class="p">,</span>
+    <span class="mi">55</span><span class="p">:</span> <span class="s1">&#39;tg&#39;</span><span class="p">,</span>
+    <span class="mi">56</span><span class="p">:</span> <span class="s1">&#39;tk&#39;</span><span class="p">,</span>
+    <span class="mi">57</span><span class="p">:</span> <span class="s1">&#39;mn-CN&#39;</span><span class="p">,</span>
+    <span class="mi">58</span><span class="p">:</span> <span class="s1">&#39;mn&#39;</span><span class="p">,</span>
+    <span class="mi">59</span><span class="p">:</span> <span class="s1">&#39;ps&#39;</span><span class="p">,</span>
+    <span class="mi">60</span><span class="p">:</span> <span class="s1">&#39;ks&#39;</span><span class="p">,</span>
+    <span class="mi">61</span><span class="p">:</span> <span class="s1">&#39;ku&#39;</span><span class="p">,</span>
+    <span class="mi">62</span><span class="p">:</span> <span class="s1">&#39;sd&#39;</span><span class="p">,</span>
+    <span class="mi">63</span><span class="p">:</span> <span class="s1">&#39;bo&#39;</span><span class="p">,</span>
+    <span class="mi">64</span><span class="p">:</span> <span class="s1">&#39;ne&#39;</span><span class="p">,</span>
+    <span class="mi">65</span><span class="p">:</span> <span class="s1">&#39;sa&#39;</span><span class="p">,</span>
+    <span class="mi">66</span><span class="p">:</span> <span class="s1">&#39;mr&#39;</span><span class="p">,</span>
+    <span class="mi">67</span><span class="p">:</span> <span class="s1">&#39;bn&#39;</span><span class="p">,</span>
+    <span class="mi">68</span><span class="p">:</span> <span class="s1">&#39;as&#39;</span><span class="p">,</span>
+    <span class="mi">69</span><span class="p">:</span> <span class="s1">&#39;gu&#39;</span><span class="p">,</span>
+    <span class="mi">70</span><span class="p">:</span> <span class="s1">&#39;pa&#39;</span><span class="p">,</span>
+    <span class="mi">71</span><span class="p">:</span> <span class="s1">&#39;or&#39;</span><span class="p">,</span>
+    <span class="mi">72</span><span class="p">:</span> <span class="s1">&#39;ml&#39;</span><span class="p">,</span>
+    <span class="mi">73</span><span class="p">:</span> <span class="s1">&#39;kn&#39;</span><span class="p">,</span>
+    <span class="mi">74</span><span class="p">:</span> <span class="s1">&#39;ta&#39;</span><span class="p">,</span>
+    <span class="mi">75</span><span class="p">:</span> <span class="s1">&#39;te&#39;</span><span class="p">,</span>
+    <span class="mi">76</span><span class="p">:</span> <span class="s1">&#39;si&#39;</span><span class="p">,</span>
+    <span class="mi">77</span><span class="p">:</span> <span class="s1">&#39;my&#39;</span><span class="p">,</span>
+    <span class="mi">78</span><span class="p">:</span> <span class="s1">&#39;km&#39;</span><span class="p">,</span>
+    <span class="mi">79</span><span class="p">:</span> <span class="s1">&#39;lo&#39;</span><span class="p">,</span>
+    <span class="mi">80</span><span class="p">:</span> <span class="s1">&#39;vi&#39;</span><span class="p">,</span>
+    <span class="mi">81</span><span class="p">:</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span>
+    <span class="mi">82</span><span class="p">:</span> <span class="s1">&#39;tl&#39;</span><span class="p">,</span>
+    <span class="mi">83</span><span class="p">:</span> <span class="s1">&#39;ms&#39;</span><span class="p">,</span>
+    <span class="mi">84</span><span class="p">:</span> <span class="s1">&#39;ms-Arab&#39;</span><span class="p">,</span>
+    <span class="mi">85</span><span class="p">:</span> <span class="s1">&#39;am&#39;</span><span class="p">,</span>
+    <span class="mi">86</span><span class="p">:</span> <span class="s1">&#39;ti&#39;</span><span class="p">,</span>
+    <span class="mi">87</span><span class="p">:</span> <span class="s1">&#39;om&#39;</span><span class="p">,</span>
+    <span class="mi">88</span><span class="p">:</span> <span class="s1">&#39;so&#39;</span><span class="p">,</span>
+    <span class="mi">89</span><span class="p">:</span> <span class="s1">&#39;sw&#39;</span><span class="p">,</span>
+    <span class="mi">90</span><span class="p">:</span> <span class="s1">&#39;rw&#39;</span><span class="p">,</span>
+    <span class="mi">91</span><span class="p">:</span> <span class="s1">&#39;rn&#39;</span><span class="p">,</span>
+    <span class="mi">92</span><span class="p">:</span> <span class="s1">&#39;ny&#39;</span><span class="p">,</span>
+    <span class="mi">93</span><span class="p">:</span> <span class="s1">&#39;mg&#39;</span><span class="p">,</span>
+    <span class="mi">94</span><span class="p">:</span> <span class="s1">&#39;eo&#39;</span><span class="p">,</span>
+    <span class="mi">128</span><span class="p">:</span> <span class="s1">&#39;cy&#39;</span><span class="p">,</span>
+    <span class="mi">129</span><span class="p">:</span> <span class="s1">&#39;eu&#39;</span><span class="p">,</span>
+    <span class="mi">130</span><span class="p">:</span> <span class="s1">&#39;ca&#39;</span><span class="p">,</span>
+    <span class="mi">131</span><span class="p">:</span> <span class="s1">&#39;la&#39;</span><span class="p">,</span>
+    <span class="mi">132</span><span class="p">:</span> <span class="s1">&#39;qu&#39;</span><span class="p">,</span>
+    <span class="mi">133</span><span class="p">:</span> <span class="s1">&#39;gn&#39;</span><span class="p">,</span>
+    <span class="mi">134</span><span class="p">:</span> <span class="s1">&#39;ay&#39;</span><span class="p">,</span>
+    <span class="mi">135</span><span class="p">:</span> <span class="s1">&#39;tt&#39;</span><span class="p">,</span>
+    <span class="mi">136</span><span class="p">:</span> <span class="s1">&#39;ug&#39;</span><span class="p">,</span>
+    <span class="mi">137</span><span class="p">:</span> <span class="s1">&#39;dz&#39;</span><span class="p">,</span>
+    <span class="mi">138</span><span class="p">:</span> <span class="s1">&#39;jv&#39;</span><span class="p">,</span>
+    <span class="mi">139</span><span class="p">:</span> <span class="s1">&#39;su&#39;</span><span class="p">,</span>
+    <span class="mi">140</span><span class="p">:</span> <span class="s1">&#39;gl&#39;</span><span class="p">,</span>
+    <span class="mi">141</span><span class="p">:</span> <span class="s1">&#39;af&#39;</span><span class="p">,</span>
+    <span class="mi">142</span><span class="p">:</span> <span class="s1">&#39;br&#39;</span><span class="p">,</span>
+    <span class="mi">143</span><span class="p">:</span> <span class="s1">&#39;iu&#39;</span><span class="p">,</span>
+    <span class="mi">144</span><span class="p">:</span> <span class="s1">&#39;gd&#39;</span><span class="p">,</span>
+    <span class="mi">145</span><span class="p">:</span> <span class="s1">&#39;gv&#39;</span><span class="p">,</span>
+    <span class="mi">146</span><span class="p">:</span> <span class="s1">&#39;ga&#39;</span><span class="p">,</span>
+    <span class="mi">147</span><span class="p">:</span> <span class="s1">&#39;to&#39;</span><span class="p">,</span>
+    <span class="mi">148</span><span class="p">:</span> <span class="s1">&#39;el-polyton&#39;</span><span class="p">,</span>
+    <span class="mi">149</span><span class="p">:</span> <span class="s1">&#39;kl&#39;</span><span class="p">,</span>
+    <span class="mi">150</span><span class="p">:</span> <span class="s1">&#39;az&#39;</span><span class="p">,</span>
+    <span class="mi">151</span><span class="p">:</span> <span class="s1">&#39;nn&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="n">_WINDOWS_LANGUAGE_CODES</span> <span class="o">=</span> <span class="p">{</span><span class="n">lang</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span> <span class="n">code</span> <span class="k">for</span> <span class="n">code</span><span class="p">,</span> <span class="n">lang</span> <span class="ow">in</span> <span class="n">_WINDOWS_LANGUAGES</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+<span class="n">_MAC_LANGUAGE_CODES</span> <span class="o">=</span> <span class="p">{</span><span class="n">lang</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span> <span class="n">code</span> <span class="k">for</span> <span class="n">code</span><span class="p">,</span> <span class="n">lang</span> <span class="ow">in</span> <span class="n">_MAC_LANGUAGES</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+
+<span class="c1"># MacOS language ID → MacOS script ID</span>
+<span class="c1">#</span>
+<span class="c1"># Note that the script ID is not sufficient to determine what encoding</span>
+<span class="c1"># to use in TrueType files. For some languages, MacOS used a modification</span>
+<span class="c1"># of a mainstream script. For example, an Icelandic name would be stored</span>
+<span class="c1"># with smRoman in the TrueType naming table, but the actual encoding</span>
+<span class="c1"># is a special Icelandic version of the normal Macintosh Roman encoding.</span>
+<span class="c1"># As another example, Inuktitut uses an 8-bit encoding for Canadian Aboriginal</span>
+<span class="c1"># Syllables but MacOS had run out of available script codes, so this was</span>
+<span class="c1"># done as a (pretty radical) “modification” of Ethiopic.</span>
+<span class="c1">#</span>
+<span class="c1"># http://unicode.org/Public/MAPPINGS/VENDORS/APPLE/Readme.txt</span>
+<span class="n">_MAC_LANGUAGE_TO_SCRIPT</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="mi">0</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langEnglish → smRoman</span>
+    <span class="mi">1</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langFrench → smRoman</span>
+    <span class="mi">2</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langGerman → smRoman</span>
+    <span class="mi">3</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langItalian → smRoman</span>
+    <span class="mi">4</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langDutch → smRoman</span>
+    <span class="mi">5</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langSwedish → smRoman</span>
+    <span class="mi">6</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langSpanish → smRoman</span>
+    <span class="mi">7</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langDanish → smRoman</span>
+    <span class="mi">8</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langPortuguese → smRoman</span>
+    <span class="mi">9</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langNorwegian → smRoman</span>
+    <span class="mi">10</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>  <span class="c1"># langHebrew → smHebrew</span>
+    <span class="mi">11</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>  <span class="c1"># langJapanese → smJapanese</span>
+    <span class="mi">12</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>  <span class="c1"># langArabic → smArabic</span>
+    <span class="mi">13</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langFinnish → smRoman</span>
+    <span class="mi">14</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>  <span class="c1"># langGreek → smGreek</span>
+    <span class="mi">15</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langIcelandic → smRoman (modified)</span>
+    <span class="mi">16</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langMaltese → smRoman</span>
+    <span class="mi">17</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langTurkish → smRoman (modified)</span>
+    <span class="mi">18</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langCroatian → smRoman (modified)</span>
+    <span class="mi">19</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>  <span class="c1"># langTradChinese → smTradChinese</span>
+    <span class="mi">20</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>  <span class="c1"># langUrdu → smArabic</span>
+    <span class="mi">21</span><span class="p">:</span> <span class="mi">9</span><span class="p">,</span>  <span class="c1"># langHindi → smDevanagari</span>
+    <span class="mi">22</span><span class="p">:</span> <span class="mi">21</span><span class="p">,</span>  <span class="c1"># langThai → smThai</span>
+    <span class="mi">23</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>  <span class="c1"># langKorean → smKorean</span>
+    <span class="mi">24</span><span class="p">:</span> <span class="mi">29</span><span class="p">,</span>  <span class="c1"># langLithuanian → smCentralEuroRoman</span>
+    <span class="mi">25</span><span class="p">:</span> <span class="mi">29</span><span class="p">,</span>  <span class="c1"># langPolish → smCentralEuroRoman</span>
+    <span class="mi">26</span><span class="p">:</span> <span class="mi">29</span><span class="p">,</span>  <span class="c1"># langHungarian → smCentralEuroRoman</span>
+    <span class="mi">27</span><span class="p">:</span> <span class="mi">29</span><span class="p">,</span>  <span class="c1"># langEstonian → smCentralEuroRoman</span>
+    <span class="mi">28</span><span class="p">:</span> <span class="mi">29</span><span class="p">,</span>  <span class="c1"># langLatvian → smCentralEuroRoman</span>
+    <span class="mi">29</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langSami → smRoman</span>
+    <span class="mi">30</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langFaroese → smRoman (modified)</span>
+    <span class="mi">31</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>  <span class="c1"># langFarsi → smArabic (modified)</span>
+    <span class="mi">32</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>  <span class="c1"># langRussian → smCyrillic</span>
+    <span class="mi">33</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span>  <span class="c1"># langSimpChinese → smSimpChinese</span>
+    <span class="mi">34</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langFlemish → smRoman</span>
+    <span class="mi">35</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langIrishGaelic → smRoman (modified)</span>
+    <span class="mi">36</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langAlbanian → smRoman</span>
+    <span class="mi">37</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langRomanian → smRoman (modified)</span>
+    <span class="mi">38</span><span class="p">:</span> <span class="mi">29</span><span class="p">,</span>  <span class="c1"># langCzech → smCentralEuroRoman</span>
+    <span class="mi">39</span><span class="p">:</span> <span class="mi">29</span><span class="p">,</span>  <span class="c1"># langSlovak → smCentralEuroRoman</span>
+    <span class="mi">40</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langSlovenian → smRoman (modified)</span>
+    <span class="mi">41</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>  <span class="c1"># langYiddish → smHebrew</span>
+    <span class="mi">42</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>  <span class="c1"># langSerbian → smCyrillic</span>
+    <span class="mi">43</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>  <span class="c1"># langMacedonian → smCyrillic</span>
+    <span class="mi">44</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>  <span class="c1"># langBulgarian → smCyrillic</span>
+    <span class="mi">45</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>  <span class="c1"># langUkrainian → smCyrillic (modified)</span>
+    <span class="mi">46</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>  <span class="c1"># langByelorussian → smCyrillic</span>
+    <span class="mi">47</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>  <span class="c1"># langUzbek → smCyrillic</span>
+    <span class="mi">48</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>  <span class="c1"># langKazakh → smCyrillic</span>
+    <span class="mi">49</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>  <span class="c1"># langAzerbaijani → smCyrillic</span>
+    <span class="mi">50</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>  <span class="c1"># langAzerbaijanAr → smArabic</span>
+    <span class="mi">51</span><span class="p">:</span> <span class="mi">24</span><span class="p">,</span>  <span class="c1"># langArmenian → smArmenian</span>
+    <span class="mi">52</span><span class="p">:</span> <span class="mi">23</span><span class="p">,</span>  <span class="c1"># langGeorgian → smGeorgian</span>
+    <span class="mi">53</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>  <span class="c1"># langMoldavian → smCyrillic</span>
+    <span class="mi">54</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>  <span class="c1"># langKirghiz → smCyrillic</span>
+    <span class="mi">55</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>  <span class="c1"># langTajiki → smCyrillic</span>
+    <span class="mi">56</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>  <span class="c1"># langTurkmen → smCyrillic</span>
+    <span class="mi">57</span><span class="p">:</span> <span class="mi">27</span><span class="p">,</span>  <span class="c1"># langMongolian → smMongolian</span>
+    <span class="mi">58</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>  <span class="c1"># langMongolianCyr → smCyrillic</span>
+    <span class="mi">59</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>  <span class="c1"># langPashto → smArabic</span>
+    <span class="mi">60</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>  <span class="c1"># langKurdish → smArabic</span>
+    <span class="mi">61</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>  <span class="c1"># langKashmiri → smArabic</span>
+    <span class="mi">62</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>  <span class="c1"># langSindhi → smArabic</span>
+    <span class="mi">63</span><span class="p">:</span> <span class="mi">26</span><span class="p">,</span>  <span class="c1"># langTibetan → smTibetan</span>
+    <span class="mi">64</span><span class="p">:</span> <span class="mi">9</span><span class="p">,</span>  <span class="c1"># langNepali → smDevanagari</span>
+    <span class="mi">65</span><span class="p">:</span> <span class="mi">9</span><span class="p">,</span>  <span class="c1"># langSanskrit → smDevanagari</span>
+    <span class="mi">66</span><span class="p">:</span> <span class="mi">9</span><span class="p">,</span>  <span class="c1"># langMarathi → smDevanagari</span>
+    <span class="mi">67</span><span class="p">:</span> <span class="mi">13</span><span class="p">,</span>  <span class="c1"># langBengali → smBengali</span>
+    <span class="mi">68</span><span class="p">:</span> <span class="mi">13</span><span class="p">,</span>  <span class="c1"># langAssamese → smBengali</span>
+    <span class="mi">69</span><span class="p">:</span> <span class="mi">11</span><span class="p">,</span>  <span class="c1"># langGujarati → smGujarati</span>
+    <span class="mi">70</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>  <span class="c1"># langPunjabi → smGurmukhi</span>
+    <span class="mi">71</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>  <span class="c1"># langOriya → smOriya</span>
+    <span class="mi">72</span><span class="p">:</span> <span class="mi">17</span><span class="p">,</span>  <span class="c1"># langMalayalam → smMalayalam</span>
+    <span class="mi">73</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>  <span class="c1"># langKannada → smKannada</span>
+    <span class="mi">74</span><span class="p">:</span> <span class="mi">14</span><span class="p">,</span>  <span class="c1"># langTamil → smTamil</span>
+    <span class="mi">75</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span>  <span class="c1"># langTelugu → smTelugu</span>
+    <span class="mi">76</span><span class="p">:</span> <span class="mi">18</span><span class="p">,</span>  <span class="c1"># langSinhalese → smSinhalese</span>
+    <span class="mi">77</span><span class="p">:</span> <span class="mi">19</span><span class="p">,</span>  <span class="c1"># langBurmese → smBurmese</span>
+    <span class="mi">78</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>  <span class="c1"># langKhmer → smKhmer</span>
+    <span class="mi">79</span><span class="p">:</span> <span class="mi">22</span><span class="p">,</span>  <span class="c1"># langLao → smLao</span>
+    <span class="mi">80</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>  <span class="c1"># langVietnamese → smVietnamese</span>
+    <span class="mi">81</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langIndonesian → smRoman</span>
+    <span class="mi">82</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langTagalog → smRoman</span>
+    <span class="mi">83</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langMalayRoman → smRoman</span>
+    <span class="mi">84</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>  <span class="c1"># langMalayArabic → smArabic</span>
+    <span class="mi">85</span><span class="p">:</span> <span class="mi">28</span><span class="p">,</span>  <span class="c1"># langAmharic → smEthiopic</span>
+    <span class="mi">86</span><span class="p">:</span> <span class="mi">28</span><span class="p">,</span>  <span class="c1"># langTigrinya → smEthiopic</span>
+    <span class="mi">87</span><span class="p">:</span> <span class="mi">28</span><span class="p">,</span>  <span class="c1"># langOromo → smEthiopic</span>
+    <span class="mi">88</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langSomali → smRoman</span>
+    <span class="mi">89</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langSwahili → smRoman</span>
+    <span class="mi">90</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langKinyarwanda → smRoman</span>
+    <span class="mi">91</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langRundi → smRoman</span>
+    <span class="mi">92</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langNyanja → smRoman</span>
+    <span class="mi">93</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langMalagasy → smRoman</span>
+    <span class="mi">94</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langEsperanto → smRoman</span>
+    <span class="mi">128</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langWelsh → smRoman (modified)</span>
+    <span class="mi">129</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langBasque → smRoman</span>
+    <span class="mi">130</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langCatalan → smRoman</span>
+    <span class="mi">131</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langLatin → smRoman</span>
+    <span class="mi">132</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langQuechua → smRoman</span>
+    <span class="mi">133</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langGuarani → smRoman</span>
+    <span class="mi">134</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langAymara → smRoman</span>
+    <span class="mi">135</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>  <span class="c1"># langTatar → smCyrillic</span>
+    <span class="mi">136</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>  <span class="c1"># langUighur → smArabic</span>
+    <span class="mi">137</span><span class="p">:</span> <span class="mi">26</span><span class="p">,</span>  <span class="c1"># langDzongkha → smTibetan</span>
+    <span class="mi">138</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langJavaneseRom → smRoman</span>
+    <span class="mi">139</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langSundaneseRom → smRoman</span>
+    <span class="mi">140</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langGalician → smRoman</span>
+    <span class="mi">141</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langAfrikaans → smRoman</span>
+    <span class="mi">142</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langBreton → smRoman (modified)</span>
+    <span class="mi">143</span><span class="p">:</span> <span class="mi">28</span><span class="p">,</span>  <span class="c1"># langInuktitut → smEthiopic (modified)</span>
+    <span class="mi">144</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langScottishGaelic → smRoman (modified)</span>
+    <span class="mi">145</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langManxGaelic → smRoman (modified)</span>
+    <span class="mi">146</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langIrishGaelicScript → smRoman (modified)</span>
+    <span class="mi">147</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langTongan → smRoman</span>
+    <span class="mi">148</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>  <span class="c1"># langGreekAncient → smRoman</span>
+    <span class="mi">149</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langGreenlandic → smRoman</span>
+    <span class="mi">150</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># langAzerbaijanRoman → smRoman</span>
+    <span class="mi">151</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>   <span class="c1"># langNynorsk → smRoman</span>
+<span class="p">}</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../ttLib.html" >fontTools.ttLib</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,1072 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>psCharStrings &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="testTools" href="testTools.html" />
+    <link rel="prev" title="sstruct" href="sstruct.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="testTools.html" title="testTools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="sstruct.html" title="sstruct"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">misc</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-fontTools.misc.psCharStrings">
+<span id="pscharstrings"></span><h1>psCharStrings<a class="headerlink" href="#module-fontTools.misc.psCharStrings" title="Permalink to this headline">¶</a></h1>
+<p>psCharStrings.py &#8211; module implementing various kinds of CharStrings:
+CFF dictionary data and Type1/Type2 CharStrings.</p>
+<dl class="class">
+<dt id="fontTools.misc.psCharStrings.CFF2Subr">
+<em class="property">class </em><code class="descclassname">fontTools.misc.psCharStrings.</code><code class="descname">CFF2Subr</code><span class="sig-paren">(</span><em>bytecode=None</em>, <em>program=None</em>, <em>private=None</em>, <em>globalSubrs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#CFF2Subr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.CFF2Subr" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="fontTools.misc.psCharStrings.CFF2Subr.isCFF2">
+<code class="descname">isCFF2</code><em class="property"> = True</em><a class="headerlink" href="#fontTools.misc.psCharStrings.CFF2Subr.isCFF2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="fontTools.misc.psCharStrings.CharStringCompileError">
+<em class="property">exception </em><code class="descclassname">fontTools.misc.psCharStrings.</code><code class="descname">CharStringCompileError</code><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#CharStringCompileError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.CharStringCompileError" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="fontTools.misc.psCharStrings.DictDecompiler">
+<em class="property">class </em><code class="descclassname">fontTools.misc.psCharStrings.</code><code class="descname">DictDecompiler</code><span class="sig-paren">(</span><em>strings</em>, <em>parent=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#DictDecompiler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.DictDecompiler" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="fontTools.misc.psCharStrings.DictDecompiler.arg_SID">
+<code class="descname">arg_SID</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#DictDecompiler.arg_SID"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.DictDecompiler.arg_SID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.DictDecompiler.arg_array">
+<code class="descname">arg_array</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#DictDecompiler.arg_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.DictDecompiler.arg_array" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.DictDecompiler.arg_blendList">
+<code class="descname">arg_blendList</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#DictDecompiler.arg_blendList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.DictDecompiler.arg_blendList" title="Permalink to this definition">¶</a></dt>
+<dd><p>There may be non-blend args at the top of the stack. We first calculate
+where the blend args start in the stack. These are the last
+numMasters*numBlends) +1 args.
+The blend args starts with numMasters relative coordinate values, the  BlueValues in the list from the default master font. This is followed by
+numBlends list of values. Each of  value in one of these lists is the
+Variable Font delta for the matching region.</p>
+<p>We re-arrange this to be a list of numMaster entries. Each entry starts with the corresponding default font relative value, and is followed by
+the delta values. We then convert the default values, the first item in each entry, to an absolute value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.DictDecompiler.arg_blend_number">
+<code class="descname">arg_blend_number</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#DictDecompiler.arg_blend_number"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.DictDecompiler.arg_blend_number" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.DictDecompiler.arg_delta">
+<code class="descname">arg_delta</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#DictDecompiler.arg_delta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.DictDecompiler.arg_delta" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.DictDecompiler.arg_number">
+<code class="descname">arg_number</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#DictDecompiler.arg_number"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.DictDecompiler.arg_number" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.DictDecompiler.decompile">
+<code class="descname">decompile</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#DictDecompiler.decompile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.DictDecompiler.decompile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.DictDecompiler.getDict">
+<code class="descname">getDict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#DictDecompiler.getDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.DictDecompiler.getDict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.DictDecompiler.handle_operator">
+<code class="descname">handle_operator</code><span class="sig-paren">(</span><em>operator</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#DictDecompiler.handle_operator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.DictDecompiler.handle_operator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.misc.psCharStrings.DictDecompiler.operandEncoding">
+<code class="descname">operandEncoding</code><em class="property"> = [&lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_shortInt&gt;, &lt;function read_longInt&gt;, &lt;function read_realNumber&gt;, &lt;function read_operator&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_smallInt1&gt;, &lt;function read_smallInt1&gt;, &lt;function read_smallInt1&gt;, &lt;function read_smallInt1&gt;, &lt;function read_smallInt2&gt;, &lt;function read_smallInt2&gt;, &lt;function read_smallInt2&gt;, &lt;function read_smallInt2&gt;, &lt;function read_reserved&gt;]</em><a class="headerlink" href="#fontTools.misc.psCharStrings.DictDecompiler.operandEncoding" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.DictDecompiler.pop">
+<code class="descname">pop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#DictDecompiler.pop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.DictDecompiler.pop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.DictDecompiler.popall">
+<code class="descname">popall</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#DictDecompiler.popall"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.DictDecompiler.popall" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler">
+<em class="property">class </em><code class="descclassname">fontTools.misc.psCharStrings.</code><code class="descname">SimpleT2Decompiler</code><span class="sig-paren">(</span><em>localSubrs</em>, <em>globalSubrs</em>, <em>private=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.check_program">
+<code class="descname">check_program</code><span class="sig-paren">(</span><em>program</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.check_program"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.check_program" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.countHints">
+<code class="descname">countHints</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.countHints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.countHints" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>charString</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.execute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_abs">
+<code class="descname">op_abs</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_abs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_abs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_add">
+<code class="descname">op_add</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_add" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_and">
+<code class="descname">op_and</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_and"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_and" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_blend">
+<code class="descname">op_blend</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_blend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_blend" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_callgsubr">
+<code class="descname">op_callgsubr</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_callgsubr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_callgsubr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_callsubr">
+<code class="descname">op_callsubr</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_callsubr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_callsubr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_cntrmask">
+<code class="descname">op_cntrmask</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_cntrmask" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_div">
+<code class="descname">op_div</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_div"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_div" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_drop">
+<code class="descname">op_drop</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_drop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_drop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_dup">
+<code class="descname">op_dup</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_dup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_dup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_endchar">
+<code class="descname">op_endchar</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_endchar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_endchar" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_eq">
+<code class="descname">op_eq</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_eq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_eq" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_exch">
+<code class="descname">op_exch</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_exch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_exch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_get">
+<code class="descname">op_get</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_hintmask">
+<code class="descname">op_hintmask</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_hintmask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_hintmask" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_hstem">
+<code class="descname">op_hstem</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_hstem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_hstem" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_hstemhm">
+<code class="descname">op_hstemhm</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_hstemhm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_hstemhm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_ifelse">
+<code class="descname">op_ifelse</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_ifelse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_ifelse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_ignore">
+<code class="descname">op_ignore</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_ignore"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_ignore" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_index">
+<code class="descname">op_index</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_index" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_load">
+<code class="descname">op_load</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_load" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_mul">
+<code class="descname">op_mul</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_mul"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_mul" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_neg">
+<code class="descname">op_neg</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_neg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_neg" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_not">
+<code class="descname">op_not</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_not"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_not" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_or">
+<code class="descname">op_or</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_or"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_or" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_put">
+<code class="descname">op_put</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_put"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_put" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_random">
+<code class="descname">op_random</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_random"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_random" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_return">
+<code class="descname">op_return</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_return"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_return" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_roll">
+<code class="descname">op_roll</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_roll"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_roll" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_sqrt">
+<code class="descname">op_sqrt</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_sqrt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_sqrt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_store">
+<code class="descname">op_store</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_store"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_store" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_sub">
+<code class="descname">op_sub</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_sub"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_sub" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_vsindex">
+<code class="descname">op_vsindex</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_vsindex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_vsindex" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_vstem">
+<code class="descname">op_vstem</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_vstem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_vstem" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.op_vstemhm">
+<code class="descname">op_vstemhm</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.op_vstemhm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.op_vstemhm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.pop">
+<code class="descname">pop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.pop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.pop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.popall">
+<code class="descname">popall</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.popall"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.popall" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.push">
+<code class="descname">push</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.push"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.push" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.SimpleT2Decompiler.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#SimpleT2Decompiler.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.misc.psCharStrings.T1CharString">
+<em class="property">class </em><code class="descclassname">fontTools.misc.psCharStrings.</code><code class="descname">T1CharString</code><span class="sig-paren">(</span><em>bytecode=None</em>, <em>program=None</em>, <em>subrs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T1CharString"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T1CharString" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="fontTools.misc.psCharStrings.T1CharString.decompile">
+<code class="descname">decompile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T1CharString.decompile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T1CharString.decompile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T1CharString.draw">
+<code class="descname">draw</code><span class="sig-paren">(</span><em>pen</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T1CharString.draw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T1CharString.draw" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T1CharString.getFixedEncoder">
+<code class="descname">getFixedEncoder</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T1CharString.getFixedEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T1CharString.getFixedEncoder" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T1CharString.getIntEncoder">
+<code class="descname">getIntEncoder</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T1CharString.getIntEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T1CharString.getIntEncoder" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.misc.psCharStrings.T1CharString.opcodes">
+<code class="descname">opcodes</code><em class="property"> = {'vstem3': (12, 1), 'dotsection': (12, 0), 'pop': (12, 17), 'seac': (12, 6), 'closepath': (9,), 'callothersubr': (12, 16), 'vlineto': (7,), 'endchar': (14,), 'vmoveto': (4,), 'hvcurveto': (31,), 'return': (11,), 'sbw': (12, 7), 'vhcurveto': (30,), 'hlineto': (6,), 'setcurrentpoint': (12, 33), 'callsubr': (10,), 'hmoveto': (22,), 'hstem3': (12, 2), 'hsbw': (13,), 'hstem': (1,), 'rmoveto': (21,), 'rlineto': (5,), 'vstem': (3,), 'div': (12, 12), 'rrcurveto': (8,)}</em><a class="headerlink" href="#fontTools.misc.psCharStrings.T1CharString.opcodes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.misc.psCharStrings.T1CharString.operandEncoding">
+<code class="descname">operandEncoding</code><em class="property"> = [&lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_smallInt1&gt;, &lt;function read_smallInt1&gt;, &lt;function read_smallInt1&gt;, &lt;function read_smallInt1&gt;, &lt;function read_smallInt2&gt;, &lt;function read_smallInt2&gt;, &lt;function read_smallInt2&gt;, &lt;function read_smallInt2&gt;, &lt;function read_longInt&gt;]</em><a class="headerlink" href="#fontTools.misc.psCharStrings.T1CharString.operandEncoding" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.misc.psCharStrings.T1CharString.operators">
+<code class="descname">operators</code><em class="property"> = {1: 'hstem', 3: 'vstem', 4: 'vmoveto', 5: 'rlineto', 6: 'hlineto', 7: 'vlineto', 8: 'rrcurveto', 9: 'closepath', 10: 'callsubr', (12, 12): 'div', 13: 'hsbw', 14: 'endchar', 21: 'rmoveto', 22: 'hmoveto', (12, 16): 'callothersubr', (12, 1): 'vstem3', 30: 'vhcurveto', 31: 'hvcurveto', (12, 2): 'hstem3', (12, 33): 'setcurrentpoint', (12, 6): 'seac', (12, 17): 'pop', 11: 'return', (12, 7): 'sbw', (12, 0): 'dotsection'}</em><a class="headerlink" href="#fontTools.misc.psCharStrings.T1CharString.operators" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.misc.psCharStrings.T1OutlineExtractor">
+<em class="property">class </em><code class="descclassname">fontTools.misc.psCharStrings.</code><code class="descname">T1OutlineExtractor</code><span class="sig-paren">(</span><em>pen</em>, <em>subrs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T1OutlineExtractor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T1OutlineExtractor" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="fontTools.misc.psCharStrings.T1OutlineExtractor.doFlex">
+<code class="descname">doFlex</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T1OutlineExtractor.doFlex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T1OutlineExtractor.doFlex" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T1OutlineExtractor.endPath">
+<code class="descname">endPath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T1OutlineExtractor.endPath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T1OutlineExtractor.endPath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T1OutlineExtractor.exch">
+<code class="descname">exch</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T1OutlineExtractor.exch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T1OutlineExtractor.exch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T1OutlineExtractor.op_callothersubr">
+<code class="descname">op_callothersubr</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T1OutlineExtractor.op_callothersubr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T1OutlineExtractor.op_callothersubr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T1OutlineExtractor.op_callsubr">
+<code class="descname">op_callsubr</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T1OutlineExtractor.op_callsubr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T1OutlineExtractor.op_callsubr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T1OutlineExtractor.op_closepath">
+<code class="descname">op_closepath</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T1OutlineExtractor.op_closepath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T1OutlineExtractor.op_closepath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T1OutlineExtractor.op_dotsection">
+<code class="descname">op_dotsection</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T1OutlineExtractor.op_dotsection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T1OutlineExtractor.op_dotsection" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T1OutlineExtractor.op_endchar">
+<code class="descname">op_endchar</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T1OutlineExtractor.op_endchar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T1OutlineExtractor.op_endchar" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T1OutlineExtractor.op_hmoveto">
+<code class="descname">op_hmoveto</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T1OutlineExtractor.op_hmoveto"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T1OutlineExtractor.op_hmoveto" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T1OutlineExtractor.op_hsbw">
+<code class="descname">op_hsbw</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T1OutlineExtractor.op_hsbw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T1OutlineExtractor.op_hsbw" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T1OutlineExtractor.op_hstem3">
+<code class="descname">op_hstem3</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T1OutlineExtractor.op_hstem3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T1OutlineExtractor.op_hstem3" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T1OutlineExtractor.op_pop">
+<code class="descname">op_pop</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T1OutlineExtractor.op_pop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T1OutlineExtractor.op_pop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T1OutlineExtractor.op_rmoveto">
+<code class="descname">op_rmoveto</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T1OutlineExtractor.op_rmoveto"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T1OutlineExtractor.op_rmoveto" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T1OutlineExtractor.op_sbw">
+<code class="descname">op_sbw</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T1OutlineExtractor.op_sbw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T1OutlineExtractor.op_sbw" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T1OutlineExtractor.op_seac">
+<code class="descname">op_seac</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T1OutlineExtractor.op_seac"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T1OutlineExtractor.op_seac" title="Permalink to this definition">¶</a></dt>
+<dd><p>asb adx ady bchar achar seac</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T1OutlineExtractor.op_setcurrentpoint">
+<code class="descname">op_setcurrentpoint</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T1OutlineExtractor.op_setcurrentpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T1OutlineExtractor.op_setcurrentpoint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T1OutlineExtractor.op_vmoveto">
+<code class="descname">op_vmoveto</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T1OutlineExtractor.op_vmoveto"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T1OutlineExtractor.op_vmoveto" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T1OutlineExtractor.op_vstem3">
+<code class="descname">op_vstem3</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T1OutlineExtractor.op_vstem3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T1OutlineExtractor.op_vstem3" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T1OutlineExtractor.popallWidth">
+<code class="descname">popallWidth</code><span class="sig-paren">(</span><em>evenOdd=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T1OutlineExtractor.popallWidth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T1OutlineExtractor.popallWidth" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T1OutlineExtractor.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T1OutlineExtractor.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T1OutlineExtractor.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.misc.psCharStrings.T2CharString">
+<em class="property">class </em><code class="descclassname">fontTools.misc.psCharStrings.</code><code class="descname">T2CharString</code><span class="sig-paren">(</span><em>bytecode=None</em>, <em>program=None</em>, <em>private=None</em>, <em>globalSubrs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2CharString"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2CharString" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2CharString.calcBounds">
+<code class="descname">calcBounds</code><span class="sig-paren">(</span><em>glyphSet</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2CharString.calcBounds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2CharString.calcBounds" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2CharString.check_program">
+<code class="descname">check_program</code><span class="sig-paren">(</span><em>program</em>, <em>isCFF2=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2CharString.check_program"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2CharString.check_program" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2CharString.compile">
+<code class="descname">compile</code><span class="sig-paren">(</span><em>isCFF2=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2CharString.compile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2CharString.compile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2CharString.decompile">
+<code class="descname">decompile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2CharString.decompile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2CharString.decompile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.misc.psCharStrings.T2CharString.decompilerClass">
+<code class="descname">decompilerClass</code><a class="headerlink" href="#fontTools.misc.psCharStrings.T2CharString.decompilerClass" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#fontTools.misc.psCharStrings.SimpleT2Decompiler" title="fontTools.misc.psCharStrings.SimpleT2Decompiler"><code class="xref py py-class docutils literal"><span class="pre">SimpleT2Decompiler</span></code></a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2CharString.draw">
+<code class="descname">draw</code><span class="sig-paren">(</span><em>pen</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2CharString.draw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2CharString.draw" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2CharString.fromXML">
+<code class="descname">fromXML</code><span class="sig-paren">(</span><em>name</em>, <em>attrs</em>, <em>content</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2CharString.fromXML"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2CharString.fromXML" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2CharString.getBytes">
+<code class="descname">getBytes</code><span class="sig-paren">(</span><em>index</em>, <em>nBytes</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2CharString.getBytes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2CharString.getBytes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2CharString.getFixedEncoder">
+<code class="descname">getFixedEncoder</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2CharString.getFixedEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2CharString.getFixedEncoder" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2CharString.getIntEncoder">
+<code class="descname">getIntEncoder</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2CharString.getIntEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2CharString.getIntEncoder" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2CharString.getToken">
+<code class="descname">getToken</code><span class="sig-paren">(</span><em>index</em>, <em>len=&lt;built-in function len&gt;</em>, <em>byteord=&lt;function byteord&gt;</em>, <em>basestring=&lt;type 'basestring'&gt;</em>, <em>isinstance=&lt;built-in function isinstance&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2CharString.getToken"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2CharString.getToken" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2CharString.handle_operator">
+<code class="descname">handle_operator</code><span class="sig-paren">(</span><em>operator</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2CharString.handle_operator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2CharString.handle_operator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.misc.psCharStrings.T2CharString.isCFF2">
+<code class="descname">isCFF2</code><em class="property"> = False</em><a class="headerlink" href="#fontTools.misc.psCharStrings.T2CharString.isCFF2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2CharString.needsDecompilation">
+<code class="descname">needsDecompilation</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2CharString.needsDecompilation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2CharString.needsDecompilation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.misc.psCharStrings.T2CharString.opcodes">
+<code class="descname">opcodes</code><em class="property"> = {'and': (12, 3), 'load': (12, 13), 'drop': (12, 18), 'vsindex': (15,), 'random': (12, 23), 'not': (12, 5), 'rlinecurve': (25,), 'hflex1': (12, 36), 'eq': (12, 15), 'ignore': (12, 0), 'vlineto': (7,), 'cntrmask': (20,), 'endchar': (14,), 'vmoveto': (4,), 'sqrt': (12, 26), 'add': (12, 10), 'abs': (12, 9), 'ifelse': (12, 22), 'vstemhm': (23,), 'dup': (12, 27), 'mul': (12, 24), 'flex1': (12, 37), 'hvcurveto': (31,), 'store': (12, 8), 'flex': (12, 35), 'return': (11,), 'get': (12, 21), 'vhcurveto': (30,), 'hlineto': (6,), 'vvcurveto': (26,), 'callsubr': (10,), 'neg': (12, 14), 'hmoveto': (22,), 'exch': (12, 28), 'rrcurveto': (8,), 'sub': (12, 11), 'hstem': (1,), 'rcurveline': (24,), 'put': (12, 20), 'rmoveto': (21,), 'callgsubr': (29,), 'roll': (12, 30), 'rlineto': (5,), 'hflex': (12, 34), 'index': (12, 29), 'hstemhm': (18,), 'vstem': (3,), 'div': (12, 12), 'hhcurveto': (27,), 'blend': (16,), 'or': (12, 4), 'hintmask': (19,)}</em><a class="headerlink" href="#fontTools.misc.psCharStrings.T2CharString.opcodes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.misc.psCharStrings.T2CharString.operandEncoding">
+<code class="descname">operandEncoding</code><em class="property"> = [&lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_shortInt&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_operator&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_byte&gt;, &lt;function read_smallInt1&gt;, &lt;function read_smallInt1&gt;, &lt;function read_smallInt1&gt;, &lt;function read_smallInt1&gt;, &lt;function read_smallInt2&gt;, &lt;function read_smallInt2&gt;, &lt;function read_smallInt2&gt;, &lt;function read_smallInt2&gt;, &lt;function read_fixed1616&gt;]</em><a class="headerlink" href="#fontTools.misc.psCharStrings.T2CharString.operandEncoding" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.misc.psCharStrings.T2CharString.operators">
+<code class="descname">operators</code><em class="property"> = {1: 'hstem', 3: 'vstem', 4: 'vmoveto', 5: 'rlineto', 6: 'hlineto', 7: 'vlineto', 8: 'rrcurveto', 10: 'callsubr', 11: 'return', 14: 'endchar', 15: 'vsindex', 16: 'blend', 18: 'hstemhm', 19: 'hintmask', 20: 'cntrmask', 21: 'rmoveto', 22: 'hmoveto', 23: 'vstemhm', 24: 'rcurveline', 25: 'rlinecurve', 26: 'vvcurveto', 27: 'hhcurveto', (12, 9): 'abs', 29: 'callgsubr', 30: 'vhcurveto', 31: 'hvcurveto', (12, 20): 'put', (12, 27): 'dup', (12, 13): 'load', (12, 24): 'mul', (12, 37): 'flex1', (12, 36): 'hflex1', (12, 10): 'add', (12, 28): 'exch', (12, 3): 'and', (12, 21): 'get', (12, 34): 'hflex', (12, 12): 'div', (12, 14): 'neg', (12, 18): 'drop', (12, 11): 'sub', (12, 29): 'index', (12, 22): 'ifelse', (12, 35): 'flex', (12, 5): 'not', (12, 15): 'eq', (12, 0): 'ignore', (12, 26): 'sqrt', (12, 4): 'or', (12, 30): 'roll', (12, 23): 'random', (12, 8): 'store'}</em><a class="headerlink" href="#fontTools.misc.psCharStrings.T2CharString.operators" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.misc.psCharStrings.T2CharString.outlineExtractor">
+<code class="descname">outlineExtractor</code><a class="headerlink" href="#fontTools.misc.psCharStrings.T2CharString.outlineExtractor" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#fontTools.misc.psCharStrings.T2OutlineExtractor" title="fontTools.misc.psCharStrings.T2OutlineExtractor"><code class="xref py py-class docutils literal"><span class="pre">T2OutlineExtractor</span></code></a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2CharString.setBytecode">
+<code class="descname">setBytecode</code><span class="sig-paren">(</span><em>bytecode</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2CharString.setBytecode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2CharString.setBytecode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2CharString.setProgram">
+<code class="descname">setProgram</code><span class="sig-paren">(</span><em>program</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2CharString.setProgram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2CharString.setProgram" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2CharString.toXML">
+<code class="descname">toXML</code><span class="sig-paren">(</span><em>xmlWriter</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2CharString.toXML"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2CharString.toXML" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor">
+<em class="property">class </em><code class="descclassname">fontTools.misc.psCharStrings.</code><code class="descname">T2OutlineExtractor</code><span class="sig-paren">(</span><em>pen</em>, <em>localSubrs</em>, <em>globalSubrs</em>, <em>nominalWidthX</em>, <em>defaultWidthX</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.alternatingLineto">
+<code class="descname">alternatingLineto</code><span class="sig-paren">(</span><em>isHorizontal</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.alternatingLineto"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.alternatingLineto" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.closePath">
+<code class="descname">closePath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.closePath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.closePath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.endPath">
+<code class="descname">endPath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.endPath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.endPath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.hcurveto">
+<code class="descname">hcurveto</code><span class="sig-paren">(</span><em>args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.hcurveto"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.hcurveto" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_abs">
+<code class="descname">op_abs</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_abs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_abs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_add">
+<code class="descname">op_add</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_add" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_and">
+<code class="descname">op_and</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_and"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_and" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_blend">
+<code class="descname">op_blend</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_blend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_blend" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_div">
+<code class="descname">op_div</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_div"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_div" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_drop">
+<code class="descname">op_drop</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_drop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_drop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_dup">
+<code class="descname">op_dup</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_dup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_dup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_endchar">
+<code class="descname">op_endchar</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_endchar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_endchar" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_eq">
+<code class="descname">op_eq</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_eq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_eq" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_exch">
+<code class="descname">op_exch</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_exch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_exch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_flex">
+<code class="descname">op_flex</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_flex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_flex" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_flex1">
+<code class="descname">op_flex1</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_flex1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_flex1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_get">
+<code class="descname">op_get</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_hflex">
+<code class="descname">op_hflex</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_hflex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_hflex" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_hflex1">
+<code class="descname">op_hflex1</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_hflex1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_hflex1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_hhcurveto">
+<code class="descname">op_hhcurveto</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_hhcurveto"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_hhcurveto" title="Permalink to this definition">¶</a></dt>
+<dd><p>dy1? {dxa dxb dyb dxc}+ hhcurveto</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_hlineto">
+<code class="descname">op_hlineto</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_hlineto"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_hlineto" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_hmoveto">
+<code class="descname">op_hmoveto</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_hmoveto"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_hmoveto" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_hvcurveto">
+<code class="descname">op_hvcurveto</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_hvcurveto"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_hvcurveto" title="Permalink to this definition">¶</a></dt>
+<dd><p>dx1 dx2 dy2 dy3 {dya dxb dyb dxc dxd dxe dye dyf}* dxf?
+{dxa dxb dyb dyc dyd dxe dye dxf}+ dyf?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_ifelse">
+<code class="descname">op_ifelse</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_ifelse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_ifelse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_index">
+<code class="descname">op_index</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_index" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_load">
+<code class="descname">op_load</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_load" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_mul">
+<code class="descname">op_mul</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_mul"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_mul" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_neg">
+<code class="descname">op_neg</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_neg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_neg" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_not">
+<code class="descname">op_not</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_not"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_not" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_or">
+<code class="descname">op_or</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_or"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_or" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_put">
+<code class="descname">op_put</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_put"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_put" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_random">
+<code class="descname">op_random</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_random"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_random" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_rcurveline">
+<code class="descname">op_rcurveline</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_rcurveline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_rcurveline" title="Permalink to this definition">¶</a></dt>
+<dd><p>{dxa dya dxb dyb dxc dyc}+ dxd dyd rcurveline</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_rlinecurve">
+<code class="descname">op_rlinecurve</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_rlinecurve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_rlinecurve" title="Permalink to this definition">¶</a></dt>
+<dd><p>{dxa dya}+ dxb dyb dxc dyc dxd dyd rlinecurve</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_rlineto">
+<code class="descname">op_rlineto</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_rlineto"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_rlineto" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_rmoveto">
+<code class="descname">op_rmoveto</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_rmoveto"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_rmoveto" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_roll">
+<code class="descname">op_roll</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_roll"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_roll" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_rrcurveto">
+<code class="descname">op_rrcurveto</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_rrcurveto"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_rrcurveto" title="Permalink to this definition">¶</a></dt>
+<dd><p>{dxa dya dxb dyb dxc dyc}+ rrcurveto</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_sqrt">
+<code class="descname">op_sqrt</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_sqrt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_sqrt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_store">
+<code class="descname">op_store</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_store"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_store" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_sub">
+<code class="descname">op_sub</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_sub"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_sub" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_vhcurveto">
+<code class="descname">op_vhcurveto</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_vhcurveto"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_vhcurveto" title="Permalink to this definition">¶</a></dt>
+<dd><p>dy1 dx2 dy2 dx3 {dxa dxb dyb dyc dyd dxe dye dxf}* dyf? vhcurveto (30)
+{dya dxb dyb dxc dxd dxe dye dyf}+ dxf? vhcurveto</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_vlineto">
+<code class="descname">op_vlineto</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_vlineto"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_vlineto" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_vmoveto">
+<code class="descname">op_vmoveto</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_vmoveto"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_vmoveto" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.op_vvcurveto">
+<code class="descname">op_vvcurveto</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.op_vvcurveto"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.op_vvcurveto" title="Permalink to this definition">¶</a></dt>
+<dd><p>dx1? {dya dxb dyb dyc}+ vvcurveto</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.rCurveTo">
+<code class="descname">rCurveTo</code><span class="sig-paren">(</span><em>pt1</em>, <em>pt2</em>, <em>pt3</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.rCurveTo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.rCurveTo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.rLineTo">
+<code class="descname">rLineTo</code><span class="sig-paren">(</span><em>point</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.rLineTo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.rLineTo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.rMoveTo">
+<code class="descname">rMoveTo</code><span class="sig-paren">(</span><em>point</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.rMoveTo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.rMoveTo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2OutlineExtractor.vcurveto">
+<code class="descname">vcurveto</code><span class="sig-paren">(</span><em>args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2OutlineExtractor.vcurveto"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2OutlineExtractor.vcurveto" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.misc.psCharStrings.T2WidthExtractor">
+<em class="property">class </em><code class="descclassname">fontTools.misc.psCharStrings.</code><code class="descname">T2WidthExtractor</code><span class="sig-paren">(</span><em>localSubrs</em>, <em>globalSubrs</em>, <em>nominalWidthX</em>, <em>defaultWidthX</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2WidthExtractor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2WidthExtractor" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2WidthExtractor.countHints">
+<code class="descname">countHints</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2WidthExtractor.countHints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2WidthExtractor.countHints" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2WidthExtractor.op_endchar">
+<code class="descname">op_endchar</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2WidthExtractor.op_endchar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2WidthExtractor.op_endchar" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2WidthExtractor.op_hmoveto">
+<code class="descname">op_hmoveto</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2WidthExtractor.op_hmoveto"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2WidthExtractor.op_hmoveto" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2WidthExtractor.op_rmoveto">
+<code class="descname">op_rmoveto</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2WidthExtractor.op_rmoveto"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2WidthExtractor.op_rmoveto" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2WidthExtractor.op_vmoveto">
+<code class="descname">op_vmoveto</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2WidthExtractor.op_vmoveto"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2WidthExtractor.op_vmoveto" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2WidthExtractor.popallWidth">
+<code class="descname">popallWidth</code><span class="sig-paren">(</span><em>evenOdd=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2WidthExtractor.popallWidth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2WidthExtractor.popallWidth" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.psCharStrings.T2WidthExtractor.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#T2WidthExtractor.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.T2WidthExtractor.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.psCharStrings.buildOperatorDict">
+<code class="descclassname">fontTools.misc.psCharStrings.</code><code class="descname">buildOperatorDict</code><span class="sig-paren">(</span><em>operatorList</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#buildOperatorDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.buildOperatorDict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.psCharStrings.calcSubrBias">
+<code class="descclassname">fontTools.misc.psCharStrings.</code><code class="descname">calcSubrBias</code><span class="sig-paren">(</span><em>subrs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#calcSubrBias"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.calcSubrBias" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.psCharStrings.encodeFixed">
+<code class="descclassname">fontTools.misc.psCharStrings.</code><code class="descname">encodeFixed</code><span class="sig-paren">(</span><em>f</em>, <em>pack=&lt;built-in function pack&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#encodeFixed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.encodeFixed" title="Permalink to this definition">¶</a></dt>
+<dd><p>For T2 only</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.psCharStrings.encodeFloat">
+<code class="descclassname">fontTools.misc.psCharStrings.</code><code class="descname">encodeFloat</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#encodeFloat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.encodeFloat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.psCharStrings.encodeIntCFF">
+<code class="descclassname">fontTools.misc.psCharStrings.</code><code class="descname">encodeIntCFF</code><span class="sig-paren">(</span><em>value</em>, <em>fourByteOp='\x1d'</em>, <em>bytechr=&lt;built-in function chr&gt;</em>, <em>pack=&lt;built-in function pack&gt;</em>, <em>unpack=&lt;built-in function unpack&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#fontTools.misc.psCharStrings.encodeIntCFF" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.psCharStrings.encodeIntT1">
+<code class="descclassname">fontTools.misc.psCharStrings.</code><code class="descname">encodeIntT1</code><span class="sig-paren">(</span><em>value</em>, <em>fourByteOp='\xff'</em>, <em>bytechr=&lt;built-in function chr&gt;</em>, <em>pack=&lt;built-in function pack&gt;</em>, <em>unpack=&lt;built-in function unpack&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#fontTools.misc.psCharStrings.encodeIntT1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.psCharStrings.encodeIntT2">
+<code class="descclassname">fontTools.misc.psCharStrings.</code><code class="descname">encodeIntT2</code><span class="sig-paren">(</span><em>value</em>, <em>fourByteOp=None</em>, <em>bytechr=&lt;built-in function chr&gt;</em>, <em>pack=&lt;built-in function pack&gt;</em>, <em>unpack=&lt;built-in function unpack&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#fontTools.misc.psCharStrings.encodeIntT2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.psCharStrings.getIntEncoder">
+<code class="descclassname">fontTools.misc.psCharStrings.</code><code class="descname">getIntEncoder</code><span class="sig-paren">(</span><em>format</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#getIntEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.getIntEncoder" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.psCharStrings.read_byte">
+<code class="descclassname">fontTools.misc.psCharStrings.</code><code class="descname">read_byte</code><span class="sig-paren">(</span><em>self</em>, <em>b0</em>, <em>data</em>, <em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#read_byte"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.read_byte" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.psCharStrings.read_fixed1616">
+<code class="descclassname">fontTools.misc.psCharStrings.</code><code class="descname">read_fixed1616</code><span class="sig-paren">(</span><em>self</em>, <em>b0</em>, <em>data</em>, <em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#read_fixed1616"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.read_fixed1616" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.psCharStrings.read_longInt">
+<code class="descclassname">fontTools.misc.psCharStrings.</code><code class="descname">read_longInt</code><span class="sig-paren">(</span><em>self</em>, <em>b0</em>, <em>data</em>, <em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#read_longInt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.read_longInt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.psCharStrings.read_operator">
+<code class="descclassname">fontTools.misc.psCharStrings.</code><code class="descname">read_operator</code><span class="sig-paren">(</span><em>self</em>, <em>b0</em>, <em>data</em>, <em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#read_operator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.read_operator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.psCharStrings.read_realNumber">
+<code class="descclassname">fontTools.misc.psCharStrings.</code><code class="descname">read_realNumber</code><span class="sig-paren">(</span><em>self</em>, <em>b0</em>, <em>data</em>, <em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#read_realNumber"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.read_realNumber" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.psCharStrings.read_reserved">
+<code class="descclassname">fontTools.misc.psCharStrings.</code><code class="descname">read_reserved</code><span class="sig-paren">(</span><em>self</em>, <em>b0</em>, <em>data</em>, <em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#read_reserved"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.read_reserved" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.psCharStrings.read_shortInt">
+<code class="descclassname">fontTools.misc.psCharStrings.</code><code class="descname">read_shortInt</code><span class="sig-paren">(</span><em>self</em>, <em>b0</em>, <em>data</em>, <em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#read_shortInt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.read_shortInt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.psCharStrings.read_smallInt1">
+<code class="descclassname">fontTools.misc.psCharStrings.</code><code class="descname">read_smallInt1</code><span class="sig-paren">(</span><em>self</em>, <em>b0</em>, <em>data</em>, <em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#read_smallInt1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.read_smallInt1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.psCharStrings.read_smallInt2">
+<code class="descclassname">fontTools.misc.psCharStrings.</code><code class="descname">read_smallInt2</code><span class="sig-paren">(</span><em>self</em>, <em>b0</em>, <em>data</em>, <em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/psCharStrings.html#read_smallInt2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.psCharStrings.read_smallInt2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="sstruct.html"
+                        title="previous chapter">sstruct</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="testTools.html"
+                        title="next chapter">testTools</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/misc/psCharStrings.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="testTools.html" title="testTools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="sstruct.html" title="sstruct"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >misc</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,397 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fontTools.ttLib.tables.M_E_T_A_ &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../ttLib.html" accesskey="U">fontTools.ttLib</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fontTools.ttLib.tables.M_E_T_A_</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.py23</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc</span> <span class="k">import</span> <span class="n">sstruct</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.textTools</span> <span class="k">import</span> <span class="n">safeEval</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">DefaultTable</span>
+<span class="kn">import</span> <span class="nn">pdb</span>
+<span class="kn">import</span> <span class="nn">struct</span>
+
+
+<span class="n">METAHeaderFormat</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">		&gt;	# big endian</span>
+<span class="s2">		tableVersionMajor:			H</span>
+<span class="s2">		tableVersionMinor:			H</span>
+<span class="s2">		metaEntriesVersionMajor:	H</span>
+<span class="s2">		metaEntriesVersionMinor:	H</span>
+<span class="s2">		unicodeVersion:				L</span>
+<span class="s2">		metaFlags:					H</span>
+<span class="s2">		nMetaRecs:					H</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="c1"># This record is followed by nMetaRecs of METAGlyphRecordFormat.</span>
+<span class="c1"># This in turn is followd by as many METAStringRecordFormat entries</span>
+<span class="c1"># as specified by the METAGlyphRecordFormat entries</span>
+<span class="c1"># this is followed by the strings specifried in the  METAStringRecordFormat</span>
+<span class="n">METAGlyphRecordFormat</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">		&gt;	# big endian</span>
+<span class="s2">		glyphID:			H</span>
+<span class="s2">		nMetaEntry:			H</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="c1"># This record is followd by a variable data length field:</span>
+<span class="c1"># 	USHORT or ULONG	hdrOffset</span>
+<span class="c1"># Offset from start of META table to the beginning</span>
+<span class="c1"># of this glyphs array of ns Metadata string entries.</span>
+<span class="c1"># Size determined by metaFlags field</span>
+<span class="c1"># METAGlyphRecordFormat entries must be sorted by glyph ID</span>
+
+<span class="n">METAStringRecordFormat</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">		&gt;	# big endian</span>
+<span class="s2">		labelID:			H</span>
+<span class="s2">		stringLen:			H</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="c1"># This record is followd by a variable data length field:</span>
+<span class="c1"># 	USHORT or ULONG	stringOffset</span>
+<span class="c1"># METAStringRecordFormat entries must be sorted in order of labelID</span>
+<span class="c1"># There may be more than one entry with the same labelID</span>
+<span class="c1"># There may be more than one strign with the same content.</span>
+
+<span class="c1"># Strings shall be Unicode UTF-8 encoded, and null-terminated.</span>
+
+<span class="n">METALabelDict</span> <span class="o">=</span> <span class="p">{</span>
+	<span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;MojikumiX4051&quot;</span><span class="p">,</span> <span class="c1"># An integer in the range 1-20</span>
+	<span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;UNIUnifiedBaseChars&quot;</span><span class="p">,</span>
+	<span class="mi">2</span><span class="p">:</span> <span class="s2">&quot;BaseFontName&quot;</span><span class="p">,</span>
+	<span class="mi">3</span><span class="p">:</span> <span class="s2">&quot;Language&quot;</span><span class="p">,</span>
+	<span class="mi">4</span><span class="p">:</span> <span class="s2">&quot;CreationDate&quot;</span><span class="p">,</span>
+	<span class="mi">5</span><span class="p">:</span> <span class="s2">&quot;FoundryName&quot;</span><span class="p">,</span>
+	<span class="mi">6</span><span class="p">:</span> <span class="s2">&quot;FoundryCopyright&quot;</span><span class="p">,</span>
+	<span class="mi">7</span><span class="p">:</span> <span class="s2">&quot;OwnerURI&quot;</span><span class="p">,</span>
+	<span class="mi">8</span><span class="p">:</span> <span class="s2">&quot;WritingScript&quot;</span><span class="p">,</span>
+	<span class="mi">10</span><span class="p">:</span> <span class="s2">&quot;StrokeCount&quot;</span><span class="p">,</span>
+	<span class="mi">11</span><span class="p">:</span> <span class="s2">&quot;IndexingRadical&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="getLabelString"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.M_E_T_A_.getLabelString">[docs]</a><span class="k">def</span> <span class="nf">getLabelString</span><span class="p">(</span><span class="n">labelID</span><span class="p">):</span>
+	<span class="k">try</span><span class="p">:</span>
+		<span class="n">label</span> <span class="o">=</span> <span class="n">METALabelDict</span><span class="p">[</span><span class="n">labelID</span><span class="p">]</span>
+	<span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+		<span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;Unknown label&quot;</span>
+	<span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">label</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="table_M_E_T_A_"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.M_E_T_A_.table_M_E_T_A_">[docs]</a><span class="k">class</span> <span class="nc">table_M_E_T_A_</span><span class="p">(</span><span class="n">DefaultTable</span><span class="o">.</span><span class="n">DefaultTable</span><span class="p">):</span>
+
+	<span class="n">dependencies</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="table_M_E_T_A_.decompile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.M_E_T_A_.table_M_E_T_A_.decompile">[docs]</a>	<span class="k">def</span> <span class="nf">decompile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">dummy</span><span class="p">,</span> <span class="n">newData</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">unpack2</span><span class="p">(</span><span class="n">METAHeaderFormat</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">glyphRecords</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nMetaRecs</span><span class="p">):</span>
+			<span class="n">glyphRecord</span><span class="p">,</span> <span class="n">newData</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">unpack2</span><span class="p">(</span><span class="n">METAGlyphRecordFormat</span><span class="p">,</span> <span class="n">newData</span><span class="p">,</span> <span class="n">GlyphRecord</span><span class="p">())</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">metaFlags</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+				<span class="p">[</span><span class="n">glyphRecord</span><span class="o">.</span><span class="n">offset</span><span class="p">]</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;&gt;H&quot;</span><span class="p">,</span> <span class="n">newData</span><span class="p">[:</span><span class="mi">2</span><span class="p">])</span>
+				<span class="n">newData</span> <span class="o">=</span> <span class="n">newData</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span>
+			<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">metaFlags</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+				<span class="p">[</span><span class="n">glyphRecord</span><span class="o">.</span><span class="n">offset</span><span class="p">]</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;&gt;H&quot;</span><span class="p">,</span> <span class="n">newData</span><span class="p">[:</span><span class="mi">4</span><span class="p">])</span>
+				<span class="n">newData</span> <span class="o">=</span> <span class="n">newData</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="k">assert</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;The metaFlags field in the META table header has a value other than 0 or 1 :&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metaFlags</span><span class="p">)</span>
+			<span class="n">glyphRecord</span><span class="o">.</span><span class="n">stringRecs</span> <span class="o">=</span> <span class="p">[]</span>
+			<span class="n">newData</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">glyphRecord</span><span class="o">.</span><span class="n">offset</span><span class="p">:]</span>
+			<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">glyphRecord</span><span class="o">.</span><span class="n">nMetaEntry</span><span class="p">):</span>
+				<span class="n">stringRec</span><span class="p">,</span> <span class="n">newData</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">unpack2</span><span class="p">(</span><span class="n">METAStringRecordFormat</span><span class="p">,</span> <span class="n">newData</span><span class="p">,</span> <span class="n">StringRecord</span><span class="p">())</span>
+				<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">metaFlags</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+					<span class="p">[</span><span class="n">stringRec</span><span class="o">.</span><span class="n">offset</span><span class="p">]</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;&gt;H&quot;</span><span class="p">,</span> <span class="n">newData</span><span class="p">[:</span><span class="mi">2</span><span class="p">])</span>
+					<span class="n">newData</span> <span class="o">=</span> <span class="n">newData</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="p">[</span><span class="n">stringRec</span><span class="o">.</span><span class="n">offset</span><span class="p">]</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;&gt;H&quot;</span><span class="p">,</span> <span class="n">newData</span><span class="p">[:</span><span class="mi">4</span><span class="p">])</span>
+					<span class="n">newData</span> <span class="o">=</span> <span class="n">newData</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span>
+				<span class="n">stringRec</span><span class="o">.</span><span class="n">string</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">stringRec</span><span class="o">.</span><span class="n">offset</span><span class="p">:</span><span class="n">stringRec</span><span class="o">.</span><span class="n">offset</span> <span class="o">+</span> <span class="n">stringRec</span><span class="o">.</span><span class="n">stringLen</span><span class="p">]</span>
+				<span class="n">glyphRecord</span><span class="o">.</span><span class="n">stringRecs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stringRec</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">glyphRecords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">glyphRecord</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="table_M_E_T_A_.compile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.M_E_T_A_.table_M_E_T_A_.compile">[docs]</a>	<span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">offsetOK</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">nMetaRecs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">glyphRecords</span><span class="p">)</span>
+		<span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="k">while</span> <span class="p">(</span><span class="n">offsetOK</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">):</span>
+			<span class="n">count</span> <span class="o">=</span> <span class="n">count</span> <span class="o">+</span> <span class="mi">1</span>
+			<span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">4</span><span class="p">:</span>
+				<span class="n">pdb</span><span class="o">.</span><span class="n">set_trace</span><span class="p">()</span>
+			<span class="n">metaData</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">METAHeaderFormat</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+			<span class="n">stringRecsOffset</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">metaData</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">nMetaRecs</span> <span class="o">*</span> <span class="p">(</span><span class="mi">6</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metaFlags</span> <span class="o">&amp;</span> <span class="mi">1</span><span class="p">))</span>
+			<span class="n">stringRecSize</span> <span class="o">=</span> <span class="p">(</span><span class="mi">6</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metaFlags</span> <span class="o">&amp;</span> <span class="mi">1</span><span class="p">))</span>
+			<span class="k">for</span> <span class="n">glyphRec</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">glyphRecords</span><span class="p">:</span>
+				<span class="n">glyphRec</span><span class="o">.</span><span class="n">offset</span> <span class="o">=</span> <span class="n">stringRecsOffset</span>
+				<span class="k">if</span> <span class="p">(</span><span class="n">glyphRec</span><span class="o">.</span><span class="n">offset</span> <span class="o">&gt;</span> <span class="mi">65535</span><span class="p">)</span> <span class="ow">and</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">metaFlags</span> <span class="o">&amp;</span> <span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">metaFlags</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metaFlags</span> <span class="o">+</span> <span class="mi">1</span>
+					<span class="n">offsetOK</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+					<span class="k">break</span>
+				<span class="n">metaData</span> <span class="o">=</span> <span class="n">metaData</span> <span class="o">+</span> <span class="n">glyphRec</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+				<span class="n">stringRecsOffset</span> <span class="o">=</span> <span class="n">stringRecsOffset</span> <span class="o">+</span> <span class="p">(</span><span class="n">glyphRec</span><span class="o">.</span><span class="n">nMetaEntry</span> <span class="o">*</span> <span class="n">stringRecSize</span><span class="p">)</span>
+				<span class="c1"># this will be the String Record offset for the next GlyphRecord.</span>
+			<span class="k">if</span> <span class="n">offsetOK</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+				<span class="n">offsetOK</span> <span class="o">=</span> <span class="mi">0</span>
+				<span class="k">continue</span>
+
+			<span class="c1"># metaData now contains the header and all of the GlyphRecords. Its length should bw</span>
+			<span class="c1"># the offset to the first StringRecord.</span>
+			<span class="n">stringOffset</span> <span class="o">=</span> <span class="n">stringRecsOffset</span>
+			<span class="k">for</span> <span class="n">glyphRec</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">glyphRecords</span><span class="p">:</span>
+				<span class="k">assert</span> <span class="p">(</span><span class="n">glyphRec</span><span class="o">.</span><span class="n">offset</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">metaData</span><span class="p">)),</span> <span class="s2">&quot;Glyph record offset did not compile correctly! for rec:&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">glyphRec</span><span class="p">)</span>
+				<span class="k">for</span> <span class="n">stringRec</span> <span class="ow">in</span> <span class="n">glyphRec</span><span class="o">.</span><span class="n">stringRecs</span><span class="p">:</span>
+					<span class="n">stringRec</span><span class="o">.</span><span class="n">offset</span> <span class="o">=</span> <span class="n">stringOffset</span>
+					<span class="k">if</span> <span class="p">(</span><span class="n">stringRec</span><span class="o">.</span><span class="n">offset</span> <span class="o">&gt;</span> <span class="mi">65535</span><span class="p">)</span> <span class="ow">and</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">metaFlags</span> <span class="o">&amp;</span> <span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">metaFlags</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metaFlags</span> <span class="o">+</span> <span class="mi">1</span>
+						<span class="n">offsetOK</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+						<span class="k">break</span>
+					<span class="n">metaData</span> <span class="o">=</span> <span class="n">metaData</span> <span class="o">+</span> <span class="n">stringRec</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+					<span class="n">stringOffset</span> <span class="o">=</span> <span class="n">stringOffset</span> <span class="o">+</span> <span class="n">stringRec</span><span class="o">.</span><span class="n">stringLen</span>
+			<span class="k">if</span> 	<span class="n">offsetOK</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+				<span class="n">offsetOK</span> <span class="o">=</span> <span class="mi">0</span>
+				<span class="k">continue</span>
+
+			<span class="k">if</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">metaFlags</span> <span class="o">&amp;</span> <span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">stringOffset</span> <span class="o">&lt;</span> <span class="mi">65536</span><span class="p">):</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">metaFlags</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metaFlags</span> <span class="o">-</span> <span class="mi">1</span>
+				<span class="k">continue</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">offsetOK</span> <span class="o">=</span> <span class="mi">1</span>
+
+			<span class="c1"># metaData now contains the header and all of the GlyphRecords and all of the String Records.</span>
+			<span class="c1"># Its length should be the offset to the first string datum.</span>
+			<span class="k">for</span> <span class="n">glyphRec</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">glyphRecords</span><span class="p">:</span>
+				<span class="k">for</span> <span class="n">stringRec</span> <span class="ow">in</span> <span class="n">glyphRec</span><span class="o">.</span><span class="n">stringRecs</span><span class="p">:</span>
+					<span class="k">assert</span> <span class="p">(</span><span class="n">stringRec</span><span class="o">.</span><span class="n">offset</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">metaData</span><span class="p">)),</span> <span class="s2">&quot;String offset did not compile correctly! for string:&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">stringRec</span><span class="o">.</span><span class="n">string</span><span class="p">)</span>
+					<span class="n">metaData</span> <span class="o">=</span> <span class="n">metaData</span> <span class="o">+</span> <span class="n">stringRec</span><span class="o">.</span><span class="n">string</span>
+
+		<span class="k">return</span> <span class="n">metaData</span></div>
+
+<div class="viewcode-block" id="table_M_E_T_A_.toXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.M_E_T_A_.table_M_E_T_A_.toXML">[docs]</a>	<span class="k">def</span> <span class="nf">toXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">comment</span><span class="p">(</span><span class="s2">&quot;Lengths and number of entries in this table will be recalculated by the compiler&quot;</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">formatstring</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">fixes</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">getformat</span><span class="p">(</span><span class="n">METAHeaderFormat</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+			<span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">glyphRec</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">glyphRecords</span><span class="p">:</span>
+			<span class="n">glyphRec</span><span class="o">.</span><span class="n">toXML</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="table_M_E_T_A_.fromXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.M_E_T_A_.table_M_E_T_A_.fromXML">[docs]</a>	<span class="k">def</span> <span class="nf">fromXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;GlyphRecord&quot;</span><span class="p">:</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;glyphRecords&quot;</span><span class="p">):</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">glyphRecords</span> <span class="o">=</span> <span class="p">[]</span>
+			<span class="n">glyphRec</span> <span class="o">=</span> <span class="n">GlyphRecord</span><span class="p">()</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">glyphRecords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">glyphRec</span><span class="p">)</span>
+			<span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+				<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">basestring</span><span class="p">):</span>
+					<span class="k">continue</span>
+				<span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span> <span class="o">=</span> <span class="n">element</span>
+				<span class="n">glyphRec</span><span class="o">.</span><span class="n">fromXML</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span>
+			<span class="n">glyphRec</span><span class="o">.</span><span class="n">offset</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+			<span class="n">glyphRec</span><span class="o">.</span><span class="n">nMetaEntry</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">glyphRec</span><span class="o">.</span><span class="n">stringRecs</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]))</span></div></div>
+
+
+<div class="viewcode-block" id="GlyphRecord"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.M_E_T_A_.GlyphRecord">[docs]</a><span class="k">class</span> <span class="nc">GlyphRecord</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">glyphID</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">nMetaEntry</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">offset</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">stringRecs</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="GlyphRecord.toXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.M_E_T_A_.GlyphRecord.toXML">[docs]</a>	<span class="k">def</span> <span class="nf">toXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">begintag</span><span class="p">(</span><span class="s2">&quot;GlyphRecord&quot;</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="s2">&quot;glyphID&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">glyphID</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="s2">&quot;nMetaEntry&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nMetaEntry</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">stringRec</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stringRecs</span><span class="p">:</span>
+			<span class="n">stringRec</span><span class="o">.</span><span class="n">toXML</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">endtag</span><span class="p">(</span><span class="s2">&quot;GlyphRecord&quot;</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="GlyphRecord.fromXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.M_E_T_A_.GlyphRecord.fromXML">[docs]</a>	<span class="k">def</span> <span class="nf">fromXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;StringRecord&quot;</span><span class="p">:</span>
+			<span class="n">stringRec</span> <span class="o">=</span> <span class="n">StringRecord</span><span class="p">()</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">stringRecs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stringRec</span><span class="p">)</span>
+			<span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+				<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">basestring</span><span class="p">):</span>
+					<span class="k">continue</span>
+				<span class="n">stringRec</span><span class="o">.</span><span class="n">fromXML</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span>
+			<span class="n">stringRec</span><span class="o">.</span><span class="n">stringLen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">stringRec</span><span class="o">.</span><span class="n">string</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]))</span></div>
+
+<div class="viewcode-block" id="GlyphRecord.compile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.M_E_T_A_.GlyphRecord.compile">[docs]</a>	<span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parentTable</span><span class="p">):</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">METAGlyphRecordFormat</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">parentTable</span><span class="o">.</span><span class="n">metaFlags</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+			<span class="n">datum</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">&quot;&gt;H&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">offset</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="n">parentTable</span><span class="o">.</span><span class="n">metaFlags</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+			<span class="n">datum</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">&quot;&gt;L&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">offset</span><span class="p">)</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="n">data</span> <span class="o">+</span> <span class="n">datum</span>
+		<span class="k">return</span> <span class="n">data</span></div>
+
+	<span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="s2">&quot;GlyphRecord[ glyphID: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">glyphID</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;, nMetaEntry: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nMetaEntry</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;, offset: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">offset</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; ]&quot;</span></div>
+
+<span class="c1"># XXX The following two functions are really broken around UTF-8 vs Unicode</span>
+
+<div class="viewcode-block" id="mapXMLToUTF8"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.M_E_T_A_.mapXMLToUTF8">[docs]</a><span class="k">def</span> <span class="nf">mapXMLToUTF8</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+	<span class="n">uString</span> <span class="o">=</span> <span class="n">unicode</span><span class="p">()</span>
+	<span class="n">strLen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+	<span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">strLen</span><span class="p">:</span>
+		<span class="n">prefixLen</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="k">if</span>  <span class="p">(</span><span class="n">string</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;&amp;#x&quot;</span><span class="p">):</span>
+			<span class="n">prefixLen</span> <span class="o">=</span> <span class="mi">3</span>
+		<span class="k">elif</span>  <span class="p">(</span><span class="n">string</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="mi">7</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;&amp;amp;#x&quot;</span><span class="p">):</span>
+			<span class="n">prefixLen</span> <span class="o">=</span> <span class="mi">7</span>
+		<span class="k">if</span> <span class="n">prefixLen</span><span class="p">:</span>
+			<span class="n">i</span> <span class="o">=</span> <span class="n">i</span><span class="o">+</span><span class="n">prefixLen</span>
+			<span class="n">j</span><span class="o">=</span> <span class="n">i</span>
+			<span class="k">while</span> <span class="n">string</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;;&quot;</span><span class="p">:</span>
+				<span class="n">i</span> <span class="o">=</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span>
+			<span class="n">valStr</span> <span class="o">=</span> <span class="n">string</span><span class="p">[</span><span class="n">j</span><span class="p">:</span><span class="n">i</span><span class="p">]</span>
+
+			<span class="n">uString</span> <span class="o">=</span> <span class="n">uString</span> <span class="o">+</span> <span class="n">unichr</span><span class="p">(</span><span class="nb">eval</span><span class="p">(</span><span class="s1">&#39;0x&#39;</span> <span class="o">+</span> <span class="n">valStr</span><span class="p">))</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">uString</span> <span class="o">=</span> <span class="n">uString</span> <span class="o">+</span> <span class="n">unichr</span><span class="p">(</span><span class="n">byteord</span><span class="p">(</span><span class="n">string</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+		<span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span><span class="mi">1</span>
+
+	<span class="k">return</span> <span class="n">uString</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf_8&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="mapUTF8toXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.M_E_T_A_.mapUTF8toXML">[docs]</a><span class="k">def</span> <span class="nf">mapUTF8toXML</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+	<span class="n">uString</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf_8&#39;</span><span class="p">)</span>
+	<span class="n">string</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+	<span class="k">for</span> <span class="n">uChar</span> <span class="ow">in</span> <span class="n">uString</span><span class="p">:</span>
+		<span class="n">i</span> <span class="o">=</span> <span class="nb">ord</span><span class="p">(</span><span class="n">uChar</span><span class="p">)</span>
+		<span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="mh">0x80</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">i</span> <span class="o">&gt;</span> <span class="mh">0x1F</span><span class="p">):</span>
+			<span class="n">string</span> <span class="o">=</span> <span class="n">string</span> <span class="o">+</span> <span class="n">uChar</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">string</span> <span class="o">=</span> <span class="n">string</span> <span class="o">+</span> <span class="s2">&quot;&amp;#x&quot;</span> <span class="o">+</span> <span class="nb">hex</span><span class="p">(</span><span class="n">i</span><span class="p">)[</span><span class="mi">2</span><span class="p">:]</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span>
+	<span class="k">return</span> <span class="n">string</span></div>
+
+
+<div class="viewcode-block" id="StringRecord"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.M_E_T_A_.StringRecord">[docs]</a><span class="k">class</span> <span class="nc">StringRecord</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+<div class="viewcode-block" id="StringRecord.toXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.M_E_T_A_.StringRecord.toXML">[docs]</a>	<span class="k">def</span> <span class="nf">toXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">begintag</span><span class="p">(</span><span class="s2">&quot;StringRecord&quot;</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="s2">&quot;labelID&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">labelID</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">comment</span><span class="p">(</span><span class="n">getLabelString</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labelID</span><span class="p">))</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">mapUTF8toXML</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">string</span><span class="p">))</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">endtag</span><span class="p">(</span><span class="s2">&quot;StringRecord&quot;</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="StringRecord.fromXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.M_E_T_A_.StringRecord.fromXML">[docs]</a>	<span class="k">def</span> <span class="nf">fromXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+			<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">basestring</span><span class="p">):</span>
+				<span class="k">continue</span>
+			<span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span> <span class="o">=</span> <span class="n">element</span>
+			<span class="n">value</span> <span class="o">=</span> <span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+			<span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;string&quot;</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">string</span> <span class="o">=</span> <span class="n">mapXMLToUTF8</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">value</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="StringRecord.compile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.M_E_T_A_.StringRecord.compile">[docs]</a>	<span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parentTable</span><span class="p">):</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">METAStringRecordFormat</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">parentTable</span><span class="o">.</span><span class="n">metaFlags</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+			<span class="n">datum</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">&quot;&gt;H&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">offset</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="n">parentTable</span><span class="o">.</span><span class="n">metaFlags</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+			<span class="n">datum</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">&quot;&gt;L&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">offset</span><span class="p">)</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="n">data</span> <span class="o">+</span> <span class="n">datum</span>
+		<span class="k">return</span> <span class="n">data</span></div>
+
+	<span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="s2">&quot;StringRecord [ labelID: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labelID</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; aka &quot;</span> <span class="o">+</span> <span class="n">getLabelString</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labelID</span><span class="p">)</span> \
+			<span class="o">+</span> <span class="s2">&quot;, offset: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">offset</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;, length: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stringLen</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;, string: &quot;</span> <span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">string</span> <span class="o">+</span> <span class="s2">&quot; ]&quot;</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../ttLib.html" >fontTools.ttLib</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,343 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fontTools.voltLib.ast &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fontTools.voltLib.ast</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">fontTools.voltLib.error</span> <span class="k">import</span> <span class="n">VoltLibError</span>
+
+
+<div class="viewcode-block" id="Statement"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.Statement">[docs]</a><span class="k">class</span> <span class="nc">Statement</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="n">location</span>
+
+<div class="viewcode-block" id="Statement.build"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.Statement.build">[docs]</a>    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">builder</span><span class="p">):</span>
+        <span class="k">pass</span></div></div>
+
+
+<div class="viewcode-block" id="Expression"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.Expression">[docs]</a><span class="k">class</span> <span class="nc">Expression</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="n">location</span>
+
+<div class="viewcode-block" id="Expression.build"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.Expression.build">[docs]</a>    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">builder</span><span class="p">):</span>
+        <span class="k">pass</span></div></div>
+
+
+<div class="viewcode-block" id="Block"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.Block">[docs]</a><span class="k">class</span> <span class="nc">Block</span><span class="p">(</span><span class="n">Statement</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">Statement</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">statements</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="Block.build"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.Block.build">[docs]</a>    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">builder</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">statements</span><span class="p">:</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">builder</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="VoltFile"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.VoltFile">[docs]</a><span class="k">class</span> <span class="nc">VoltFile</span><span class="p">(</span><span class="n">Block</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">Block</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LookupBlock"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.LookupBlock">[docs]</a><span class="k">class</span> <span class="nc">LookupBlock</span><span class="p">(</span><span class="n">Block</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">Block</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+
+<div class="viewcode-block" id="LookupBlock.build"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.LookupBlock.build">[docs]</a>    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">builder</span><span class="p">):</span>
+        <span class="n">builder</span><span class="o">.</span><span class="n">start_lookup_block</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">location</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">Block</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">builder</span><span class="p">)</span>
+        <span class="n">builder</span><span class="o">.</span><span class="n">end_lookup_block</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="GlyphDefinition"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.GlyphDefinition">[docs]</a><span class="k">class</span> <span class="nc">GlyphDefinition</span><span class="p">(</span><span class="n">Statement</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">gunicode</span><span class="p">,</span> <span class="n">gtype</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">Statement</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">gid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unicode</span> <span class="o">=</span> <span class="n">gunicode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">gtype</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">components</span> <span class="o">=</span> <span class="n">components</span></div>
+
+
+<div class="viewcode-block" id="GroupDefinition"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.GroupDefinition">[docs]</a><span class="k">class</span> <span class="nc">GroupDefinition</span><span class="p">(</span><span class="n">Statement</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">enum</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">Statement</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enum</span> <span class="o">=</span> <span class="n">enum</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">glyphs_</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="GroupDefinition.glyphSet"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.GroupDefinition.glyphSet">[docs]</a>    <span class="k">def</span> <span class="nf">glyphSet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">groups</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">groups</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">VoltLibError</span><span class="p">(</span>
+                <span class="s1">&#39;Group &quot;</span><span class="si">%s</span><span class="s1">&quot; contains itself.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">location</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">glyphs_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">groups</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">groups</span> <span class="o">=</span> <span class="nb">set</span><span class="p">({</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">})</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">groups</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">glyphs_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">enum</span><span class="o">.</span><span class="n">glyphSet</span><span class="p">(</span><span class="n">groups</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">glyphs_</span></div></div>
+
+
+<div class="viewcode-block" id="GlyphName"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.GlyphName">[docs]</a><span class="k">class</span> <span class="nc">GlyphName</span><span class="p">(</span><span class="n">Expression</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A single glyph name, such as cedilla.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">glyph</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">Expression</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">glyph</span> <span class="o">=</span> <span class="n">glyph</span>
+
+<div class="viewcode-block" id="GlyphName.glyphSet"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.GlyphName.glyphSet">[docs]</a>    <span class="k">def</span> <span class="nf">glyphSet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">frozenset</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">glyph</span><span class="p">,))</span></div></div>
+
+
+<div class="viewcode-block" id="Enum"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.Enum">[docs]</a><span class="k">class</span> <span class="nc">Enum</span><span class="p">(</span><span class="n">Expression</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;An enum&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">enum</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">Expression</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enum</span> <span class="o">=</span> <span class="n">enum</span>
+
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">glyphSet</span><span class="p">():</span>
+            <span class="k">yield</span> <span class="n">e</span>
+
+<div class="viewcode-block" id="Enum.glyphSet"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.Enum.glyphSet">[docs]</a>    <span class="k">def</span> <span class="nf">glyphSet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">groups</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">glyphs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">enum</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="p">(</span><span class="n">GroupName</span><span class="p">,</span> <span class="n">Enum</span><span class="p">)):</span>
+                <span class="n">glyphs</span> <span class="o">=</span> <span class="n">glyphs</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">glyphSet</span><span class="p">(</span><span class="n">groups</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">glyphs</span> <span class="o">=</span> <span class="n">glyphs</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">glyphSet</span><span class="p">())</span>
+        <span class="k">return</span> <span class="nb">frozenset</span><span class="p">(</span><span class="n">glyphs</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="GroupName"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.GroupName">[docs]</a><span class="k">class</span> <span class="nc">GroupName</span><span class="p">(</span><span class="n">Expression</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A glyph group&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">group</span><span class="p">,</span> <span class="n">parser</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">Expression</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">group</span> <span class="o">=</span> <span class="n">group</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser_</span> <span class="o">=</span> <span class="n">parser</span>
+
+<div class="viewcode-block" id="GroupName.glyphSet"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.GroupName.glyphSet">[docs]</a>    <span class="k">def</span> <span class="nf">glyphSet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">groups</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser_</span><span class="o">.</span><span class="n">resolve_group</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">group</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">group</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">glyphs_</span> <span class="o">=</span> <span class="n">group</span><span class="o">.</span><span class="n">glyphSet</span><span class="p">(</span><span class="n">groups</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">glyphs_</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">VoltLibError</span><span class="p">(</span>
+                <span class="s1">&#39;Group &quot;</span><span class="si">%s</span><span class="s1">&quot; is used but undefined.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">group</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">location</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="Range"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.Range">[docs]</a><span class="k">class</span> <span class="nc">Range</span><span class="p">(</span><span class="n">Expression</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A glyph range&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">parser</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">Expression</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="n">start</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">=</span> <span class="n">end</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span> <span class="o">=</span> <span class="n">parser</span>
+
+<div class="viewcode-block" id="Range.glyphSet"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.Range.glyphSet">[docs]</a>    <span class="k">def</span> <span class="nf">glyphSet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">glyphs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">glyph_range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">frozenset</span><span class="p">(</span><span class="n">glyphs</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ScriptDefinition"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.ScriptDefinition">[docs]</a><span class="k">class</span> <span class="nc">ScriptDefinition</span><span class="p">(</span><span class="n">Statement</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">langs</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">Statement</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tag</span> <span class="o">=</span> <span class="n">tag</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">langs</span> <span class="o">=</span> <span class="n">langs</span></div>
+
+
+<div class="viewcode-block" id="LangSysDefinition"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.LangSysDefinition">[docs]</a><span class="k">class</span> <span class="nc">LangSysDefinition</span><span class="p">(</span><span class="n">Statement</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">Statement</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tag</span> <span class="o">=</span> <span class="n">tag</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">features</span> <span class="o">=</span> <span class="n">features</span></div>
+
+
+<div class="viewcode-block" id="FeatureDefinition"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.FeatureDefinition">[docs]</a><span class="k">class</span> <span class="nc">FeatureDefinition</span><span class="p">(</span><span class="n">Statement</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">lookups</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">Statement</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tag</span> <span class="o">=</span> <span class="n">tag</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lookups</span> <span class="o">=</span> <span class="n">lookups</span></div>
+
+
+<div class="viewcode-block" id="LookupDefinition"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.LookupDefinition">[docs]</a><span class="k">class</span> <span class="nc">LookupDefinition</span><span class="p">(</span><span class="n">Statement</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">process_base</span><span class="p">,</span> <span class="n">process_marks</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span>
+                 <span class="n">reversal</span><span class="p">,</span> <span class="n">comments</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">sub</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">Statement</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">process_base</span> <span class="o">=</span> <span class="n">process_base</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">process_marks</span> <span class="o">=</span> <span class="n">process_marks</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">direction</span> <span class="o">=</span> <span class="n">direction</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reversal</span> <span class="o">=</span> <span class="n">reversal</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comments</span> <span class="o">=</span> <span class="n">comments</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">context</span> <span class="o">=</span> <span class="n">context</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sub</span> <span class="o">=</span> <span class="n">sub</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="n">pos</span></div>
+
+
+<div class="viewcode-block" id="SubstitutionDefinition"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.SubstitutionDefinition">[docs]</a><span class="k">class</span> <span class="nc">SubstitutionDefinition</span><span class="p">(</span><span class="n">Statement</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mapping</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">Statement</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mapping</span> <span class="o">=</span> <span class="n">mapping</span></div>
+
+
+<div class="viewcode-block" id="SubstitutionSingleDefinition"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.SubstitutionSingleDefinition">[docs]</a><span class="k">class</span> <span class="nc">SubstitutionSingleDefinition</span><span class="p">(</span><span class="n">SubstitutionDefinition</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="SubstitutionMultipleDefinition"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.SubstitutionMultipleDefinition">[docs]</a><span class="k">class</span> <span class="nc">SubstitutionMultipleDefinition</span><span class="p">(</span><span class="n">SubstitutionDefinition</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="SubstitutionLigatureDefinition"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.SubstitutionLigatureDefinition">[docs]</a><span class="k">class</span> <span class="nc">SubstitutionLigatureDefinition</span><span class="p">(</span><span class="n">SubstitutionDefinition</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="SubstitutionReverseChainingSingleDefinition"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.SubstitutionReverseChainingSingleDefinition">[docs]</a><span class="k">class</span> <span class="nc">SubstitutionReverseChainingSingleDefinition</span><span class="p">(</span><span class="n">SubstitutionDefinition</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="PositionAttachDefinition"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.PositionAttachDefinition">[docs]</a><span class="k">class</span> <span class="nc">PositionAttachDefinition</span><span class="p">(</span><span class="n">Statement</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coverage</span><span class="p">,</span> <span class="n">coverage_to</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">Statement</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coverage</span> <span class="o">=</span> <span class="n">coverage</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coverage_to</span> <span class="o">=</span> <span class="n">coverage_to</span></div>
+
+
+<div class="viewcode-block" id="PositionAttachCursiveDefinition"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.PositionAttachCursiveDefinition">[docs]</a><span class="k">class</span> <span class="nc">PositionAttachCursiveDefinition</span><span class="p">(</span><span class="n">Statement</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coverages_exit</span><span class="p">,</span> <span class="n">coverages_enter</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">Statement</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coverages_exit</span> <span class="o">=</span> <span class="n">coverages_exit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coverages_enter</span> <span class="o">=</span> <span class="n">coverages_enter</span></div>
+
+
+<div class="viewcode-block" id="PositionAdjustPairDefinition"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.PositionAdjustPairDefinition">[docs]</a><span class="k">class</span> <span class="nc">PositionAdjustPairDefinition</span><span class="p">(</span><span class="n">Statement</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coverages_1</span><span class="p">,</span> <span class="n">coverages_2</span><span class="p">,</span> <span class="n">adjust_pair</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">Statement</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coverages_1</span> <span class="o">=</span> <span class="n">coverages_1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coverages_2</span> <span class="o">=</span> <span class="n">coverages_2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">adjust_pair</span> <span class="o">=</span> <span class="n">adjust_pair</span></div>
+
+
+<div class="viewcode-block" id="PositionAdjustSingleDefinition"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.PositionAdjustSingleDefinition">[docs]</a><span class="k">class</span> <span class="nc">PositionAdjustSingleDefinition</span><span class="p">(</span><span class="n">Statement</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">adjust_single</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">Statement</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">adjust_single</span> <span class="o">=</span> <span class="n">adjust_single</span></div>
+
+
+<div class="viewcode-block" id="ContextDefinition"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.ContextDefinition">[docs]</a><span class="k">class</span> <span class="nc">ContextDefinition</span><span class="p">(</span><span class="n">Statement</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ex_or_in</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">Statement</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ex_or_in</span> <span class="o">=</span> <span class="n">ex_or_in</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">left</span> <span class="o">=</span> <span class="n">left</span> <span class="k">if</span> <span class="n">left</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">right</span> <span class="o">=</span> <span class="n">right</span> <span class="k">if</span> <span class="n">right</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[]</span></div>
+
+
+<div class="viewcode-block" id="AnchorDefinition"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.AnchorDefinition">[docs]</a><span class="k">class</span> <span class="nc">AnchorDefinition</span><span class="p">(</span><span class="n">Statement</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">glyph_name</span><span class="p">,</span> <span class="n">component</span><span class="p">,</span> <span class="n">locked</span><span class="p">,</span>
+                 <span class="n">pos</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">Statement</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gid</span> <span class="o">=</span> <span class="n">gid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">glyph_name</span> <span class="o">=</span> <span class="n">glyph_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">component</span> <span class="o">=</span> <span class="n">component</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">locked</span> <span class="o">=</span> <span class="n">locked</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="n">pos</span></div>
+
+
+<div class="viewcode-block" id="SettingDefinition"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.ast.SettingDefinition">[docs]</a><span class="k">class</span> <span class="nc">SettingDefinition</span><span class="p">(</span><span class="n">Statement</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">Statement</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

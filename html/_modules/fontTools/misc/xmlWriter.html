@@ -1,0 +1,285 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fontTools.misc.xmlWriter &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fontTools.misc.xmlWriter</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;xmlWriter.py -- Simple XML authoring class&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.py23</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">string</span>
+
+<span class="n">INDENT</span> <span class="o">=</span> <span class="s2">&quot;  &quot;</span>
+
+
+<div class="viewcode-block" id="XMLWriter"><a class="viewcode-back" href="../../../misc/xmlWriter.html#fontTools.misc.xmlWriter.XMLWriter">[docs]</a><span class="k">class</span> <span class="nc">XMLWriter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fileOrPath</span><span class="p">,</span> <span class="n">indentwhite</span><span class="o">=</span><span class="n">INDENT</span><span class="p">,</span> <span class="n">idlefunc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf_8&quot;</span><span class="p">,</span>
+			<span class="n">newlinestr</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">encoding</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">!=</span> <span class="s1">&#39;utf8&#39;</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Only UTF-8 encoding is supported.&#39;</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">fileOrPath</span> <span class="o">==</span> <span class="s1">&#39;-&#39;</span><span class="p">:</span>
+			<span class="n">fileOrPath</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fileOrPath</span><span class="p">,</span> <span class="s2">&quot;write&quot;</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="n">fileOrPath</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fileOrPath</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_closeStream</span> <span class="o">=</span> <span class="kc">True</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="kc">None</span>
+			<span class="c1"># assume writable file object</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">file</span> <span class="o">=</span> <span class="n">fileOrPath</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_closeStream</span> <span class="o">=</span> <span class="kc">False</span>
+
+		<span class="c1"># Figure out if writer expects bytes or unicodes</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="c1"># The bytes check should be first.  See:</span>
+			<span class="c1"># https://github.com/behdad/fonttools/pull/233</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">totype</span> <span class="o">=</span> <span class="n">tobytes</span>
+		<span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+			<span class="c1"># This better not fail.</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">tounicode</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">))</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">totype</span> <span class="o">=</span> <span class="n">tounicode</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">indentwhite</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">totype</span><span class="p">(</span><span class="n">indentwhite</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">newlinestr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">newlinestr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">totype</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">newlinestr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">totype</span><span class="p">(</span><span class="n">newlinestr</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">indentlevel</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">stack</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">needindent</span> <span class="o">=</span> <span class="mi">1</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">idlefunc</span> <span class="o">=</span> <span class="n">idlefunc</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">idlecounter</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_writeraw</span><span class="p">(</span><span class="s1">&#39;&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&#39;</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+
+	<span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span>
+
+	<span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exception_type</span><span class="p">,</span> <span class="n">exception_value</span><span class="p">,</span> <span class="n">traceback</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<div class="viewcode-block" id="XMLWriter.close"><a class="viewcode-back" href="../../../misc/xmlWriter.html#fontTools.misc.xmlWriter.XMLWriter.close">[docs]</a>	<span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_closeStream</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="XMLWriter.write"><a class="viewcode-back" href="../../../misc/xmlWriter.html#fontTools.misc.xmlWriter.XMLWriter.write">[docs]</a>	<span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Writes text.&quot;&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_writeraw</span><span class="p">(</span><span class="n">escape</span><span class="p">(</span><span class="n">string</span><span class="p">),</span> <span class="n">indent</span><span class="o">=</span><span class="n">indent</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="XMLWriter.writecdata"><a class="viewcode-back" href="../../../misc/xmlWriter.html#fontTools.misc.xmlWriter.XMLWriter.writecdata">[docs]</a>	<span class="k">def</span> <span class="nf">writecdata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Writes text in a CDATA section.&quot;&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_writeraw</span><span class="p">(</span><span class="s2">&quot;&lt;![CDATA[&quot;</span> <span class="o">+</span> <span class="n">string</span> <span class="o">+</span> <span class="s2">&quot;]]&gt;&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="XMLWriter.write8bit"><a class="viewcode-back" href="../../../misc/xmlWriter.html#fontTools.misc.xmlWriter.XMLWriter.write8bit">[docs]</a>	<span class="k">def</span> <span class="nf">write8bit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">strip</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Writes a bytes() sequence into the XML, escaping</span>
+<span class="sd">		non-ASCII bytes.  When this is read in xmlReader,</span>
+<span class="sd">		the original bytes can be recovered by encoding to</span>
+<span class="sd">		&#39;latin-1&#39;.&quot;&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_writeraw</span><span class="p">(</span><span class="n">escape8bit</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">strip</span><span class="o">=</span><span class="n">strip</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="XMLWriter.write_noindent"><a class="viewcode-back" href="../../../misc/xmlWriter.html#fontTools.misc.xmlWriter.XMLWriter.write_noindent">[docs]</a>	<span class="k">def</span> <span class="nf">write_noindent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Writes text without indentation.&quot;&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_writeraw</span><span class="p">(</span><span class="n">escape</span><span class="p">(</span><span class="n">string</span><span class="p">),</span> <span class="n">indent</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+	<span class="k">def</span> <span class="nf">_writeraw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">strip</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Writes bytes, possibly indented.&quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="n">indent</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">needindent</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indentlevel</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">indentwhite</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">needindent</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">totype</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf_8&quot;</span><span class="p">)</span>
+		<span class="k">if</span> <span class="p">(</span><span class="n">strip</span><span class="p">):</span>
+			<span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+<div class="viewcode-block" id="XMLWriter.newline"><a class="viewcode-back" href="../../../misc/xmlWriter.html#fontTools.misc.xmlWriter.XMLWriter.newline">[docs]</a>	<span class="k">def</span> <span class="nf">newline</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">newlinestr</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">needindent</span> <span class="o">=</span> <span class="mi">1</span>
+		<span class="n">idlecounter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">idlecounter</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">idlecounter</span> <span class="o">%</span> <span class="mi">100</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">idlefunc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">idlefunc</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">idlecounter</span> <span class="o">=</span> <span class="n">idlecounter</span> <span class="o">+</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="XMLWriter.comment"><a class="viewcode-back" href="../../../misc/xmlWriter.html#fontTools.misc.xmlWriter.XMLWriter.comment">[docs]</a>	<span class="k">def</span> <span class="nf">comment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="n">escape</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+		<span class="n">lines</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_writeraw</span><span class="p">(</span><span class="s2">&quot;&lt;!-- &quot;</span> <span class="o">+</span> <span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+		<span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_writeraw</span><span class="p">(</span><span class="s2">&quot;     &quot;</span> <span class="o">+</span> <span class="n">line</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_writeraw</span><span class="p">(</span><span class="s2">&quot; --&gt;&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="XMLWriter.simpletag"><a class="viewcode-back" href="../../../misc/xmlWriter.html#fontTools.misc.xmlWriter.XMLWriter.simpletag">[docs]</a>	<span class="k">def</span> <span class="nf">simpletag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_TAG_</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		<span class="n">attrdata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stringifyattrs</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="s2">&quot;&lt;</span><span class="si">%s%s</span><span class="s2">/&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_TAG_</span><span class="p">,</span> <span class="n">attrdata</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_writeraw</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="XMLWriter.begintag"><a class="viewcode-back" href="../../../misc/xmlWriter.html#fontTools.misc.xmlWriter.XMLWriter.begintag">[docs]</a>	<span class="k">def</span> <span class="nf">begintag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_TAG_</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		<span class="n">attrdata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stringifyattrs</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="s2">&quot;&lt;</span><span class="si">%s%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_TAG_</span><span class="p">,</span> <span class="n">attrdata</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_writeraw</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">stack</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_TAG_</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">indent</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="XMLWriter.endtag"><a class="viewcode-back" href="../../../misc/xmlWriter.html#fontTools.misc.xmlWriter.XMLWriter.endtag">[docs]</a>	<span class="k">def</span> <span class="nf">endtag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_TAG_</span><span class="p">):</span>
+		<span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">stack</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">stack</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">_TAG_</span><span class="p">,</span> <span class="s2">&quot;nonmatching endtag&quot;</span>
+		<span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">stack</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">dedent</span><span class="p">()</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="s2">&quot;&lt;/</span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="n">_TAG_</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_writeraw</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="XMLWriter.dumphex"><a class="viewcode-back" href="../../../misc/xmlWriter.html#fontTools.misc.xmlWriter.XMLWriter.dumphex">[docs]</a>	<span class="k">def</span> <span class="nf">dumphex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+		<span class="n">linelength</span> <span class="o">=</span> <span class="mi">16</span>
+		<span class="n">hexlinelength</span> <span class="o">=</span> <span class="n">linelength</span> <span class="o">*</span> <span class="mi">2</span>
+		<span class="n">chunksize</span> <span class="o">=</span> <span class="mi">8</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">linelength</span><span class="p">):</span>
+			<span class="n">hexline</span> <span class="o">=</span> <span class="n">hexStr</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">linelength</span><span class="p">])</span>
+			<span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+			<span class="n">white</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+			<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">hexlinelength</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">):</span>
+				<span class="n">line</span> <span class="o">=</span> <span class="n">line</span> <span class="o">+</span> <span class="n">white</span> <span class="o">+</span> <span class="n">hexline</span><span class="p">[</span><span class="n">j</span><span class="p">:</span><span class="n">j</span><span class="o">+</span><span class="n">chunksize</span><span class="p">]</span>
+				<span class="n">white</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_writeraw</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="XMLWriter.indent"><a class="viewcode-back" href="../../../misc/xmlWriter.html#fontTools.misc.xmlWriter.XMLWriter.indent">[docs]</a>	<span class="k">def</span> <span class="nf">indent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">indentlevel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indentlevel</span> <span class="o">+</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="XMLWriter.dedent"><a class="viewcode-back" href="../../../misc/xmlWriter.html#fontTools.misc.xmlWriter.XMLWriter.dedent">[docs]</a>	<span class="k">def</span> <span class="nf">dedent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">indentlevel</span> <span class="o">&gt;</span> <span class="mi">0</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">indentlevel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indentlevel</span> <span class="o">-</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="XMLWriter.stringifyattrs"><a class="viewcode-back" href="../../../misc/xmlWriter.html#fontTools.misc.xmlWriter.XMLWriter.stringifyattrs">[docs]</a>	<span class="k">def</span> <span class="nf">stringifyattrs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">kwargs</span><span class="p">:</span>
+			<span class="k">assert</span> <span class="ow">not</span> <span class="n">args</span>
+			<span class="n">attributes</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+		<span class="k">elif</span> <span class="n">args</span><span class="p">:</span>
+			<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+			<span class="n">attributes</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">return</span> <span class="s2">&quot;&quot;</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+		<span class="k">for</span> <span class="n">attr</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">attributes</span><span class="p">:</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">bytes</span><span class="p">,</span> <span class="n">unicode</span><span class="p">)):</span>
+				<span class="n">value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+			<span class="n">data</span> <span class="o">=</span> <span class="n">data</span> <span class="o">+</span> <span class="s1">&#39; </span><span class="si">%s</span><span class="s1">=&quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">escapeattr</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+		<span class="k">return</span> <span class="n">data</span></div></div>
+
+
+<div class="viewcode-block" id="escape"><a class="viewcode-back" href="../../../misc/xmlWriter.html#fontTools.misc.xmlWriter.escape">[docs]</a><span class="k">def</span> <span class="nf">escape</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+	<span class="n">data</span> <span class="o">=</span> <span class="n">tostr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">&#39;utf_8&#39;</span><span class="p">)</span>
+	<span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&amp;&quot;</span><span class="p">,</span> <span class="s2">&quot;&amp;amp;&quot;</span><span class="p">)</span>
+	<span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&lt;&quot;</span><span class="p">,</span> <span class="s2">&quot;&amp;lt;&quot;</span><span class="p">)</span>
+	<span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;&amp;gt;&quot;</span><span class="p">)</span>
+	<span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&amp;#13;&quot;</span><span class="p">)</span>
+	<span class="k">return</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="escapeattr"><a class="viewcode-back" href="../../../misc/xmlWriter.html#fontTools.misc.xmlWriter.escapeattr">[docs]</a><span class="k">def</span> <span class="nf">escapeattr</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+	<span class="n">data</span> <span class="o">=</span> <span class="n">escape</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+	<span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s2">&quot;&amp;quot;&quot;</span><span class="p">)</span>
+	<span class="k">return</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="escape8bit"><a class="viewcode-back" href="../../../misc/xmlWriter.html#fontTools.misc.xmlWriter.escape8bit">[docs]</a><span class="k">def</span> <span class="nf">escape8bit</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Input is Unicode string.&quot;&quot;&quot;</span>
+	<span class="k">def</span> <span class="nf">escapechar</span><span class="p">(</span><span class="n">c</span><span class="p">):</span>
+		<span class="n">n</span> <span class="o">=</span> <span class="nb">ord</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+		<span class="k">if</span> <span class="mi">32</span> <span class="o">&lt;=</span> <span class="n">n</span> <span class="o">&lt;=</span> <span class="mi">127</span> <span class="ow">and</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s2">&quot;&lt;&amp;&gt;&quot;</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">c</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">return</span> <span class="s2">&quot;&amp;#&quot;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span>
+	<span class="k">return</span> <span class="n">strjoin</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">escapechar</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;latin-1&#39;</span><span class="p">)))</span></div>
+
+<div class="viewcode-block" id="hexStr"><a class="viewcode-back" href="../../../misc/xmlWriter.html#fontTools.misc.xmlWriter.hexStr">[docs]</a><span class="k">def</span> <span class="nf">hexStr</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+	<span class="n">h</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">hexdigits</span>
+	<span class="n">r</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+	<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+		<span class="n">i</span> <span class="o">=</span> <span class="n">byteord</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+		<span class="n">r</span> <span class="o">=</span> <span class="n">r</span> <span class="o">+</span> <span class="n">h</span><span class="p">[(</span><span class="n">i</span> <span class="o">&gt;&gt;</span> <span class="mi">4</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0xF</span><span class="p">]</span> <span class="o">+</span> <span class="n">h</span><span class="p">[</span><span class="n">i</span> <span class="o">&amp;</span> <span class="mh">0xF</span><span class="p">]</span>
+	<span class="k">return</span> <span class="n">r</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

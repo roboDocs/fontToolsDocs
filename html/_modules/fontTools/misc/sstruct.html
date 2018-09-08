@@ -1,0 +1,302 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fontTools.misc.sstruct &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fontTools.misc.sstruct</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;sstruct.py -- SuperStruct</span>
+
+<span class="sd">Higher level layer on top of the struct module, enabling to</span>
+<span class="sd">bind names to struct elements. The interface is similar to</span>
+<span class="sd">struct, except the objects passed and returned are not tuples</span>
+<span class="sd">(or argument lists), but dictionaries or instances.</span>
+
+<span class="sd">Just like struct, we use fmt strings to describe a data</span>
+<span class="sd">structure, except we use one line per element. Lines are</span>
+<span class="sd">separated by newlines or semi-colons. Each line contains</span>
+<span class="sd">either one of the special struct characters (&#39;@&#39;, &#39;=&#39;, &#39;&lt;&#39;,</span>
+<span class="sd">&#39;&gt;&#39; or &#39;!&#39;) or a &#39;name:formatchar&#39; combo (eg. &#39;myFloat:f&#39;).</span>
+<span class="sd">Repetitions, like the struct module offers them are not useful</span>
+<span class="sd">in this context, except for fixed length strings  (eg. &#39;myInt:5h&#39;</span>
+<span class="sd">is not allowed but &#39;myString:5s&#39; is). The &#39;x&#39; fmt character</span>
+<span class="sd">(pad byte) is treated as &#39;special&#39;, since it is by definition</span>
+<span class="sd">anonymous. Extra whitespace is allowed everywhere.</span>
+
+<span class="sd">The sstruct module offers one feature that the &quot;normal&quot; struct</span>
+<span class="sd">module doesn&#39;t: support for fixed point numbers. These are spelled</span>
+<span class="sd">as &quot;n.mF&quot;, where n is the number of bits before the point, and m</span>
+<span class="sd">the number of bits after the point. Fixed point numbers get</span>
+<span class="sd">converted to floats.</span>
+
+<span class="sd">pack(fmt, object):</span>
+<span class="sd">	&#39;object&#39; is either a dictionary or an instance (or actually</span>
+<span class="sd">	anything that has a __dict__ attribute). If it is a dictionary,</span>
+<span class="sd">	its keys are used for names. If it is an instance, it&#39;s</span>
+<span class="sd">	attributes are used to grab struct elements from. Returns</span>
+<span class="sd">	a string containing the data.</span>
+
+<span class="sd">unpack(fmt, data, object=None)</span>
+<span class="sd">	If &#39;object&#39; is omitted (or None), a new dictionary will be</span>
+<span class="sd">	returned. If &#39;object&#39; is a dictionary, it will be used to add</span>
+<span class="sd">	struct elements to. If it is an instance (or in fact anything</span>
+<span class="sd">	that has a __dict__ attribute), an attribute will be added for</span>
+<span class="sd">	each struct element. In the latter two cases, &#39;object&#39; itself</span>
+<span class="sd">	is returned.</span>
+
+<span class="sd">unpack2(fmt, data, object=None)</span>
+<span class="sd">	Convenience function. Same as unpack, except data may be longer</span>
+<span class="sd">	than needed. The returned value is a tuple: (object, leftoverdata).</span>
+
+<span class="sd">calcsize(fmt)</span>
+<span class="sd">	like struct.calcsize(), but uses our own fmt strings:</span>
+<span class="sd">	it returns the size of the data in bytes.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.py23</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.fixedTools</span> <span class="k">import</span> <span class="n">fixedToFloat</span> <span class="k">as</span> <span class="n">fi2fl</span><span class="p">,</span> <span class="n">floatToFixed</span> <span class="k">as</span> <span class="n">fl2fi</span>
+<span class="kn">import</span> <span class="nn">struct</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="n">__version__</span> <span class="o">=</span> <span class="s2">&quot;1.2&quot;</span>
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s2">&quot;Copyright 1998, Just van Rossum &lt;just@letterror.com&gt;&quot;</span>
+
+
+<div class="viewcode-block" id="Error"><a class="viewcode-back" href="../../../misc/sstruct.html#fontTools.misc.sstruct.Error">[docs]</a><span class="k">class</span> <span class="nc">Error</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+<div class="viewcode-block" id="pack"><a class="viewcode-back" href="../../../misc/sstruct.html#fontTools.misc.sstruct.pack">[docs]</a><span class="k">def</span> <span class="nf">pack</span><span class="p">(</span><span class="n">fmt</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+	<span class="n">formatstring</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">fixes</span> <span class="o">=</span> <span class="n">getformat</span><span class="p">(</span><span class="n">fmt</span><span class="p">)</span>
+	<span class="n">elements</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+		<span class="n">obj</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__dict__</span>
+	<span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+		<span class="n">value</span> <span class="o">=</span> <span class="n">obj</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+		<span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">fixes</span><span class="p">:</span>
+			<span class="c1"># fixed point conversion</span>
+			<span class="n">value</span> <span class="o">=</span> <span class="n">fl2fi</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">fixes</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
+		<span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">basestring</span><span class="p">):</span>
+			<span class="n">value</span> <span class="o">=</span> <span class="n">tobytes</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+		<span class="n">elements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+	<span class="n">data</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">formatstring</span><span class="p">,)</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">elements</span><span class="p">))</span>
+	<span class="k">return</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="unpack"><a class="viewcode-back" href="../../../misc/sstruct.html#fontTools.misc.sstruct.unpack">[docs]</a><span class="k">def</span> <span class="nf">unpack</span><span class="p">(</span><span class="n">fmt</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+	<span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">obj</span> <span class="o">=</span> <span class="p">{}</span>
+	<span class="n">data</span> <span class="o">=</span> <span class="n">tobytes</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+	<span class="n">formatstring</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">fixes</span> <span class="o">=</span> <span class="n">getformat</span><span class="p">(</span><span class="n">fmt</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+		<span class="n">d</span> <span class="o">=</span> <span class="n">obj</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">d</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__dict__</span>
+	<span class="n">elements</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">formatstring</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+	<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)):</span>
+		<span class="n">name</span> <span class="o">=</span> <span class="n">names</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+		<span class="n">value</span> <span class="o">=</span> <span class="n">elements</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+		<span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">fixes</span><span class="p">:</span>
+			<span class="c1"># fixed point conversion</span>
+			<span class="n">value</span> <span class="o">=</span> <span class="n">fi2fl</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">fixes</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
+		<span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+			<span class="k">try</span><span class="p">:</span>
+				<span class="n">value</span> <span class="o">=</span> <span class="n">tostr</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+			<span class="k">except</span> <span class="ne">UnicodeDecodeError</span><span class="p">:</span>
+				<span class="k">pass</span>
+		<span class="n">d</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+	<span class="k">return</span> <span class="n">obj</span></div>
+
+<div class="viewcode-block" id="unpack2"><a class="viewcode-back" href="../../../misc/sstruct.html#fontTools.misc.sstruct.unpack2">[docs]</a><span class="k">def</span> <span class="nf">unpack2</span><span class="p">(</span><span class="n">fmt</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+	<span class="n">length</span> <span class="o">=</span> <span class="n">calcsize</span><span class="p">(</span><span class="n">fmt</span><span class="p">)</span>
+	<span class="k">return</span> <span class="n">unpack</span><span class="p">(</span><span class="n">fmt</span><span class="p">,</span> <span class="n">data</span><span class="p">[:</span><span class="n">length</span><span class="p">],</span> <span class="n">obj</span><span class="p">),</span> <span class="n">data</span><span class="p">[</span><span class="n">length</span><span class="p">:]</span></div>
+
+<div class="viewcode-block" id="calcsize"><a class="viewcode-back" href="../../../misc/sstruct.html#fontTools.misc.sstruct.calcsize">[docs]</a><span class="k">def</span> <span class="nf">calcsize</span><span class="p">(</span><span class="n">fmt</span><span class="p">):</span>
+	<span class="n">formatstring</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">fixes</span> <span class="o">=</span> <span class="n">getformat</span><span class="p">(</span><span class="n">fmt</span><span class="p">)</span>
+	<span class="k">return</span> <span class="n">struct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">formatstring</span><span class="p">)</span></div>
+
+
+<span class="c1"># matches &quot;name:formatchar&quot; (whitespace is allowed)</span>
+<span class="n">_elementRE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+		<span class="s2">&quot;\s*&quot;</span>							<span class="c1"># whitespace</span>
+		<span class="s2">&quot;([A-Za-z_][A-Za-z_0-9]*)&quot;</span>		<span class="c1"># name (python identifier)</span>
+		<span class="s2">&quot;\s*:\s*&quot;</span>						<span class="c1"># whitespace : whitespace</span>
+		<span class="s2">&quot;([cbBhHiIlLqQfd]|[0-9]+[ps]|&quot;</span>	<span class="c1"># formatchar...</span>
+			<span class="s2">&quot;([0-9]+)\.([0-9]+)(F))&quot;</span>	<span class="c1"># ...formatchar</span>
+		<span class="s2">&quot;\s*&quot;</span>							<span class="c1"># whitespace</span>
+		<span class="s2">&quot;(#.*)?$&quot;</span>						<span class="c1"># [comment] + end of string</span>
+	<span class="p">)</span>
+
+<span class="c1"># matches the special struct fmt chars and &#39;x&#39; (pad byte)</span>
+<span class="n">_extraRE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;\s*([x@=&lt;&gt;!])\s*(#.*)?$&quot;</span><span class="p">)</span>
+
+<span class="c1"># matches an &quot;empty&quot; string, possibly containing whitespace and/or a comment</span>
+<span class="n">_emptyRE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;\s*(#.*)?$&quot;</span><span class="p">)</span>
+
+<span class="n">_fixedpointmappings</span> <span class="o">=</span> <span class="p">{</span>
+		<span class="mi">8</span><span class="p">:</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span>
+		<span class="mi">16</span><span class="p">:</span> <span class="s2">&quot;h&quot;</span><span class="p">,</span>
+		<span class="mi">32</span><span class="p">:</span> <span class="s2">&quot;l&quot;</span><span class="p">}</span>
+
+<span class="n">_formatcache</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="getformat"><a class="viewcode-back" href="../../../misc/sstruct.html#fontTools.misc.sstruct.getformat">[docs]</a><span class="k">def</span> <span class="nf">getformat</span><span class="p">(</span><span class="n">fmt</span><span class="p">):</span>
+	<span class="n">fmt</span> <span class="o">=</span> <span class="n">tostr</span><span class="p">(</span><span class="n">fmt</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;ascii&quot;</span><span class="p">)</span>
+	<span class="k">try</span><span class="p">:</span>
+		<span class="n">formatstring</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">fixes</span> <span class="o">=</span> <span class="n">_formatcache</span><span class="p">[</span><span class="n">fmt</span><span class="p">]</span>
+	<span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+		<span class="n">lines</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;[</span><span class="se">\n</span><span class="s2">;]&quot;</span><span class="p">,</span> <span class="n">fmt</span><span class="p">)</span>
+		<span class="n">formatstring</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+		<span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="n">fixes</span> <span class="o">=</span> <span class="p">{}</span>
+		<span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">_emptyRE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
+				<span class="k">continue</span>
+			<span class="n">m</span> <span class="o">=</span> <span class="n">_extraRE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">m</span><span class="p">:</span>
+				<span class="n">formatchar</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+				<span class="k">if</span> <span class="n">formatchar</span> <span class="o">!=</span> <span class="s1">&#39;x&#39;</span> <span class="ow">and</span> <span class="n">formatstring</span><span class="p">:</span>
+					<span class="k">raise</span> <span class="n">Error</span><span class="p">(</span><span class="s2">&quot;a special fmt char must be first&quot;</span><span class="p">)</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">m</span> <span class="o">=</span> <span class="n">_elementRE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+				<span class="k">if</span> <span class="ow">not</span> <span class="n">m</span><span class="p">:</span>
+					<span class="k">raise</span> <span class="n">Error</span><span class="p">(</span><span class="s2">&quot;syntax error in fmt: &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">line</span><span class="p">)</span>
+				<span class="n">name</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+				<span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+				<span class="n">formatchar</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+				<span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+					<span class="c1"># fixed point</span>
+					<span class="n">before</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+					<span class="n">after</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+					<span class="n">bits</span> <span class="o">=</span> <span class="n">before</span> <span class="o">+</span> <span class="n">after</span>
+					<span class="k">if</span> <span class="n">bits</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">32</span><span class="p">]:</span>
+						<span class="k">raise</span> <span class="n">Error</span><span class="p">(</span><span class="s2">&quot;fixed point must be 8, 16 or 32 bits long&quot;</span><span class="p">)</span>
+					<span class="n">formatchar</span> <span class="o">=</span> <span class="n">_fixedpointmappings</span><span class="p">[</span><span class="n">bits</span><span class="p">]</span>
+					<span class="k">assert</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;F&quot;</span>
+					<span class="n">fixes</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">after</span>
+			<span class="n">formatstring</span> <span class="o">=</span> <span class="n">formatstring</span> <span class="o">+</span> <span class="n">formatchar</span>
+		<span class="n">_formatcache</span><span class="p">[</span><span class="n">fmt</span><span class="p">]</span> <span class="o">=</span> <span class="n">formatstring</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">fixes</span>
+	<span class="k">return</span> <span class="n">formatstring</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">fixes</span></div>
+
+<span class="k">def</span> <span class="nf">_test</span><span class="p">():</span>
+	<span class="n">fmt</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">		# comments are allowed</span>
+<span class="s2">		&gt;  # big endian (see documentation for struct)</span>
+<span class="s2">		# empty lines are allowed:</span>
+
+<span class="s2">		ashort: h</span>
+<span class="s2">		along: l</span>
+<span class="s2">		abyte: b	# a byte</span>
+<span class="s2">		achar: c</span>
+<span class="s2">		astr: 5s</span>
+<span class="s2">		afloat: f; adouble: d	# multiple &quot;statements&quot; are allowed</span>
+<span class="s2">		afixed: 16.16F</span>
+<span class="s2">	&quot;&quot;&quot;</span>
+
+	<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;size:&#39;</span><span class="p">,</span> <span class="n">calcsize</span><span class="p">(</span><span class="n">fmt</span><span class="p">))</span>
+
+	<span class="k">class</span> <span class="nc">foo</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+		<span class="k">pass</span>
+
+	<span class="n">i</span> <span class="o">=</span> <span class="n">foo</span><span class="p">()</span>
+
+	<span class="n">i</span><span class="o">.</span><span class="n">ashort</span> <span class="o">=</span> <span class="mh">0x7fff</span>
+	<span class="n">i</span><span class="o">.</span><span class="n">along</span> <span class="o">=</span> <span class="mh">0x7fffffff</span>
+	<span class="n">i</span><span class="o">.</span><span class="n">abyte</span> <span class="o">=</span> <span class="mh">0x7f</span>
+	<span class="n">i</span><span class="o">.</span><span class="n">achar</span> <span class="o">=</span> <span class="s2">&quot;a&quot;</span>
+	<span class="n">i</span><span class="o">.</span><span class="n">astr</span> <span class="o">=</span> <span class="s2">&quot;12345&quot;</span>
+	<span class="n">i</span><span class="o">.</span><span class="n">afloat</span> <span class="o">=</span> <span class="mf">0.5</span>
+	<span class="n">i</span><span class="o">.</span><span class="n">adouble</span> <span class="o">=</span> <span class="mf">0.5</span>
+	<span class="n">i</span><span class="o">.</span><span class="n">afixed</span> <span class="o">=</span> <span class="mf">1.5</span>
+
+	<span class="n">data</span> <span class="o">=</span> <span class="n">pack</span><span class="p">(</span><span class="n">fmt</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+	<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;data:&#39;</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+	<span class="nb">print</span><span class="p">(</span><span class="n">unpack</span><span class="p">(</span><span class="n">fmt</span><span class="p">,</span> <span class="n">data</span><span class="p">))</span>
+	<span class="n">i2</span> <span class="o">=</span> <span class="n">foo</span><span class="p">()</span>
+	<span class="n">unpack</span><span class="p">(</span><span class="n">fmt</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">i2</span><span class="p">)</span>
+	<span class="nb">print</span><span class="p">(</span><span class="nb">vars</span><span class="p">(</span><span class="n">i2</span><span class="p">))</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+	<span class="n">_test</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

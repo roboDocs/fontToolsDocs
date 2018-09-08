@@ -1,0 +1,273 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fontTools.misc.testTools &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fontTools.misc.testTools</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Helpers for writing unit tests.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="p">(</span><span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span><span class="p">,</span>
+                        <span class="n">unicode_literals</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">from</span> <span class="nn">unittest</span> <span class="k">import</span> <span class="n">TestCase</span> <span class="k">as</span> <span class="n">_TestCase</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.py23</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.xmlWriter</span> <span class="k">import</span> <span class="n">XMLWriter</span>
+
+
+<div class="viewcode-block" id="parseXML"><a class="viewcode-back" href="../../../misc/testTools.html#fontTools.misc.testTools.parseXML">[docs]</a><span class="k">def</span> <span class="nf">parseXML</span><span class="p">(</span><span class="n">xmlSnippet</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parses a snippet of XML.</span>
+
+<span class="sd">    Input can be either a single string (unicode or UTF-8 bytes), or a</span>
+<span class="sd">    a sequence of strings.</span>
+
+<span class="sd">    The result is in the same format that would be returned by</span>
+<span class="sd">    XMLReader, but the parser imposes no constraints on the root</span>
+<span class="sd">    element so it can be called on small snippets of TTX files.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># To support snippets with multiple elements, we add a fake root.</span>
+    <span class="n">reader</span> <span class="o">=</span> <span class="n">TestXMLReader_</span><span class="p">()</span>
+    <span class="n">xml</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;&lt;root&gt;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">xmlSnippet</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+        <span class="n">xml</span> <span class="o">+=</span> <span class="n">xmlSnippet</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">xmlSnippet</span><span class="p">,</span> <span class="n">unicode</span><span class="p">):</span>
+        <span class="n">xml</span> <span class="o">+=</span> <span class="n">tobytes</span><span class="p">(</span><span class="n">xmlSnippet</span><span class="p">,</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">xmlSnippet</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Iterable</span><span class="p">):</span>
+        <span class="n">xml</span> <span class="o">+=</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tobytes</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">xmlSnippet</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;expected string or sequence of strings; found </span><span class="si">%r</span><span class="s2">&quot;</span>
+                        <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">xmlSnippet</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+    <span class="n">xml</span> <span class="o">+=</span> <span class="sa">b</span><span class="s2">&quot;&lt;/root&gt;&quot;</span>
+    <span class="n">reader</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">Parse</span><span class="p">(</span><span class="n">xml</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">reader</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="FakeFont"><a class="viewcode-back" href="../../../misc/testTools.html#fontTools.misc.testTools.FakeFont">[docs]</a><span class="k">class</span> <span class="nc">FakeFont</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">glyphs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">glyphOrder_</span> <span class="o">=</span> <span class="n">glyphs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reverseGlyphOrderDict_</span> <span class="o">=</span> <span class="p">{</span><span class="n">g</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">glyphs</span><span class="p">)}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lazy</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tables</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tables</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">table</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tables</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span> <span class="o">=</span> <span class="n">table</span>
+
+<div class="viewcode-block" id="FakeFont.get"><a class="viewcode-back" href="../../../misc/testTools.html#fontTools.misc.testTools.FakeFont.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tables</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FakeFont.getGlyphID"><a class="viewcode-back" href="../../../misc/testTools.html#fontTools.misc.testTools.FakeFont.getGlyphID">[docs]</a>    <span class="k">def</span> <span class="nf">getGlyphID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reverseGlyphOrderDict_</span><span class="p">[</span><span class="n">name</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="FakeFont.getGlyphName"><a class="viewcode-back" href="../../../misc/testTools.html#fontTools.misc.testTools.FakeFont.getGlyphName">[docs]</a>    <span class="k">def</span> <span class="nf">getGlyphName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">glyphID</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">glyphID</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">glyphOrder_</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">glyphOrder_</span><span class="p">[</span><span class="n">glyphID</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;glyph</span><span class="si">%.5d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">glyphID</span></div>
+
+<div class="viewcode-block" id="FakeFont.getGlyphOrder"><a class="viewcode-back" href="../../../misc/testTools.html#fontTools.misc.testTools.FakeFont.getGlyphOrder">[docs]</a>    <span class="k">def</span> <span class="nf">getGlyphOrder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">glyphOrder_</span></div>
+
+<div class="viewcode-block" id="FakeFont.getReverseGlyphMap"><a class="viewcode-back" href="../../../misc/testTools.html#fontTools.misc.testTools.FakeFont.getReverseGlyphMap">[docs]</a>    <span class="k">def</span> <span class="nf">getReverseGlyphMap</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reverseGlyphOrderDict_</span></div></div>
+
+
+<div class="viewcode-block" id="TestXMLReader_"><a class="viewcode-back" href="../../../misc/testTools.html#fontTools.misc.testTools.TestXMLReader_">[docs]</a><span class="k">class</span> <span class="nc">TestXMLReader_</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">xml.parsers.expat</span> <span class="k">import</span> <span class="n">ParserCreate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span> <span class="o">=</span> <span class="n">ParserCreate</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">StartElementHandler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">startElement_</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">EndElementHandler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">endElement_</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">CharacterDataHandler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">addCharacterData_</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stack</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="TestXMLReader_.startElement_"><a class="viewcode-back" href="../../../misc/testTools.html#fontTools.misc.testTools.TestXMLReader_.startElement_">[docs]</a>    <span class="k">def</span> <span class="nf">startElement_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">):</span>
+        <span class="n">element</span> <span class="o">=</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stack</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stack</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">element</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stack</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestXMLReader_.endElement_"><a class="viewcode-back" href="../../../misc/testTools.html#fontTools.misc.testTools.TestXMLReader_.endElement_">[docs]</a>    <span class="k">def</span> <span class="nf">endElement_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stack</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="TestXMLReader_.addCharacterData_"><a class="viewcode-back" href="../../../misc/testTools.html#fontTools.misc.testTools.TestXMLReader_.addCharacterData_">[docs]</a>    <span class="k">def</span> <span class="nf">addCharacterData_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stack</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="makeXMLWriter"><a class="viewcode-back" href="../../../misc/testTools.html#fontTools.misc.testTools.makeXMLWriter">[docs]</a><span class="k">def</span> <span class="nf">makeXMLWriter</span><span class="p">(</span><span class="n">newlinestr</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">):</span>
+    <span class="c1"># don&#39;t write OS-specific new lines</span>
+    <span class="n">writer</span> <span class="o">=</span> <span class="n">XMLWriter</span><span class="p">(</span><span class="n">BytesIO</span><span class="p">(),</span> <span class="n">newlinestr</span><span class="o">=</span><span class="n">newlinestr</span><span class="p">)</span>
+    <span class="c1"># erase XML declaration</span>
+    <span class="n">writer</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">writer</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">truncate</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">writer</span></div>
+
+
+<div class="viewcode-block" id="getXML"><a class="viewcode-back" href="../../../misc/testTools.html#fontTools.misc.testTools.getXML">[docs]</a><span class="k">def</span> <span class="nf">getXML</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">ttFont</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Call the passed toXML function and return the written content as a</span>
+<span class="sd">    list of lines (unicode strings).</span>
+<span class="sd">    Result is stripped of XML declaration and OS-specific newline characters.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">writer</span> <span class="o">=</span> <span class="n">makeXMLWriter</span><span class="p">()</span>
+    <span class="n">func</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span>
+    <span class="n">xml</span> <span class="o">=</span> <span class="n">writer</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+    <span class="c1"># toXML methods must always end with a writer.newline()</span>
+    <span class="k">assert</span> <span class="n">xml</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">xml</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="MockFont"><a class="viewcode-back" href="../../../misc/testTools.html#fontTools.misc.testTools.MockFont">[docs]</a><span class="k">class</span> <span class="nc">MockFont</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A font-like object that automatically adds any looked up glyphname</span>
+<span class="sd">    to its glyphOrder.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_glyphOrder</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;.notdef&#39;</span><span class="p">]</span>
+
+        <span class="k">class</span> <span class="nc">AllocatingDict</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+            <span class="k">def</span> <span class="nf">__missing__</span><span class="p">(</span><span class="n">reverseDict</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_glyphOrder</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                <span class="n">gid</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">reverseDict</span><span class="p">)</span>
+                <span class="n">reverseDict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">gid</span>
+                <span class="k">return</span> <span class="n">gid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reverseGlyphOrder</span> <span class="o">=</span> <span class="n">AllocatingDict</span><span class="p">({</span><span class="s1">&#39;.notdef&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lazy</span> <span class="o">=</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="MockFont.getGlyphID"><a class="viewcode-back" href="../../../misc/testTools.html#fontTools.misc.testTools.MockFont.getGlyphID">[docs]</a>    <span class="k">def</span> <span class="nf">getGlyphID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">glyph</span><span class="p">,</span> <span class="n">requireReal</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">gid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reverseGlyphOrder</span><span class="p">[</span><span class="n">glyph</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">gid</span></div>
+
+<div class="viewcode-block" id="MockFont.getReverseGlyphMap"><a class="viewcode-back" href="../../../misc/testTools.html#fontTools.misc.testTools.MockFont.getReverseGlyphMap">[docs]</a>    <span class="k">def</span> <span class="nf">getReverseGlyphMap</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reverseGlyphOrder</span></div>
+
+<div class="viewcode-block" id="MockFont.getGlyphName"><a class="viewcode-back" href="../../../misc/testTools.html#fontTools.misc.testTools.MockFont.getGlyphName">[docs]</a>    <span class="k">def</span> <span class="nf">getGlyphName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gid</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_glyphOrder</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="MockFont.getGlyphOrder"><a class="viewcode-back" href="../../../misc/testTools.html#fontTools.misc.testTools.MockFont.getGlyphOrder">[docs]</a>    <span class="k">def</span> <span class="nf">getGlyphOrder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_glyphOrder</span></div></div>
+
+
+<div class="viewcode-block" id="TestCase"><a class="viewcode-back" href="../../../misc/testTools.html#fontTools.misc.testTools.TestCase">[docs]</a><span class="k">class</span> <span class="nc">TestCase</span><span class="p">(</span><span class="n">_TestCase</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">methodName</span><span class="p">):</span>
+        <span class="n">_TestCase</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">methodName</span><span class="p">)</span>
+        <span class="c1"># Python 3 renamed assertRaisesRegexp to assertRaisesRegex,</span>
+        <span class="c1"># and fires deprecation warnings if a program uses the old name.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;assertRaisesRegex&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertRaisesRegex</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertRaisesRegexp</span></div>
+
+
+<div class="viewcode-block" id="DataFilesHandler"><a class="viewcode-back" href="../../../misc/testTools.html#fontTools.misc.testTools.DataFilesHandler">[docs]</a><span class="k">class</span> <span class="nc">DataFilesHandler</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DataFilesHandler.setUp"><a class="viewcode-back" href="../../../misc/testTools.html#fontTools.misc.testTools.DataFilesHandler.setUp">[docs]</a>    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tempdir</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_tempfiles</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="DataFilesHandler.tearDown"><a class="viewcode-back" href="../../../misc/testTools.html#fontTools.misc.testTools.DataFilesHandler.tearDown">[docs]</a>    <span class="k">def</span> <span class="nf">tearDown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tempdir</span><span class="p">:</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tempdir</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DataFilesHandler.getpath"><a class="viewcode-back" href="../../../misc/testTools.html#fontTools.misc.testTools.DataFilesHandler.getpath">[docs]</a>    <span class="k">def</span> <span class="nf">getpath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">testfile</span><span class="p">):</span>
+        <span class="n">folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="vm">__module__</span><span class="p">]</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="n">testfile</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DataFilesHandler.temp_dir"><a class="viewcode-back" href="../../../misc/testTools.html#fontTools.misc.testTools.DataFilesHandler.temp_dir">[docs]</a>    <span class="k">def</span> <span class="nf">temp_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">tempdir</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tempdir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="DataFilesHandler.temp_font"><a class="viewcode-back" href="../../../misc/testTools.html#fontTools.misc.testTools.DataFilesHandler.temp_font">[docs]</a>    <span class="k">def</span> <span class="nf">temp_font</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">font_path</span><span class="p">,</span> <span class="n">file_name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temp_dir</span><span class="p">()</span>
+        <span class="n">temppath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tempdir</span><span class="p">,</span> <span class="n">file_name</span><span class="p">)</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="n">font_path</span><span class="p">,</span> <span class="n">temppath</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">temppath</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

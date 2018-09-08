@@ -1,0 +1,185 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fontTools.ttLib.tables.C_B_D_T_ &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../ttLib.html" accesskey="U">fontTools.ttLib</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fontTools.ttLib.tables.C_B_D_T_</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright 2013 Google, Inc. All Rights Reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># Google Author(s): Matt Fontaine</span>
+
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.py23</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc</span> <span class="k">import</span> <span class="n">sstruct</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">E_B_D_T_</span>
+<span class="kn">from</span> <span class="nn">.BitmapGlyphMetrics</span> <span class="k">import</span> <span class="n">BigGlyphMetrics</span><span class="p">,</span> <span class="n">bigGlyphMetricsFormat</span><span class="p">,</span> <span class="n">SmallGlyphMetrics</span><span class="p">,</span> <span class="n">smallGlyphMetricsFormat</span>
+<span class="kn">from</span> <span class="nn">.E_B_D_T_</span> <span class="k">import</span> <span class="n">BitmapGlyph</span><span class="p">,</span> <span class="n">BitmapPlusSmallMetricsMixin</span><span class="p">,</span> <span class="n">BitmapPlusBigMetricsMixin</span>
+<span class="kn">import</span> <span class="nn">struct</span>
+
+<div class="viewcode-block" id="table_C_B_D_T_"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.C_B_D_T_.table_C_B_D_T_">[docs]</a><span class="k">class</span> <span class="nc">table_C_B_D_T_</span><span class="p">(</span><span class="n">E_B_D_T_</span><span class="o">.</span><span class="n">table_E_B_D_T_</span><span class="p">):</span>
+
+	<span class="c1"># Change the data locator table being referenced.</span>
+	<span class="n">locatorName</span> <span class="o">=</span> <span class="s1">&#39;CBLC&#39;</span>
+
+	<span class="c1"># Modify the format class accessor for color bitmap use.</span>
+<div class="viewcode-block" id="table_C_B_D_T_.getImageFormatClass"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.C_B_D_T_.table_C_B_D_T_.getImageFormatClass">[docs]</a>	<span class="k">def</span> <span class="nf">getImageFormatClass</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imageFormat</span><span class="p">):</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">E_B_D_T_</span><span class="o">.</span><span class="n">table_E_B_D_T_</span><span class="o">.</span><span class="n">getImageFormatClass</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imageFormat</span><span class="p">)</span>
+		<span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">cbdt_bitmap_classes</span><span class="p">[</span><span class="n">imageFormat</span><span class="p">]</span></div></div>
+
+<span class="c1"># Helper method for removing export features not supported by color bitmaps.</span>
+<span class="c1"># Write data in the parent class will default to raw if an option is unsupported.</span>
+<span class="k">def</span> <span class="nf">_removeUnsupportedForColor</span><span class="p">(</span><span class="n">dataFunctions</span><span class="p">):</span>
+	<span class="n">dataFunctions</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">dataFunctions</span><span class="p">)</span>
+	<span class="k">del</span> <span class="n">dataFunctions</span><span class="p">[</span><span class="s1">&#39;row&#39;</span><span class="p">]</span>
+	<span class="k">return</span> <span class="n">dataFunctions</span>
+
+<div class="viewcode-block" id="ColorBitmapGlyph"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.C_B_D_T_.ColorBitmapGlyph">[docs]</a><span class="k">class</span> <span class="nc">ColorBitmapGlyph</span><span class="p">(</span><span class="n">BitmapGlyph</span><span class="p">):</span>
+
+	<span class="n">fileExtension</span> <span class="o">=</span> <span class="s1">&#39;.png&#39;</span>
+	<span class="n">xmlDataFunctions</span> <span class="o">=</span> <span class="n">_removeUnsupportedForColor</span><span class="p">(</span><span class="n">BitmapGlyph</span><span class="o">.</span><span class="n">xmlDataFunctions</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="cbdt_bitmap_format_17"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.C_B_D_T_.cbdt_bitmap_format_17">[docs]</a><span class="k">class</span> <span class="nc">cbdt_bitmap_format_17</span><span class="p">(</span><span class="n">BitmapPlusSmallMetricsMixin</span><span class="p">,</span> <span class="n">ColorBitmapGlyph</span><span class="p">):</span>
+
+<div class="viewcode-block" id="cbdt_bitmap_format_17.decompile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.C_B_D_T_.cbdt_bitmap_format_17.decompile">[docs]</a>	<span class="k">def</span> <span class="nf">decompile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">metrics</span> <span class="o">=</span> <span class="n">SmallGlyphMetrics</span><span class="p">()</span>
+		<span class="n">dummy</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">unpack2</span><span class="p">(</span><span class="n">smallGlyphMetricsFormat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">)</span>
+		<span class="p">(</span><span class="n">dataLen</span><span class="p">,)</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;&gt;L&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">[:</span><span class="mi">4</span><span class="p">])</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span>
+
+		<span class="c1"># For the image data cut it to the size specified by dataLen.</span>
+		<span class="k">assert</span> <span class="n">dataLen</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="s2">&quot;Data overun in format 17&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">imageData</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:</span><span class="n">dataLen</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="cbdt_bitmap_format_17.compile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.C_B_D_T_.cbdt_bitmap_format_17.compile">[docs]</a>	<span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">dataList</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="n">dataList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">smallGlyphMetricsFormat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">))</span>
+		<span class="n">dataList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">&quot;&gt;L&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imageData</span><span class="p">)))</span>
+		<span class="n">dataList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imageData</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">bytesjoin</span><span class="p">(</span><span class="n">dataList</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="cbdt_bitmap_format_18"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.C_B_D_T_.cbdt_bitmap_format_18">[docs]</a><span class="k">class</span> <span class="nc">cbdt_bitmap_format_18</span><span class="p">(</span><span class="n">BitmapPlusBigMetricsMixin</span><span class="p">,</span> <span class="n">ColorBitmapGlyph</span><span class="p">):</span>
+
+<div class="viewcode-block" id="cbdt_bitmap_format_18.decompile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.C_B_D_T_.cbdt_bitmap_format_18.decompile">[docs]</a>	<span class="k">def</span> <span class="nf">decompile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">metrics</span> <span class="o">=</span> <span class="n">BigGlyphMetrics</span><span class="p">()</span>
+		<span class="n">dummy</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">unpack2</span><span class="p">(</span><span class="n">bigGlyphMetricsFormat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">)</span>
+		<span class="p">(</span><span class="n">dataLen</span><span class="p">,)</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;&gt;L&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">[:</span><span class="mi">4</span><span class="p">])</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span>
+
+		<span class="c1"># For the image data cut it to the size specified by dataLen.</span>
+		<span class="k">assert</span> <span class="n">dataLen</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="s2">&quot;Data overun in format 18&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">imageData</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:</span><span class="n">dataLen</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="cbdt_bitmap_format_18.compile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.C_B_D_T_.cbdt_bitmap_format_18.compile">[docs]</a>	<span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">dataList</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="n">dataList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">bigGlyphMetricsFormat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">))</span>
+		<span class="n">dataList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">&quot;&gt;L&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imageData</span><span class="p">)))</span>
+		<span class="n">dataList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imageData</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">bytesjoin</span><span class="p">(</span><span class="n">dataList</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="cbdt_bitmap_format_19"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.C_B_D_T_.cbdt_bitmap_format_19">[docs]</a><span class="k">class</span> <span class="nc">cbdt_bitmap_format_19</span><span class="p">(</span><span class="n">ColorBitmapGlyph</span><span class="p">):</span>
+
+<div class="viewcode-block" id="cbdt_bitmap_format_19.decompile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.C_B_D_T_.cbdt_bitmap_format_19.decompile">[docs]</a>	<span class="k">def</span> <span class="nf">decompile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="p">(</span><span class="n">dataLen</span><span class="p">,)</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;&gt;L&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[:</span><span class="mi">4</span><span class="p">])</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span>
+
+		<span class="k">assert</span> <span class="n">dataLen</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="s2">&quot;Data overun in format 19&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">imageData</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:</span><span class="n">dataLen</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="cbdt_bitmap_format_19.compile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.C_B_D_T_.cbdt_bitmap_format_19.compile">[docs]</a>	<span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="k">return</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">&quot;&gt;L&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imageData</span><span class="p">))</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">imageData</span></div></div>
+
+<span class="c1"># Dict for CBDT extended formats.</span>
+<span class="n">cbdt_bitmap_classes</span> <span class="o">=</span> <span class="p">{</span>
+	<span class="mi">17</span><span class="p">:</span> <span class="n">cbdt_bitmap_format_17</span><span class="p">,</span>
+	<span class="mi">18</span><span class="p">:</span> <span class="n">cbdt_bitmap_format_18</span><span class="p">,</span>
+	<span class="mi">19</span><span class="p">:</span> <span class="n">cbdt_bitmap_format_19</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../ttLib.html" >fontTools.ttLib</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

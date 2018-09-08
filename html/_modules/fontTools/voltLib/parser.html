@@ -1,0 +1,741 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fontTools.voltLib.parser &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fontTools.voltLib.parser</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+<span class="kn">import</span> <span class="nn">fontTools.voltLib.ast</span> <span class="k">as</span> <span class="nn">ast</span>
+<span class="kn">from</span> <span class="nn">fontTools.voltLib.lexer</span> <span class="k">import</span> <span class="n">Lexer</span>
+<span class="kn">from</span> <span class="nn">fontTools.voltLib.error</span> <span class="k">import</span> <span class="n">VoltLibError</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="k">import</span> <span class="nb">open</span>
+
+<span class="n">PARSE_FUNCS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;DEF_GLYPH&quot;</span><span class="p">:</span> <span class="s2">&quot;parse_def_glyph_&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;DEF_GROUP&quot;</span><span class="p">:</span> <span class="s2">&quot;parse_def_group_&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;DEF_SCRIPT&quot;</span><span class="p">:</span> <span class="s2">&quot;parse_def_script_&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;DEF_LOOKUP&quot;</span><span class="p">:</span> <span class="s2">&quot;parse_def_lookup_&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;DEF_ANCHOR&quot;</span><span class="p">:</span> <span class="s2">&quot;parse_def_anchor_&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;GRID_PPEM&quot;</span><span class="p">:</span> <span class="s2">&quot;parse_ppem_&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PRESENTATION_PPEM&quot;</span><span class="p">:</span> <span class="s2">&quot;parse_ppem_&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PPOSITIONING_PPEM&quot;</span><span class="p">:</span> <span class="s2">&quot;parse_ppem_&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;COMPILER_USEEXTENSIONLOOKUPS&quot;</span><span class="p">:</span> <span class="s2">&quot;parse_compiler_flag_&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;COMPILER_USEPAIRPOSFORMAT2&quot;</span><span class="p">:</span> <span class="s2">&quot;parse_compiler_flag_&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;CMAP_FORMAT&quot;</span><span class="p">:</span> <span class="s2">&quot;parse_cmap_format&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="Parser"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser">[docs]</a><span class="k">class</span> <span class="nc">Parser</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">doc_</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">VoltFile</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">glyphs_</span> <span class="o">=</span> <span class="n">OrderedSymbolTable</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">groups_</span> <span class="o">=</span> <span class="n">SymbolTable</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">anchors_</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># dictionary of SymbolTable() keyed by glyph</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scripts_</span> <span class="o">=</span> <span class="n">SymbolTable</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">langs_</span> <span class="o">=</span> <span class="n">SymbolTable</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lookups_</span> <span class="o">=</span> <span class="n">SymbolTable</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">next_token_type_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">next_token_location_</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lexer_</span> <span class="o">=</span> <span class="n">Lexer</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(),</span> <span class="n">path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">advance_lexer_</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Parser.parse"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser.parse">[docs]</a>    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">statements</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc_</span><span class="o">.</span><span class="n">statements</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_type_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">advance_lexer_</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_</span> <span class="ow">in</span> <span class="n">PARSE_FUNCS</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">func</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">PARSE_FUNCS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cur_token_</span><span class="p">])</span>
+                <span class="n">statements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">func</span><span class="p">())</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_cur_keyword_</span><span class="p">(</span><span class="s2">&quot;END&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_type_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">VoltLibError</span><span class="p">(</span><span class="s2">&quot;Expected the end of the file&quot;</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_location_</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc_</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">VoltLibError</span><span class="p">(</span>
+                    <span class="s2">&quot;Expected &quot;</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">PARSE_FUNCS</span><span class="o">.</span><span class="n">keys</span><span class="p">())),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_location_</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc_</span></div>
+
+<div class="viewcode-block" id="Parser.parse_def_glyph_"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser.parse_def_glyph_">[docs]</a>    <span class="k">def</span> <span class="nf">parse_def_glyph_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_cur_keyword_</span><span class="p">(</span><span class="s2">&quot;DEF_GLYPH&quot;</span><span class="p">)</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_location_</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_string_</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;ID&quot;</span><span class="p">)</span>
+        <span class="n">gid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_number_</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">gid</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">VoltLibError</span><span class="p">(</span><span class="s2">&quot;Invalid glyph ID&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_location_</span><span class="p">)</span>
+        <span class="n">gunicode</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">==</span> <span class="s2">&quot;UNICODE&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;UNICODE&quot;</span><span class="p">)</span>
+            <span class="n">gunicode</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">expect_number_</span><span class="p">()]</span>
+            <span class="k">if</span> <span class="n">gunicode</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">VoltLibError</span><span class="p">(</span><span class="s2">&quot;Invalid glyph UNICODE&quot;</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_location_</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">==</span> <span class="s2">&quot;UNICODEVALUES&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;UNICODEVALUES&quot;</span><span class="p">)</span>
+            <span class="n">gunicode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_unicode_values_</span><span class="p">()</span>
+        <span class="n">gtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">==</span> <span class="s2">&quot;TYPE&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;TYPE&quot;</span><span class="p">)</span>
+            <span class="n">gtype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_name_</span><span class="p">()</span>
+            <span class="k">assert</span> <span class="n">gtype</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;BASE&quot;</span><span class="p">,</span> <span class="s2">&quot;LIGATURE&quot;</span><span class="p">,</span> <span class="s2">&quot;MARK&quot;</span><span class="p">)</span>
+        <span class="n">components</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">==</span> <span class="s2">&quot;COMPONENTS&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;COMPONENTS&quot;</span><span class="p">)</span>
+            <span class="n">components</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_number_</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;END_GLYPH&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">glyphs_</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">VoltLibError</span><span class="p">(</span>
+                <span class="s1">&#39;Glyph &quot;</span><span class="si">%s</span><span class="s1">&quot; (gid </span><span class="si">%i</span><span class="s1">) already defined&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">gid</span><span class="p">),</span>
+                <span class="n">location</span>
+            <span class="p">)</span>
+        <span class="n">def_glyph</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">GlyphDefinition</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span>
+                                        <span class="n">gunicode</span><span class="p">,</span> <span class="n">gtype</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span>
+                                        <span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">glyphs_</span><span class="o">.</span><span class="n">define</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">def_glyph</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">def_glyph</span></div>
+
+<div class="viewcode-block" id="Parser.parse_def_group_"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser.parse_def_group_">[docs]</a>    <span class="k">def</span> <span class="nf">parse_def_group_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_cur_keyword_</span><span class="p">(</span><span class="s2">&quot;DEF_GROUP&quot;</span><span class="p">)</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_location_</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_string_</span><span class="p">()</span>
+        <span class="n">enum</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">==</span> <span class="s2">&quot;ENUM&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;ENUM&quot;</span><span class="p">)</span>
+            <span class="n">enum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_enum_</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;END_GROUP&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">groups_</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">VoltLibError</span><span class="p">(</span>
+                <span class="s1">&#39;Glyph group &quot;</span><span class="si">%s</span><span class="s1">&quot; already defined, &#39;</span>
+                <span class="s1">&#39;group names are case insensitive&#39;</span> <span class="o">%</span> <span class="n">name</span><span class="p">,</span>
+                <span class="n">location</span>
+            <span class="p">)</span>
+        <span class="n">def_group</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">GroupDefinition</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">enum</span><span class="p">,</span>
+                                        <span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">groups_</span><span class="o">.</span><span class="n">define</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">def_group</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">def_group</span></div>
+
+<div class="viewcode-block" id="Parser.parse_def_script_"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser.parse_def_script_">[docs]</a>    <span class="k">def</span> <span class="nf">parse_def_script_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_cur_keyword_</span><span class="p">(</span><span class="s2">&quot;DEF_SCRIPT&quot;</span><span class="p">)</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_location_</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">==</span> <span class="s2">&quot;NAME&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;NAME&quot;</span><span class="p">)</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_string_</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;TAG&quot;</span><span class="p">)</span>
+        <span class="n">tag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_string_</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scripts_</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">VoltLibError</span><span class="p">(</span>
+                <span class="s1">&#39;Script &quot;</span><span class="si">%s</span><span class="s1">&quot; already defined, &#39;</span>
+                <span class="s1">&#39;script tags are case insensitive&#39;</span> <span class="o">%</span> <span class="n">tag</span><span class="p">,</span>
+                <span class="n">location</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">langs_</span><span class="o">.</span><span class="n">enter_scope</span><span class="p">()</span>
+        <span class="n">langs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">!=</span> <span class="s2">&quot;END_SCRIPT&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">advance_lexer_</span><span class="p">()</span>
+            <span class="n">lang</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_langsys_</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;END_LANGSYS&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">langs_</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">lang</span><span class="o">.</span><span class="n">tag</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">VoltLibError</span><span class="p">(</span>
+                    <span class="s1">&#39;Language &quot;</span><span class="si">%s</span><span class="s1">&quot; already defined in script &quot;</span><span class="si">%s</span><span class="s1">&quot;, &#39;</span>
+                    <span class="s1">&#39;language tags are case insensitive&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">lang</span><span class="o">.</span><span class="n">tag</span><span class="p">,</span> <span class="n">tag</span><span class="p">),</span>
+                    <span class="n">location</span>
+                <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">langs_</span><span class="o">.</span><span class="n">define</span><span class="p">(</span><span class="n">lang</span><span class="o">.</span><span class="n">tag</span><span class="p">,</span> <span class="n">lang</span><span class="p">)</span>
+            <span class="n">langs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lang</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;END_SCRIPT&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">langs_</span><span class="o">.</span><span class="n">exit_scope</span><span class="p">()</span>
+        <span class="n">def_script</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">ScriptDefinition</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">langs</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scripts_</span><span class="o">.</span><span class="n">define</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">def_script</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">def_script</span></div>
+
+<div class="viewcode-block" id="Parser.parse_langsys_"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser.parse_langsys_">[docs]</a>    <span class="k">def</span> <span class="nf">parse_langsys_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_cur_keyword_</span><span class="p">(</span><span class="s2">&quot;DEF_LANGSYS&quot;</span><span class="p">)</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_location_</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">==</span> <span class="s2">&quot;NAME&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;NAME&quot;</span><span class="p">)</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_string_</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;TAG&quot;</span><span class="p">)</span>
+        <span class="n">tag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_string_</span><span class="p">()</span>
+        <span class="n">features</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">!=</span> <span class="s2">&quot;END_LANGSYS&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">advance_lexer_</span><span class="p">()</span>
+            <span class="n">feature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_feature_</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;END_FEATURE&quot;</span><span class="p">)</span>
+            <span class="n">features</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feature</span><span class="p">)</span>
+        <span class="n">def_langsys</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">LangSysDefinition</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span>
+                                            <span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">def_langsys</span></div>
+
+<div class="viewcode-block" id="Parser.parse_feature_"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser.parse_feature_">[docs]</a>    <span class="k">def</span> <span class="nf">parse_feature_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_cur_keyword_</span><span class="p">(</span><span class="s2">&quot;DEF_FEATURE&quot;</span><span class="p">)</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_location_</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;NAME&quot;</span><span class="p">)</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_string_</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;TAG&quot;</span><span class="p">)</span>
+        <span class="n">tag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_string_</span><span class="p">()</span>
+        <span class="n">lookups</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">!=</span> <span class="s2">&quot;END_FEATURE&quot;</span><span class="p">:</span>
+            <span class="c1"># self.advance_lexer_()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;LOOKUP&quot;</span><span class="p">)</span>
+            <span class="n">lookup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_string_</span><span class="p">()</span>
+            <span class="n">lookups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lookup</span><span class="p">)</span>
+        <span class="n">feature</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">FeatureDefinition</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">lookups</span><span class="p">,</span>
+                                        <span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">feature</span></div>
+
+<div class="viewcode-block" id="Parser.parse_def_lookup_"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser.parse_def_lookup_">[docs]</a>    <span class="k">def</span> <span class="nf">parse_def_lookup_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_cur_keyword_</span><span class="p">(</span><span class="s2">&quot;DEF_LOOKUP&quot;</span><span class="p">)</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_location_</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_string_</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">isalpha</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">VoltLibError</span><span class="p">(</span>
+                <span class="s1">&#39;Lookup name &quot;</span><span class="si">%s</span><span class="s1">&quot; must start with a letter&#39;</span> <span class="o">%</span> <span class="n">name</span><span class="p">,</span>
+                <span class="n">location</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lookups_</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">VoltLibError</span><span class="p">(</span>
+                <span class="s1">&#39;Lookup &quot;</span><span class="si">%s</span><span class="s1">&quot; already defined, &#39;</span>
+                <span class="s1">&#39;lookup names are case insensitive&#39;</span> <span class="o">%</span> <span class="n">name</span><span class="p">,</span>
+                <span class="n">location</span>
+            <span class="p">)</span>
+        <span class="n">process_base</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">==</span> <span class="s2">&quot;PROCESS_BASE&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">advance_lexer_</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">==</span> <span class="s2">&quot;SKIP_BASE&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">advance_lexer_</span><span class="p">()</span>
+            <span class="n">process_base</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">process_marks</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">==</span> <span class="s2">&quot;PROCESS_MARKS&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">advance_lexer_</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">==</span> <span class="s2">&quot;MARK_GLYPH_SET&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">advance_lexer_</span><span class="p">()</span>
+                <span class="n">process_marks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_string_</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_type_</span> <span class="o">==</span> <span class="n">Lexer</span><span class="o">.</span><span class="n">STRING</span><span class="p">:</span>
+                <span class="n">process_marks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_string_</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">==</span> <span class="s2">&quot;ALL&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">advance_lexer_</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">VoltLibError</span><span class="p">(</span>
+                    <span class="s2">&quot;Expected ALL, MARK_GLYPH_SET or an ID. &quot;</span>
+                    <span class="s2">&quot;Got </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">next_token_type_</span><span class="p">),</span>
+                    <span class="n">location</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">==</span> <span class="s2">&quot;SKIP_MARKS&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">advance_lexer_</span><span class="p">()</span>
+            <span class="n">process_marks</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">direction</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">==</span> <span class="s2">&quot;DIRECTION&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;DIRECTION&quot;</span><span class="p">)</span>
+            <span class="n">direction</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_name_</span><span class="p">()</span>
+            <span class="k">assert</span> <span class="n">direction</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;LTR&quot;</span><span class="p">,</span> <span class="s2">&quot;RTL&quot;</span><span class="p">)</span>
+        <span class="n">reversal</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">==</span> <span class="s2">&quot;REVERSAL&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;REVERSAL&quot;</span><span class="p">)</span>
+            <span class="n">reversal</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">comments</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">==</span> <span class="s2">&quot;COMMENTS&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;COMMENTS&quot;</span><span class="p">)</span>
+            <span class="n">comments</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_string_</span><span class="p">()</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;EXCEPT_CONTEXT&quot;</span><span class="p">,</span> <span class="s2">&quot;IN_CONTEXT&quot;</span><span class="p">):</span>
+            <span class="n">context</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_context_</span><span class="p">()</span>
+        <span class="n">as_pos_or_sub</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_name_</span><span class="p">()</span>
+        <span class="n">sub</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">as_pos_or_sub</span> <span class="o">==</span> <span class="s2">&quot;AS_SUBSTITUTION&quot;</span><span class="p">:</span>
+            <span class="n">sub</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_substitution_</span><span class="p">(</span><span class="n">reversal</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">as_pos_or_sub</span> <span class="o">==</span> <span class="s2">&quot;AS_POSITION&quot;</span><span class="p">:</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_position_</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">VoltLibError</span><span class="p">(</span>
+                <span class="s2">&quot;Expected AS_SUBSTITUTION or AS_POSITION. &quot;</span>
+                <span class="s2">&quot;Got </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">as_pos_or_sub</span><span class="p">),</span>
+                <span class="n">location</span><span class="p">)</span>
+        <span class="n">def_lookup</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">LookupDefinition</span><span class="p">(</span>
+            <span class="n">name</span><span class="p">,</span> <span class="n">process_base</span><span class="p">,</span> <span class="n">process_marks</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="n">reversal</span><span class="p">,</span>
+            <span class="n">comments</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">sub</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lookups_</span><span class="o">.</span><span class="n">define</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">def_lookup</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">def_lookup</span></div>
+
+<div class="viewcode-block" id="Parser.parse_context_"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser.parse_context_">[docs]</a>    <span class="k">def</span> <span class="nf">parse_context_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_location_</span>
+        <span class="n">contexts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;EXCEPT_CONTEXT&quot;</span><span class="p">,</span> <span class="s2">&quot;IN_CONTEXT&quot;</span><span class="p">):</span>
+            <span class="n">side</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">coverage</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">ex_or_in</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_name_</span><span class="p">()</span>
+            <span class="c1"># side_contexts = [] # XXX</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">!=</span> <span class="s2">&quot;END_CONTEXT&quot;</span><span class="p">:</span>
+                <span class="n">left</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">right</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;LEFT&quot;</span><span class="p">,</span> <span class="s2">&quot;RIGHT&quot;</span><span class="p">):</span>
+                    <span class="n">side</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_name_</span><span class="p">()</span>
+                    <span class="n">coverage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_coverage_</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">side</span> <span class="o">==</span> <span class="s2">&quot;LEFT&quot;</span><span class="p">:</span>
+                        <span class="n">left</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coverage</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">right</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coverage</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;END_CONTEXT&quot;</span><span class="p">)</span>
+                <span class="n">context</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">ContextDefinition</span><span class="p">(</span><span class="n">ex_or_in</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span>
+                                                <span class="n">right</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">)</span>
+                <span class="n">contexts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;END_CONTEXT&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">contexts</span></div>
+
+<div class="viewcode-block" id="Parser.parse_substitution_"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser.parse_substitution_">[docs]</a>    <span class="k">def</span> <span class="nf">parse_substitution_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reversal</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_cur_keyword_</span><span class="p">(</span><span class="s2">&quot;AS_SUBSTITUTION&quot;</span><span class="p">)</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_location_</span>
+        <span class="n">src</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">dest</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">!=</span> <span class="s2">&quot;SUB&quot;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">VoltLibError</span><span class="p">(</span><span class="s2">&quot;Expected SUB&quot;</span><span class="p">,</span> <span class="n">location</span><span class="p">)</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">==</span> <span class="s2">&quot;SUB&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;SUB&quot;</span><span class="p">)</span>
+            <span class="n">src</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parse_coverage_</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;WITH&quot;</span><span class="p">)</span>
+            <span class="n">dest</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parse_coverage_</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;END_SUB&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;END_SUBSTITUTION&quot;</span><span class="p">)</span>
+        <span class="n">max_src</span> <span class="o">=</span> <span class="nb">max</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">cov</span><span class="p">)</span> <span class="k">for</span> <span class="n">cov</span> <span class="ow">in</span> <span class="n">src</span><span class="p">])</span>
+        <span class="n">max_dest</span> <span class="o">=</span> <span class="nb">max</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">cov</span><span class="p">)</span> <span class="k">for</span> <span class="n">cov</span> <span class="ow">in</span> <span class="n">dest</span><span class="p">])</span>
+        <span class="c1"># many to many or mixed is invalid</span>
+        <span class="k">if</span> <span class="p">((</span><span class="n">max_src</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">max_dest</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">or</span>
+                <span class="p">(</span><span class="n">reversal</span> <span class="ow">and</span> <span class="p">(</span><span class="n">max_src</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">max_dest</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">))):</span>
+            <span class="k">raise</span> <span class="n">VoltLibError</span><span class="p">(</span>
+                <span class="s2">&quot;Invalid substitution type&quot;</span><span class="p">,</span>
+                <span class="n">location</span><span class="p">)</span>
+        <span class="n">mapping</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">src</span><span class="p">),</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">dest</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="n">max_src</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">max_dest</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">reversal</span><span class="p">:</span>
+                <span class="n">sub</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">SubstitutionReverseChainingSingleDefinition</span><span class="p">(</span>
+                    <span class="n">mapping</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sub</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">SubstitutionSingleDefinition</span><span class="p">(</span><span class="n">mapping</span><span class="p">,</span>
+                                                       <span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">max_src</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">max_dest</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">sub</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">SubstitutionMultipleDefinition</span><span class="p">(</span><span class="n">mapping</span><span class="p">,</span>
+                                                     <span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">max_src</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">max_dest</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">sub</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">SubstitutionLigatureDefinition</span><span class="p">(</span><span class="n">mapping</span><span class="p">,</span>
+                                                     <span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sub</span></div>
+
+<div class="viewcode-block" id="Parser.parse_position_"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser.parse_position_">[docs]</a>    <span class="k">def</span> <span class="nf">parse_position_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_cur_keyword_</span><span class="p">(</span><span class="s2">&quot;AS_POSITION&quot;</span><span class="p">)</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_location_</span>
+        <span class="n">pos_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_name_</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">pos_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span>
+                <span class="s2">&quot;ATTACH&quot;</span><span class="p">,</span> <span class="s2">&quot;ATTACH_CURSIVE&quot;</span><span class="p">,</span> <span class="s2">&quot;ADJUST_PAIR&quot;</span><span class="p">,</span> <span class="s2">&quot;ADJUST_SINGLE&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">VoltLibError</span><span class="p">(</span>
+                <span class="s2">&quot;Expected ATTACH, ATTACH_CURSIVE, ADJUST_PAIR, ADJUST_SINGLE&quot;</span><span class="p">,</span>
+                <span class="n">location</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pos_type</span> <span class="o">==</span> <span class="s2">&quot;ATTACH&quot;</span><span class="p">:</span>
+            <span class="n">position</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_attach_</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">pos_type</span> <span class="o">==</span> <span class="s2">&quot;ATTACH_CURSIVE&quot;</span><span class="p">:</span>
+            <span class="n">position</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_attach_cursive_</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">pos_type</span> <span class="o">==</span> <span class="s2">&quot;ADJUST_PAIR&quot;</span><span class="p">:</span>
+            <span class="n">position</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_adjust_pair_</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">pos_type</span> <span class="o">==</span> <span class="s2">&quot;ADJUST_SINGLE&quot;</span><span class="p">:</span>
+            <span class="n">position</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_adjust_single_</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;END_POSITION&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">position</span></div>
+
+<div class="viewcode-block" id="Parser.parse_attach_"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser.parse_attach_">[docs]</a>    <span class="k">def</span> <span class="nf">parse_attach_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_cur_keyword_</span><span class="p">(</span><span class="s2">&quot;ATTACH&quot;</span><span class="p">)</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_location_</span>
+        <span class="n">coverage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_coverage_</span><span class="p">()</span>
+        <span class="n">coverage_to</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;TO&quot;</span><span class="p">)</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">!=</span> <span class="s2">&quot;END_ATTACH&quot;</span><span class="p">:</span>
+            <span class="n">cov</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_coverage_</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;AT&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;ANCHOR&quot;</span><span class="p">)</span>
+            <span class="n">anchor_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_string_</span><span class="p">()</span>
+            <span class="n">coverage_to</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">cov</span><span class="p">,</span> <span class="n">anchor_name</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;END_ATTACH&quot;</span><span class="p">)</span>
+        <span class="n">position</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">PositionAttachDefinition</span><span class="p">(</span>
+            <span class="n">coverage</span><span class="p">,</span> <span class="n">coverage_to</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">position</span></div>
+
+<div class="viewcode-block" id="Parser.parse_attach_cursive_"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser.parse_attach_cursive_">[docs]</a>    <span class="k">def</span> <span class="nf">parse_attach_cursive_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_cur_keyword_</span><span class="p">(</span><span class="s2">&quot;ATTACH_CURSIVE&quot;</span><span class="p">)</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_location_</span>
+        <span class="n">coverages_exit</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">coverages_enter</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">!=</span> <span class="s2">&quot;ENTER&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;EXIT&quot;</span><span class="p">)</span>
+            <span class="n">coverages_exit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parse_coverage_</span><span class="p">())</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">!=</span> <span class="s2">&quot;END_ATTACH&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;ENTER&quot;</span><span class="p">)</span>
+            <span class="n">coverages_enter</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parse_coverage_</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;END_ATTACH&quot;</span><span class="p">)</span>
+        <span class="n">position</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">PositionAttachCursiveDefinition</span><span class="p">(</span>
+            <span class="n">coverages_exit</span><span class="p">,</span> <span class="n">coverages_enter</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">position</span></div>
+
+<div class="viewcode-block" id="Parser.parse_adjust_pair_"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser.parse_adjust_pair_">[docs]</a>    <span class="k">def</span> <span class="nf">parse_adjust_pair_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_cur_keyword_</span><span class="p">(</span><span class="s2">&quot;ADJUST_PAIR&quot;</span><span class="p">)</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_location_</span>
+        <span class="n">coverages_1</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">coverages_2</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">adjust_pair</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">==</span> <span class="s2">&quot;FIRST&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">advance_lexer_</span><span class="p">()</span>
+            <span class="n">coverage_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_coverage_</span><span class="p">()</span>
+            <span class="n">coverages_1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coverage_1</span><span class="p">)</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">==</span> <span class="s2">&quot;SECOND&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">advance_lexer_</span><span class="p">()</span>
+            <span class="n">coverage_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_coverage_</span><span class="p">()</span>
+            <span class="n">coverages_2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coverage_2</span><span class="p">)</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">!=</span> <span class="s2">&quot;END_ADJUST&quot;</span><span class="p">:</span>
+            <span class="n">id_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_number_</span><span class="p">()</span>
+            <span class="n">id_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_number_</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;BY&quot;</span><span class="p">)</span>
+            <span class="n">pos_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_pos_</span><span class="p">()</span>
+            <span class="n">pos_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_pos_</span><span class="p">()</span>
+            <span class="n">adjust_pair</span><span class="p">[(</span><span class="n">id_1</span><span class="p">,</span> <span class="n">id_2</span><span class="p">)]</span> <span class="o">=</span> <span class="p">(</span><span class="n">pos_1</span><span class="p">,</span> <span class="n">pos_2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;END_ADJUST&quot;</span><span class="p">)</span>
+        <span class="n">position</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">PositionAdjustPairDefinition</span><span class="p">(</span>
+            <span class="n">coverages_1</span><span class="p">,</span> <span class="n">coverages_2</span><span class="p">,</span> <span class="n">adjust_pair</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">position</span></div>
+
+<div class="viewcode-block" id="Parser.parse_adjust_single_"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser.parse_adjust_single_">[docs]</a>    <span class="k">def</span> <span class="nf">parse_adjust_single_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_cur_keyword_</span><span class="p">(</span><span class="s2">&quot;ADJUST_SINGLE&quot;</span><span class="p">)</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_location_</span>
+        <span class="n">adjust_single</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">!=</span> <span class="s2">&quot;END_ADJUST&quot;</span><span class="p">:</span>
+            <span class="n">coverages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_coverage_</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;BY&quot;</span><span class="p">)</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_pos_</span><span class="p">()</span>
+            <span class="n">adjust_single</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">coverages</span><span class="p">,</span> <span class="n">pos</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;END_ADJUST&quot;</span><span class="p">)</span>
+        <span class="n">position</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">PositionAdjustSingleDefinition</span><span class="p">(</span>
+            <span class="n">adjust_single</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">position</span></div>
+
+<div class="viewcode-block" id="Parser.parse_def_anchor_"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser.parse_def_anchor_">[docs]</a>    <span class="k">def</span> <span class="nf">parse_def_anchor_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_cur_keyword_</span><span class="p">(</span><span class="s2">&quot;DEF_ANCHOR&quot;</span><span class="p">)</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_location_</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_string_</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;ON&quot;</span><span class="p">)</span>
+        <span class="n">gid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_number_</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;GLYPH&quot;</span><span class="p">)</span>
+        <span class="n">glyph_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_name_</span><span class="p">()</span>
+        <span class="c1"># check for duplicate anchor names on this glyph</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">glyph_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">anchors_</span>
+                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">anchors_</span><span class="p">[</span><span class="n">glyph_name</span><span class="p">]</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">VoltLibError</span><span class="p">(</span>
+                <span class="s1">&#39;Anchor &quot;</span><span class="si">%s</span><span class="s1">&quot; already defined, &#39;</span>
+                <span class="s1">&#39;anchor names are case insensitive&#39;</span> <span class="o">%</span> <span class="n">name</span><span class="p">,</span>
+                <span class="n">location</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;COMPONENT&quot;</span><span class="p">)</span>
+        <span class="n">component</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_number_</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">==</span> <span class="s2">&quot;LOCKED&quot;</span><span class="p">:</span>
+            <span class="n">locked</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">advance_lexer_</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">locked</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;AT&quot;</span><span class="p">)</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_pos_</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;END_ANCHOR&quot;</span><span class="p">)</span>
+        <span class="n">anchor</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">AnchorDefinition</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">glyph_name</span><span class="p">,</span>
+                                      <span class="n">component</span><span class="p">,</span> <span class="n">locked</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span>
+                                      <span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">glyph_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">anchors_</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">anchors_</span><span class="p">[</span><span class="n">glyph_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">SymbolTable</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">anchors_</span><span class="p">[</span><span class="n">glyph_name</span><span class="p">]</span><span class="o">.</span><span class="n">define</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">anchor</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">anchor</span></div>
+
+<div class="viewcode-block" id="Parser.parse_adjust_by_"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser.parse_adjust_by_">[docs]</a>    <span class="k">def</span> <span class="nf">parse_adjust_by_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">advance_lexer_</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_cur_keyword_</span><span class="p">(</span><span class="s2">&quot;ADJUST_BY&quot;</span><span class="p">)</span>
+        <span class="n">adjustment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_number_</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;AT&quot;</span><span class="p">)</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_number_</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">adjustment</span><span class="p">,</span> <span class="n">size</span></div>
+
+<div class="viewcode-block" id="Parser.parse_pos_"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser.parse_pos_">[docs]</a>    <span class="k">def</span> <span class="nf">parse_pos_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># VOLT syntax doesn&#39;t seem to take device Y advance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">advance_lexer_</span><span class="p">()</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_location_</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_cur_keyword_</span><span class="p">(</span><span class="s2">&quot;POS&quot;</span><span class="p">),</span> <span class="n">location</span>
+        <span class="n">adv</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">dx</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">dy</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">adv_adjust_by</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">dx_adjust_by</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">dy_adjust_by</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">==</span> <span class="s2">&quot;ADV&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">advance_lexer_</span><span class="p">()</span>
+            <span class="n">adv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_number_</span><span class="p">()</span>
+            <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">==</span> <span class="s2">&quot;ADJUST_BY&quot;</span><span class="p">:</span>
+                <span class="n">adjustment</span><span class="p">,</span> <span class="n">size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_adjust_by_</span><span class="p">()</span>
+                <span class="n">adv_adjust_by</span><span class="p">[</span><span class="n">size</span><span class="p">]</span> <span class="o">=</span> <span class="n">adjustment</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">==</span> <span class="s2">&quot;DX&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">advance_lexer_</span><span class="p">()</span>
+            <span class="n">dx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_number_</span><span class="p">()</span>
+            <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">==</span> <span class="s2">&quot;ADJUST_BY&quot;</span><span class="p">:</span>
+                <span class="n">adjustment</span><span class="p">,</span> <span class="n">size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_adjust_by_</span><span class="p">()</span>
+                <span class="n">dx_adjust_by</span><span class="p">[</span><span class="n">size</span><span class="p">]</span> <span class="o">=</span> <span class="n">adjustment</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">==</span> <span class="s2">&quot;DY&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">advance_lexer_</span><span class="p">()</span>
+            <span class="n">dy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_number_</span><span class="p">()</span>
+            <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">==</span> <span class="s2">&quot;ADJUST_BY&quot;</span><span class="p">:</span>
+                <span class="n">adjustment</span><span class="p">,</span> <span class="n">size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_adjust_by_</span><span class="p">()</span>
+                <span class="n">dy_adjust_by</span><span class="p">[</span><span class="n">size</span><span class="p">]</span> <span class="o">=</span> <span class="n">adjustment</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;END_POS&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">adv</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">,</span> <span class="n">adv_adjust_by</span><span class="p">,</span> <span class="n">dx_adjust_by</span><span class="p">,</span> <span class="n">dy_adjust_by</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parser.parse_unicode_values_"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser.parse_unicode_values_">[docs]</a>    <span class="k">def</span> <span class="nf">parse_unicode_values_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_location_</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">unicode_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_string_</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+            <span class="n">unicode_values</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="nb">int</span><span class="p">(</span><span class="n">uni</span><span class="p">[</span><span class="mi">2</span><span class="p">:],</span> <span class="mi">16</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">uni</span> <span class="ow">in</span> <span class="n">unicode_values</span> <span class="k">if</span> <span class="n">uni</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">VoltLibError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">),</span> <span class="n">location</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">unicode_values</span> <span class="k">if</span> <span class="n">unicode_values</span> <span class="o">!=</span> <span class="p">[]</span> <span class="k">else</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Parser.parse_enum_"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser.parse_enum_">[docs]</a>    <span class="k">def</span> <span class="nf">parse_enum_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_cur_keyword_</span><span class="p">(</span><span class="s2">&quot;ENUM&quot;</span><span class="p">)</span>
+        <span class="n">enum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_coverage_</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;END_ENUM&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">enum</span></div>
+
+<div class="viewcode-block" id="Parser.parse_coverage_"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser.parse_coverage_">[docs]</a>    <span class="k">def</span> <span class="nf">parse_coverage_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">coverage</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_location_</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;GLYPH&quot;</span><span class="p">,</span> <span class="s2">&quot;GROUP&quot;</span><span class="p">,</span> <span class="s2">&quot;RANGE&quot;</span><span class="p">,</span> <span class="s2">&quot;ENUM&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">==</span> <span class="s2">&quot;ENUM&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">advance_lexer_</span><span class="p">()</span>
+                <span class="n">enum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_enum_</span><span class="p">()</span>
+                <span class="n">coverage</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">enum</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">==</span> <span class="s2">&quot;GLYPH&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;GLYPH&quot;</span><span class="p">)</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_string_</span><span class="p">()</span>
+                <span class="n">coverage</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">==</span> <span class="s2">&quot;GROUP&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;GROUP&quot;</span><span class="p">)</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_string_</span><span class="p">()</span>
+                <span class="c1"># resolved_group = self.groups_.resolve(name)</span>
+                <span class="n">group</span> <span class="o">=</span> <span class="p">(</span><span class="n">name</span><span class="p">,)</span>
+                <span class="n">coverage</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">group</span><span class="p">)</span>
+                <span class="c1"># if resolved_group is not None:</span>
+                <span class="c1">#     coverage.extend(resolved_group.enum)</span>
+                <span class="c1"># # TODO: check that group exists after all groups are defined</span>
+                <span class="c1"># else:</span>
+                <span class="c1">#     group = (name,)</span>
+                <span class="c1">#     coverage.append(group)</span>
+                <span class="c1">#     # raise VoltLibError(</span>
+                <span class="c1">#     #     &#39;Glyph group &quot;%s&quot; is not defined&#39; % name,</span>
+                <span class="c1">#     #     location)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">==</span> <span class="s2">&quot;RANGE&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;RANGE&quot;</span><span class="p">)</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_string_</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">expect_keyword_</span><span class="p">(</span><span class="s2">&quot;TO&quot;</span><span class="p">)</span>
+                <span class="n">end</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_string_</span><span class="p">()</span>
+                <span class="n">coverage</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">))</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">coverage</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parser.resolve_group"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser.resolve_group">[docs]</a>    <span class="k">def</span> <span class="nf">resolve_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">group_name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">groups_</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">group_name</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parser.glyph_range"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser.glyph_range">[docs]</a>    <span class="k">def</span> <span class="nf">glyph_range</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+        <span class="n">rng</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">glyphs_</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">frozenset</span><span class="p">(</span><span class="n">rng</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parser.parse_ppem_"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser.parse_ppem_">[docs]</a>    <span class="k">def</span> <span class="nf">parse_ppem_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_location_</span>
+        <span class="n">ppem_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_number_</span><span class="p">()</span>
+        <span class="n">setting</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">SettingDefinition</span><span class="p">(</span><span class="n">ppem_name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">setting</span></div>
+
+<div class="viewcode-block" id="Parser.parse_compiler_flag_"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser.parse_compiler_flag_">[docs]</a>    <span class="k">def</span> <span class="nf">parse_compiler_flag_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_location_</span>
+        <span class="n">flag_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">setting</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">SettingDefinition</span><span class="p">(</span><span class="n">flag_name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">setting</span></div>
+
+<div class="viewcode-block" id="Parser.parse_cmap_format"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser.parse_cmap_format">[docs]</a>    <span class="k">def</span> <span class="nf">parse_cmap_format</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_location_</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">expect_number_</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">expect_number_</span><span class="p">(),</span>
+                 <span class="bp">self</span><span class="o">.</span><span class="n">expect_number_</span><span class="p">())</span>
+        <span class="n">setting</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">SettingDefinition</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">setting</span></div>
+
+<div class="viewcode-block" id="Parser.is_cur_keyword_"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser.is_cur_keyword_">[docs]</a>    <span class="k">def</span> <span class="nf">is_cur_keyword_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cur_token_type_</span> <span class="ow">is</span> <span class="n">Lexer</span><span class="o">.</span><span class="n">NAME</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cur_token_</span> <span class="o">==</span> <span class="n">k</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parser.expect_string_"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser.expect_string_">[docs]</a>    <span class="k">def</span> <span class="nf">expect_string_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">advance_lexer_</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_type_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">Lexer</span><span class="o">.</span><span class="n">STRING</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">VoltLibError</span><span class="p">(</span><span class="s2">&quot;Expected a string&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_location_</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_</span></div>
+
+<div class="viewcode-block" id="Parser.expect_keyword_"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser.expect_keyword_">[docs]</a>    <span class="k">def</span> <span class="nf">expect_keyword_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keyword</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">advance_lexer_</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_type_</span> <span class="ow">is</span> <span class="n">Lexer</span><span class="o">.</span><span class="n">NAME</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_</span> <span class="o">==</span> <span class="n">keyword</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_</span>
+        <span class="k">raise</span> <span class="n">VoltLibError</span><span class="p">(</span><span class="s2">&quot;Expected </span><span class="se">\&quot;</span><span class="si">%s</span><span class="se">\&quot;</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">keyword</span><span class="p">,</span>
+                           <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_location_</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parser.expect_name_"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser.expect_name_">[docs]</a>    <span class="k">def</span> <span class="nf">expect_name_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">advance_lexer_</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_type_</span> <span class="ow">is</span> <span class="n">Lexer</span><span class="o">.</span><span class="n">NAME</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_</span>
+        <span class="k">raise</span> <span class="n">VoltLibError</span><span class="p">(</span><span class="s2">&quot;Expected a name&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_location_</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parser.expect_number_"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser.expect_number_">[docs]</a>    <span class="k">def</span> <span class="nf">expect_number_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">advance_lexer_</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_type_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">Lexer</span><span class="o">.</span><span class="n">NUMBER</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">VoltLibError</span><span class="p">(</span><span class="s2">&quot;Expected a number&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_location_</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_</span></div>
+
+<div class="viewcode-block" id="Parser.advance_lexer_"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.Parser.advance_lexer_">[docs]</a>    <span class="k">def</span> <span class="nf">advance_lexer_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_type_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_token_location_</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">next_token_type_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_location_</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">next_token_type_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span><span class="p">,</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">next_token_location_</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lexer_</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">next_token_type_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_token_</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="SymbolTable"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.SymbolTable">[docs]</a><span class="k">class</span> <span class="nc">SymbolTable</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scopes_</span> <span class="o">=</span> <span class="p">[{}]</span>
+
+<div class="viewcode-block" id="SymbolTable.enter_scope"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.SymbolTable.enter_scope">[docs]</a>    <span class="k">def</span> <span class="nf">enter_scope</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scopes_</span><span class="o">.</span><span class="n">append</span><span class="p">({})</span></div>
+
+<div class="viewcode-block" id="SymbolTable.exit_scope"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.SymbolTable.exit_scope">[docs]</a>    <span class="k">def</span> <span class="nf">exit_scope</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scopes_</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="SymbolTable.define"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.SymbolTable.define">[docs]</a>    <span class="k">def</span> <span class="nf">define</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scopes_</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span></div>
+
+<div class="viewcode-block" id="SymbolTable.resolve"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.SymbolTable.resolve">[docs]</a>    <span class="k">def</span> <span class="nf">resolve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">case_insensitive</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">scope</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scopes_</span><span class="p">):</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="n">scope</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">item</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">item</span>
+        <span class="k">if</span> <span class="n">case_insensitive</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">scope</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                    <span class="k">return</span> <span class="n">scope</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">return</span> <span class="kc">None</span></div></div>
+
+
+<div class="viewcode-block" id="OrderedSymbolTable"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.OrderedSymbolTable">[docs]</a><span class="k">class</span> <span class="nc">OrderedSymbolTable</span><span class="p">(</span><span class="n">SymbolTable</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scopes_</span> <span class="o">=</span> <span class="p">[</span><span class="n">OrderedDict</span><span class="p">()]</span>
+
+<div class="viewcode-block" id="OrderedSymbolTable.enter_scope"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.OrderedSymbolTable.enter_scope">[docs]</a>    <span class="k">def</span> <span class="nf">enter_scope</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scopes_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">OrderedDict</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="OrderedSymbolTable.resolve"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.OrderedSymbolTable.resolve">[docs]</a>    <span class="k">def</span> <span class="nf">resolve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">case_insensitive</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">SymbolTable</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">case_insensitive</span><span class="o">=</span><span class="n">case_insensitive</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="OrderedSymbolTable.range"><a class="viewcode-back" href="../../../voltLib.html#fontTools.voltLib.parser.OrderedSymbolTable.range">[docs]</a>    <span class="k">def</span> <span class="nf">range</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">scope</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scopes_</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">start</span> <span class="ow">in</span> <span class="n">scope</span> <span class="ow">and</span> <span class="n">end</span> <span class="ow">in</span> <span class="n">scope</span><span class="p">:</span>
+                <span class="n">start_idx</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">scope</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">start</span><span class="p">)</span>
+                <span class="n">end_idx</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">scope</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">end</span><span class="p">)</span>
+                <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">scope</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="n">start_idx</span><span class="p">:</span><span class="n">end_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="kc">None</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>
