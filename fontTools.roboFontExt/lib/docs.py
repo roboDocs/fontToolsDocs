@@ -1,8 +1,10 @@
 import os
 from mojo.UI import HelpWindow
 
-baseFolder  = os.path.dirname(__file__)
-htmlFolder = os.path.join(baseFolder, "htmlDocs")
+libFolder = os.path.dirname(__file__)
+baseFolder = os.path.dirname(libFolder)
+resourcesFolder = os.path.join(baseFolder, "resources")
+htmlFolder = os.path.join(resourcesFolder, "htmlDocs")
 htmlIndex  = os.path.join(htmlFolder, "index.html")
 
 if os.path.exists(htmlIndex):
