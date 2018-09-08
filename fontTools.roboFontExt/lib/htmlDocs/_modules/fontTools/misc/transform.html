@@ -1,0 +1,468 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fontTools.misc.transform &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fontTools.misc.transform</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Affine 2D transformation matrix class.</span>
+
+<span class="sd">The Transform class implements various transformation matrix operations,</span>
+<span class="sd">both on the matrix itself, as well as on 2D coordinates.</span>
+
+<span class="sd">Transform instances are effectively immutable: all methods that operate on the</span>
+<span class="sd">transformation itself always return a new instance. This has as the</span>
+<span class="sd">interesting side effect that Transform instances are hashable, ie. they can be</span>
+<span class="sd">used as dictionary keys.</span>
+
+<span class="sd">This module exports the following symbols:</span>
+
+<span class="sd">	Transform -- this is the main class</span>
+<span class="sd">	Identity  -- Transform instance set to the identity transformation</span>
+<span class="sd">	Offset    -- Convenience function that returns a translating transformation</span>
+<span class="sd">	Scale     -- Convenience function that returns a scaling transformation</span>
+
+<span class="sd">Examples:</span>
+
+<span class="sd">	&gt;&gt;&gt; t = Transform(2, 0, 0, 3, 0, 0)</span>
+<span class="sd">	&gt;&gt;&gt; t.transformPoint((100, 100))</span>
+<span class="sd">	(200, 300)</span>
+<span class="sd">	&gt;&gt;&gt; t = Scale(2, 3)</span>
+<span class="sd">	&gt;&gt;&gt; t.transformPoint((100, 100))</span>
+<span class="sd">	(200, 300)</span>
+<span class="sd">	&gt;&gt;&gt; t.transformPoint((0, 0))</span>
+<span class="sd">	(0, 0)</span>
+<span class="sd">	&gt;&gt;&gt; t = Offset(2, 3)</span>
+<span class="sd">	&gt;&gt;&gt; t.transformPoint((100, 100))</span>
+<span class="sd">	(102, 103)</span>
+<span class="sd">	&gt;&gt;&gt; t.transformPoint((0, 0))</span>
+<span class="sd">	(2, 3)</span>
+<span class="sd">	&gt;&gt;&gt; t2 = t.scale(0.5)</span>
+<span class="sd">	&gt;&gt;&gt; t2.transformPoint((100, 100))</span>
+<span class="sd">	(52.0, 53.0)</span>
+<span class="sd">	&gt;&gt;&gt; import math</span>
+<span class="sd">	&gt;&gt;&gt; t3 = t2.rotate(math.pi / 2)</span>
+<span class="sd">	&gt;&gt;&gt; t3.transformPoint((0, 0))</span>
+<span class="sd">	(2.0, 3.0)</span>
+<span class="sd">	&gt;&gt;&gt; t3.transformPoint((100, 100))</span>
+<span class="sd">	(-48.0, 53.0)</span>
+<span class="sd">	&gt;&gt;&gt; t = Identity.scale(0.5).translate(100, 200).skew(0.1, 0.2)</span>
+<span class="sd">	&gt;&gt;&gt; t.transformPoints([(0, 0), (1, 1), (100, 100)])</span>
+<span class="sd">	[(50.0, 100.0), (50.550167336042726, 100.60135501775433), (105.01673360427253, 160.13550177543362)]</span>
+<span class="sd">	&gt;&gt;&gt;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.py23</span> <span class="k">import</span> <span class="o">*</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Transform&quot;</span><span class="p">,</span> <span class="s2">&quot;Identity&quot;</span><span class="p">,</span> <span class="s2">&quot;Offset&quot;</span><span class="p">,</span> <span class="s2">&quot;Scale&quot;</span><span class="p">]</span>
+
+
+<span class="n">_EPSILON</span> <span class="o">=</span> <span class="mf">1e-15</span>
+<span class="n">_ONE_EPSILON</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">_EPSILON</span>
+<span class="n">_MINUS_ONE_EPSILON</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">+</span> <span class="n">_EPSILON</span>
+
+
+<span class="k">def</span> <span class="nf">_normSinCos</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
+	<span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">_EPSILON</span><span class="p">:</span>
+		<span class="n">v</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="k">elif</span> <span class="n">v</span> <span class="o">&gt;</span> <span class="n">_ONE_EPSILON</span><span class="p">:</span>
+		<span class="n">v</span> <span class="o">=</span> <span class="mi">1</span>
+	<span class="k">elif</span> <span class="n">v</span> <span class="o">&lt;</span> <span class="n">_MINUS_ONE_EPSILON</span><span class="p">:</span>
+		<span class="n">v</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+	<span class="k">return</span> <span class="n">v</span>
+
+
+<div class="viewcode-block" id="Transform"><a class="viewcode-back" href="../../../misc/transform.html#fontTools.misc.transform.Transform">[docs]</a><span class="k">class</span> <span class="nc">Transform</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+	<span class="sd">&quot;&quot;&quot;2x2 transformation matrix plus offset, a.k.a. Affine transform.</span>
+<span class="sd">	Transform instances are immutable: all transforming methods, eg.</span>
+<span class="sd">	rotate(), return a new Transform instance.</span>
+
+<span class="sd">	Examples:</span>
+<span class="sd">		&gt;&gt;&gt; t = Transform()</span>
+<span class="sd">		&gt;&gt;&gt; t</span>
+<span class="sd">		&lt;Transform [1 0 0 1 0 0]&gt;</span>
+<span class="sd">		&gt;&gt;&gt; t.scale(2)</span>
+<span class="sd">		&lt;Transform [2 0 0 2 0 0]&gt;</span>
+<span class="sd">		&gt;&gt;&gt; t.scale(2.5, 5.5)</span>
+<span class="sd">		&lt;Transform [2.5 0 0 5.5 0 0]&gt;</span>
+<span class="sd">		&gt;&gt;&gt;</span>
+<span class="sd">		&gt;&gt;&gt; t.scale(2, 3).transformPoint((100, 100))</span>
+<span class="sd">		(200, 300)</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xx</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">xy</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">yx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">yy</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dy</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Transform&#39;s constructor takes six arguments, all of which are</span>
+<span class="sd">		optional, and can be used as keyword arguments:</span>
+<span class="sd">			&gt;&gt;&gt; Transform(12)</span>
+<span class="sd">			&lt;Transform [12 0 0 1 0 0]&gt;</span>
+<span class="sd">			&gt;&gt;&gt; Transform(dx=12)</span>
+<span class="sd">			&lt;Transform [1 0 0 1 12 0]&gt;</span>
+<span class="sd">			&gt;&gt;&gt; Transform(yx=12)</span>
+<span class="sd">			&lt;Transform [1 0 12 1 0 0]&gt;</span>
+<span class="sd">			&gt;&gt;&gt;</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">__affine</span> <span class="o">=</span> <span class="n">xx</span><span class="p">,</span> <span class="n">xy</span><span class="p">,</span> <span class="n">yx</span><span class="p">,</span> <span class="n">yy</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span>
+
+<div class="viewcode-block" id="Transform.transformPoint"><a class="viewcode-back" href="../../../misc/transform.html#fontTools.misc.transform.Transform.transformPoint">[docs]</a>	<span class="k">def</span> <span class="nf">transformPoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Transform a point.</span>
+
+<span class="sd">		Example:</span>
+<span class="sd">			&gt;&gt;&gt; t = Transform()</span>
+<span class="sd">			&gt;&gt;&gt; t = t.scale(2.5, 5.5)</span>
+<span class="sd">			&gt;&gt;&gt; t.transformPoint((100, 100))</span>
+<span class="sd">			(250.0, 550.0)</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">=</span> <span class="n">p</span>
+		<span class="n">xx</span><span class="p">,</span> <span class="n">xy</span><span class="p">,</span> <span class="n">yx</span><span class="p">,</span> <span class="n">yy</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__affine</span>
+		<span class="k">return</span> <span class="p">(</span><span class="n">xx</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">yx</span><span class="o">*</span><span class="n">y</span> <span class="o">+</span> <span class="n">dx</span><span class="p">,</span> <span class="n">xy</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">yy</span><span class="o">*</span><span class="n">y</span> <span class="o">+</span> <span class="n">dy</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Transform.transformPoints"><a class="viewcode-back" href="../../../misc/transform.html#fontTools.misc.transform.Transform.transformPoints">[docs]</a>	<span class="k">def</span> <span class="nf">transformPoints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Transform a list of points.</span>
+
+<span class="sd">		Example:</span>
+<span class="sd">			&gt;&gt;&gt; t = Scale(2, 3)</span>
+<span class="sd">			&gt;&gt;&gt; t.transformPoints([(0, 0), (0, 100), (100, 100), (100, 0)])</span>
+<span class="sd">			[(0, 0), (0, 300), (200, 300), (200, 0)]</span>
+<span class="sd">			&gt;&gt;&gt;</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">xx</span><span class="p">,</span> <span class="n">xy</span><span class="p">,</span> <span class="n">yx</span><span class="p">,</span> <span class="n">yy</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__affine</span>
+		<span class="k">return</span> <span class="p">[(</span><span class="n">xx</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">yx</span><span class="o">*</span><span class="n">y</span> <span class="o">+</span> <span class="n">dx</span><span class="p">,</span> <span class="n">xy</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">yy</span><span class="o">*</span><span class="n">y</span> <span class="o">+</span> <span class="n">dy</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">points</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Transform.translate"><a class="viewcode-back" href="../../../misc/transform.html#fontTools.misc.transform.Transform.translate">[docs]</a>	<span class="k">def</span> <span class="nf">translate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Return a new transformation, translated (offset) by x, y.</span>
+
+<span class="sd">		Example:</span>
+<span class="sd">			&gt;&gt;&gt; t = Transform()</span>
+<span class="sd">			&gt;&gt;&gt; t.translate(20, 30)</span>
+<span class="sd">			&lt;Transform [1 0 0 1 20 30]&gt;</span>
+<span class="sd">			&gt;&gt;&gt;</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Transform.scale"><a class="viewcode-back" href="../../../misc/transform.html#fontTools.misc.transform.Transform.scale">[docs]</a>	<span class="k">def</span> <span class="nf">scale</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Return a new transformation, scaled by x, y. The &#39;y&#39; argument</span>
+<span class="sd">		may be None, which implies to use the x value for y as well.</span>
+
+<span class="sd">		Example:</span>
+<span class="sd">			&gt;&gt;&gt; t = Transform()</span>
+<span class="sd">			&gt;&gt;&gt; t.scale(5)</span>
+<span class="sd">			&lt;Transform [5 0 0 5 0 0]&gt;</span>
+<span class="sd">			&gt;&gt;&gt; t.scale(5, 6)</span>
+<span class="sd">			&lt;Transform [5 0 0 6 0 0]&gt;</span>
+<span class="sd">			&gt;&gt;&gt;</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">y</span> <span class="o">=</span> <span class="n">x</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Transform.rotate"><a class="viewcode-back" href="../../../misc/transform.html#fontTools.misc.transform.Transform.rotate">[docs]</a>	<span class="k">def</span> <span class="nf">rotate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">angle</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Return a new transformation, rotated by &#39;angle&#39; (radians).</span>
+
+<span class="sd">		Example:</span>
+<span class="sd">			&gt;&gt;&gt; import math</span>
+<span class="sd">			&gt;&gt;&gt; t = Transform()</span>
+<span class="sd">			&gt;&gt;&gt; t.rotate(math.pi / 2)</span>
+<span class="sd">			&lt;Transform [0 1 -1 0 0 0]&gt;</span>
+<span class="sd">			&gt;&gt;&gt;</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="kn">import</span> <span class="nn">math</span>
+		<span class="n">c</span> <span class="o">=</span> <span class="n">_normSinCos</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angle</span><span class="p">))</span>
+		<span class="n">s</span> <span class="o">=</span> <span class="n">_normSinCos</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angle</span><span class="p">))</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">((</span><span class="n">c</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="o">-</span><span class="n">s</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Transform.skew"><a class="viewcode-back" href="../../../misc/transform.html#fontTools.misc.transform.Transform.skew">[docs]</a>	<span class="k">def</span> <span class="nf">skew</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Return a new transformation, skewed by x and y.</span>
+
+<span class="sd">		Example:</span>
+<span class="sd">			&gt;&gt;&gt; import math</span>
+<span class="sd">			&gt;&gt;&gt; t = Transform()</span>
+<span class="sd">			&gt;&gt;&gt; t.skew(math.pi / 4)</span>
+<span class="sd">			&lt;Transform [1 0 1 1 0 0]&gt;</span>
+<span class="sd">			&gt;&gt;&gt;</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="kn">import</span> <span class="nn">math</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Transform.transform"><a class="viewcode-back" href="../../../misc/transform.html#fontTools.misc.transform.Transform.transform">[docs]</a>	<span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Return a new transformation, transformed by another</span>
+<span class="sd">		transformation.</span>
+
+<span class="sd">		Example:</span>
+<span class="sd">			&gt;&gt;&gt; t = Transform(2, 0, 0, 3, 1, 6)</span>
+<span class="sd">			&gt;&gt;&gt; t.transform((4, 3, 2, 1, 5, 6))</span>
+<span class="sd">			&lt;Transform [8 9 4 3 11 24]&gt;</span>
+<span class="sd">			&gt;&gt;&gt;</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">xx1</span><span class="p">,</span> <span class="n">xy1</span><span class="p">,</span> <span class="n">yx1</span><span class="p">,</span> <span class="n">yy1</span><span class="p">,</span> <span class="n">dx1</span><span class="p">,</span> <span class="n">dy1</span> <span class="o">=</span> <span class="n">other</span>
+		<span class="n">xx2</span><span class="p">,</span> <span class="n">xy2</span><span class="p">,</span> <span class="n">yx2</span><span class="p">,</span> <span class="n">yy2</span><span class="p">,</span> <span class="n">dx2</span><span class="p">,</span> <span class="n">dy2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__affine</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span>
+				<span class="n">xx1</span><span class="o">*</span><span class="n">xx2</span> <span class="o">+</span> <span class="n">xy1</span><span class="o">*</span><span class="n">yx2</span><span class="p">,</span>
+				<span class="n">xx1</span><span class="o">*</span><span class="n">xy2</span> <span class="o">+</span> <span class="n">xy1</span><span class="o">*</span><span class="n">yy2</span><span class="p">,</span>
+				<span class="n">yx1</span><span class="o">*</span><span class="n">xx2</span> <span class="o">+</span> <span class="n">yy1</span><span class="o">*</span><span class="n">yx2</span><span class="p">,</span>
+				<span class="n">yx1</span><span class="o">*</span><span class="n">xy2</span> <span class="o">+</span> <span class="n">yy1</span><span class="o">*</span><span class="n">yy2</span><span class="p">,</span>
+				<span class="n">xx2</span><span class="o">*</span><span class="n">dx1</span> <span class="o">+</span> <span class="n">yx2</span><span class="o">*</span><span class="n">dy1</span> <span class="o">+</span> <span class="n">dx2</span><span class="p">,</span>
+				<span class="n">xy2</span><span class="o">*</span><span class="n">dx1</span> <span class="o">+</span> <span class="n">yy2</span><span class="o">*</span><span class="n">dy1</span> <span class="o">+</span> <span class="n">dy2</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Transform.reverseTransform"><a class="viewcode-back" href="../../../misc/transform.html#fontTools.misc.transform.Transform.reverseTransform">[docs]</a>	<span class="k">def</span> <span class="nf">reverseTransform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Return a new transformation, which is the other transformation</span>
+<span class="sd">		transformed by self. self.reverseTransform(other) is equivalent to</span>
+<span class="sd">		other.transform(self).</span>
+
+<span class="sd">		Example:</span>
+<span class="sd">			&gt;&gt;&gt; t = Transform(2, 0, 0, 3, 1, 6)</span>
+<span class="sd">			&gt;&gt;&gt; t.reverseTransform((4, 3, 2, 1, 5, 6))</span>
+<span class="sd">			&lt;Transform [8 6 6 3 21 15]&gt;</span>
+<span class="sd">			&gt;&gt;&gt; Transform(4, 3, 2, 1, 5, 6).transform((2, 0, 0, 3, 1, 6))</span>
+<span class="sd">			&lt;Transform [8 6 6 3 21 15]&gt;</span>
+<span class="sd">			&gt;&gt;&gt;</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">xx1</span><span class="p">,</span> <span class="n">xy1</span><span class="p">,</span> <span class="n">yx1</span><span class="p">,</span> <span class="n">yy1</span><span class="p">,</span> <span class="n">dx1</span><span class="p">,</span> <span class="n">dy1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__affine</span>
+		<span class="n">xx2</span><span class="p">,</span> <span class="n">xy2</span><span class="p">,</span> <span class="n">yx2</span><span class="p">,</span> <span class="n">yy2</span><span class="p">,</span> <span class="n">dx2</span><span class="p">,</span> <span class="n">dy2</span> <span class="o">=</span> <span class="n">other</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span>
+				<span class="n">xx1</span><span class="o">*</span><span class="n">xx2</span> <span class="o">+</span> <span class="n">xy1</span><span class="o">*</span><span class="n">yx2</span><span class="p">,</span>
+				<span class="n">xx1</span><span class="o">*</span><span class="n">xy2</span> <span class="o">+</span> <span class="n">xy1</span><span class="o">*</span><span class="n">yy2</span><span class="p">,</span>
+				<span class="n">yx1</span><span class="o">*</span><span class="n">xx2</span> <span class="o">+</span> <span class="n">yy1</span><span class="o">*</span><span class="n">yx2</span><span class="p">,</span>
+				<span class="n">yx1</span><span class="o">*</span><span class="n">xy2</span> <span class="o">+</span> <span class="n">yy1</span><span class="o">*</span><span class="n">yy2</span><span class="p">,</span>
+				<span class="n">xx2</span><span class="o">*</span><span class="n">dx1</span> <span class="o">+</span> <span class="n">yx2</span><span class="o">*</span><span class="n">dy1</span> <span class="o">+</span> <span class="n">dx2</span><span class="p">,</span>
+				<span class="n">xy2</span><span class="o">*</span><span class="n">dx1</span> <span class="o">+</span> <span class="n">yy2</span><span class="o">*</span><span class="n">dy1</span> <span class="o">+</span> <span class="n">dy2</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Transform.inverse"><a class="viewcode-back" href="../../../misc/transform.html#fontTools.misc.transform.Transform.inverse">[docs]</a>	<span class="k">def</span> <span class="nf">inverse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Return the inverse transformation.</span>
+
+<span class="sd">		Example:</span>
+<span class="sd">			&gt;&gt;&gt; t = Identity.translate(2, 3).scale(4, 5)</span>
+<span class="sd">			&gt;&gt;&gt; t.transformPoint((10, 20))</span>
+<span class="sd">			(42, 103)</span>
+<span class="sd">			&gt;&gt;&gt; it = t.inverse()</span>
+<span class="sd">			&gt;&gt;&gt; it.transformPoint((42, 103))</span>
+<span class="sd">			(10.0, 20.0)</span>
+<span class="sd">			&gt;&gt;&gt;</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__affine</span> <span class="o">==</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
+			<span class="k">return</span> <span class="bp">self</span>
+		<span class="n">xx</span><span class="p">,</span> <span class="n">xy</span><span class="p">,</span> <span class="n">yx</span><span class="p">,</span> <span class="n">yy</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__affine</span>
+		<span class="n">det</span> <span class="o">=</span> <span class="n">xx</span><span class="o">*</span><span class="n">yy</span> <span class="o">-</span> <span class="n">yx</span><span class="o">*</span><span class="n">xy</span>
+		<span class="n">xx</span><span class="p">,</span> <span class="n">xy</span><span class="p">,</span> <span class="n">yx</span><span class="p">,</span> <span class="n">yy</span> <span class="o">=</span> <span class="n">yy</span><span class="o">/</span><span class="n">det</span><span class="p">,</span> <span class="o">-</span><span class="n">xy</span><span class="o">/</span><span class="n">det</span><span class="p">,</span> <span class="o">-</span><span class="n">yx</span><span class="o">/</span><span class="n">det</span><span class="p">,</span> <span class="n">xx</span><span class="o">/</span><span class="n">det</span>
+		<span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="o">=</span> <span class="o">-</span><span class="n">xx</span><span class="o">*</span><span class="n">dx</span> <span class="o">-</span> <span class="n">yx</span><span class="o">*</span><span class="n">dy</span><span class="p">,</span> <span class="o">-</span><span class="n">xy</span><span class="o">*</span><span class="n">dx</span> <span class="o">-</span> <span class="n">yy</span><span class="o">*</span><span class="n">dy</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">xy</span><span class="p">,</span> <span class="n">yx</span><span class="p">,</span> <span class="n">yy</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Transform.toPS"><a class="viewcode-back" href="../../../misc/transform.html#fontTools.misc.transform.Transform.toPS">[docs]</a>	<span class="k">def</span> <span class="nf">toPS</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Return a PostScript representation:</span>
+<span class="sd">			&gt;&gt;&gt; t = Identity.scale(2, 3).translate(4, 5)</span>
+<span class="sd">			&gt;&gt;&gt; t.toPS()</span>
+<span class="sd">			&#39;[2 0 0 3 8 15]&#39;</span>
+<span class="sd">			&gt;&gt;&gt;</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="s2">&quot;[</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">]&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">__affine</span></div>
+
+	<span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Transform instances also behave like sequences of length 6:</span>
+<span class="sd">			&gt;&gt;&gt; len(Identity)</span>
+<span class="sd">			6</span>
+<span class="sd">			&gt;&gt;&gt;</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="mi">6</span>
+
+	<span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Transform instances also behave like sequences of length 6:</span>
+<span class="sd">			&gt;&gt;&gt; list(Identity)</span>
+<span class="sd">			[1, 0, 0, 1, 0, 0]</span>
+<span class="sd">			&gt;&gt;&gt; tuple(Identity)</span>
+<span class="sd">			(1, 0, 0, 1, 0, 0)</span>
+<span class="sd">			&gt;&gt;&gt;</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__affine</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+	<span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+		<span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+	<span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Transform instances are comparable:</span>
+<span class="sd">			&gt;&gt;&gt; t1 = Identity.scale(2, 3).translate(4, 6)</span>
+<span class="sd">			&gt;&gt;&gt; t2 = Identity.translate(8, 18).scale(2, 3)</span>
+<span class="sd">			&gt;&gt;&gt; t1 == t2</span>
+<span class="sd">			1</span>
+<span class="sd">			&gt;&gt;&gt;</span>
+
+<span class="sd">		But beware of floating point rounding errors:</span>
+<span class="sd">			&gt;&gt;&gt; t1 = Identity.scale(0.2, 0.3).translate(0.4, 0.6)</span>
+<span class="sd">			&gt;&gt;&gt; t2 = Identity.translate(0.08, 0.18).scale(0.2, 0.3)</span>
+<span class="sd">			&gt;&gt;&gt; t1</span>
+<span class="sd">			&lt;Transform [0.2 0 0 0.3 0.08 0.18]&gt;</span>
+<span class="sd">			&gt;&gt;&gt; t2</span>
+<span class="sd">			&lt;Transform [0.2 0 0 0.3 0.08 0.18]&gt;</span>
+<span class="sd">			&gt;&gt;&gt; t1 == t2</span>
+<span class="sd">			0</span>
+<span class="sd">			&gt;&gt;&gt;</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">xx1</span><span class="p">,</span> <span class="n">xy1</span><span class="p">,</span> <span class="n">yx1</span><span class="p">,</span> <span class="n">yy1</span><span class="p">,</span> <span class="n">dx1</span><span class="p">,</span> <span class="n">dy1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__affine</span>
+		<span class="n">xx2</span><span class="p">,</span> <span class="n">xy2</span><span class="p">,</span> <span class="n">yx2</span><span class="p">,</span> <span class="n">yy2</span><span class="p">,</span> <span class="n">dx2</span><span class="p">,</span> <span class="n">dy2</span> <span class="o">=</span> <span class="n">other</span>
+		<span class="k">return</span> <span class="p">(</span><span class="n">xx1</span><span class="p">,</span> <span class="n">xy1</span><span class="p">,</span> <span class="n">yx1</span><span class="p">,</span> <span class="n">yy1</span><span class="p">,</span> <span class="n">dx1</span><span class="p">,</span> <span class="n">dy1</span><span class="p">)</span> <span class="o">==</span> \
+				<span class="p">(</span><span class="n">xx2</span><span class="p">,</span> <span class="n">xy2</span><span class="p">,</span> <span class="n">yx2</span><span class="p">,</span> <span class="n">yy2</span><span class="p">,</span> <span class="n">dx2</span><span class="p">,</span> <span class="n">dy2</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Transform instances are hashable, meaning you can use them as</span>
+<span class="sd">		keys in dictionaries:</span>
+<span class="sd">			&gt;&gt;&gt; d = {Scale(12, 13): None}</span>
+<span class="sd">			&gt;&gt;&gt; d</span>
+<span class="sd">			{&lt;Transform [12 0 0 13 0 0]&gt;: None}</span>
+<span class="sd">			&gt;&gt;&gt;</span>
+
+<span class="sd">		But again, beware of floating point rounding errors:</span>
+<span class="sd">			&gt;&gt;&gt; t1 = Identity.scale(0.2, 0.3).translate(0.4, 0.6)</span>
+<span class="sd">			&gt;&gt;&gt; t2 = Identity.translate(0.08, 0.18).scale(0.2, 0.3)</span>
+<span class="sd">			&gt;&gt;&gt; t1</span>
+<span class="sd">			&lt;Transform [0.2 0 0 0.3 0.08 0.18]&gt;</span>
+<span class="sd">			&gt;&gt;&gt; t2</span>
+<span class="sd">			&lt;Transform [0.2 0 0 0.3 0.08 0.18]&gt;</span>
+<span class="sd">			&gt;&gt;&gt; d = {t1: None}</span>
+<span class="sd">			&gt;&gt;&gt; d</span>
+<span class="sd">			{&lt;Transform [0.2 0 0 0.3 0.08 0.18]&gt;: None}</span>
+<span class="sd">			&gt;&gt;&gt; d[t2]</span>
+<span class="sd">			Traceback (most recent call last):</span>
+<span class="sd">			  File &quot;&lt;stdin&gt;&quot;, line 1, in ?</span>
+<span class="sd">			KeyError: &lt;Transform [0.2 0 0 0.3 0.08 0.18]&gt;</span>
+<span class="sd">			&gt;&gt;&gt;</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__affine</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">__bool__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Returns True if transform is not identity, False otherwise.</span>
+<span class="sd">			&gt;&gt;&gt; bool(Identity)</span>
+<span class="sd">			False</span>
+<span class="sd">			&gt;&gt;&gt; bool(Transform())</span>
+<span class="sd">			False</span>
+<span class="sd">			&gt;&gt;&gt; bool(Scale(1.))</span>
+<span class="sd">			False</span>
+<span class="sd">			&gt;&gt;&gt; bool(Scale(2))</span>
+<span class="sd">			True</span>
+<span class="sd">			&gt;&gt;&gt; bool(Offset())</span>
+<span class="sd">			False</span>
+<span class="sd">			&gt;&gt;&gt; bool(Offset(0))</span>
+<span class="sd">			False</span>
+<span class="sd">			&gt;&gt;&gt; bool(Offset(2))</span>
+<span class="sd">			True</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__affine</span> <span class="o">!=</span> <span class="n">Identity</span><span class="o">.</span><span class="n">__affine</span>
+
+	<span class="n">__nonzero__</span> <span class="o">=</span> <span class="fm">__bool__</span>
+
+	<span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="s2">&quot;&lt;</span><span class="si">%s</span><span class="s2"> [</span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2">]&gt;&quot;</span> <span class="o">%</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,)</span> \
+				<span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__affine</span><span class="p">)</span></div>
+
+
+<span class="n">Identity</span> <span class="o">=</span> <span class="n">Transform</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Offset"><a class="viewcode-back" href="../../../misc/transform.html#fontTools.misc.transform.Offset">[docs]</a><span class="k">def</span> <span class="nf">Offset</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Return the identity transformation offset by x, y.</span>
+
+<span class="sd">	Example:</span>
+<span class="sd">		&gt;&gt;&gt; Offset(2, 3)</span>
+<span class="sd">		&lt;Transform [1 0 0 1 2 3]&gt;</span>
+<span class="sd">		&gt;&gt;&gt;</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">return</span> <span class="n">Transform</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Scale"><a class="viewcode-back" href="../../../misc/transform.html#fontTools.misc.transform.Scale">[docs]</a><span class="k">def</span> <span class="nf">Scale</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Return the identity transformation scaled by x, y. The &#39;y&#39; argument</span>
+<span class="sd">	may be None, which implies to use the x value for y as well.</span>
+
+<span class="sd">	Example:</span>
+<span class="sd">		&gt;&gt;&gt; Scale(2, 3)</span>
+<span class="sd">		&lt;Transform [2 0 0 3 0 0]&gt;</span>
+<span class="sd">		&gt;&gt;&gt;</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">y</span> <span class="o">=</span> <span class="n">x</span>
+	<span class="k">return</span> <span class="n">Transform</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+	<span class="kn">import</span> <span class="nn">sys</span>
+	<span class="kn">import</span> <span class="nn">doctest</span>
+	<span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">doctest</span><span class="o">.</span><span class="n">testmod</span><span class="p">()</span><span class="o">.</span><span class="n">failed</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

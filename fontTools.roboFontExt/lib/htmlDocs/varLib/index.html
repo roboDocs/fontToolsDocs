@@ -1,0 +1,170 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>varLib &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="designspace" href="designspace.html" />
+    <link rel="prev" title="ttx" href="../ttx.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="designspace.html" title="designspace"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../ttx.html" title="ttx"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">fontTools 3.10 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="varlib">
+<h1>varLib<a class="headerlink" href="#varlib" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="designspace.html">designspace</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interpolatable.html">interpolatable</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interpolate_layout.html">interpolate_layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="merger.html">merger</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mutator.html">mutator</a></li>
+</ul>
+</div>
+<span class="target" id="module-fontTools.varLib"></span><p>Module for dealing with &#8216;gvar&#8217;-style font variations, also known as run-time
+interpolation.</p>
+<p>The ideas here are very similar to MutatorMath.  There is even code to read
+MutatorMath .designspace files in the varLib.designspace module.</p>
+<p>For now, if you run this file on a designspace file, it tries to find
+ttf-interpolatable files for the masters and build a variable-font from
+them.  Such ttf-interpolatable and designspace files can be generated from
+a Glyphs source, eg., using noto-source as an example:</p>
+<blockquote>
+<div>$ fontmake -o ttf-interpolatable -g NotoSansArabic-MM.glyphs</div></blockquote>
+<p>Then you can make a variable-font this way:</p>
+<blockquote>
+<div>$ fonttools varLib master_ufo/NotoSansArabic.designspace</div></blockquote>
+<p>API <em>will</em> change in near future.</p>
+<dl class="class">
+<dt id="fontTools.varLib.MasterFinder">
+<em class="property">class </em><code class="descclassname">fontTools.varLib.</code><code class="descname">MasterFinder</code><span class="sig-paren">(</span><em>template</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/varLib.html#MasterFinder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.varLib.MasterFinder" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="fontTools.varLib.VarLibError">
+<em class="property">exception </em><code class="descclassname">fontTools.varLib.</code><code class="descname">VarLibError</code><a class="reference internal" href="../_modules/fontTools/varLib.html#VarLibError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.varLib.VarLibError" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.varLib.build">
+<code class="descclassname">fontTools.varLib.</code><code class="descname">build</code><span class="sig-paren">(</span><em>designspace_filename</em>, <em>master_finder=&lt;function &lt;lambda&gt;&gt;</em>, <em>exclude=[]</em>, <em>optimize=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/varLib.html#build"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.varLib.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build variation font from a designspace file.</p>
+<p>If master_finder is set, it should be a callable that takes master
+filename as found in designspace file and map it to master font
+binary as to be opened (eg. .ttf or .otf).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fontTools.varLib.load_designspace">
+<code class="descclassname">fontTools.varLib.</code><code class="descname">load_designspace</code><span class="sig-paren">(</span><em>designspace_filename</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/varLib.html#load_designspace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.varLib.load_designspace" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.varLib.main">
+<code class="descclassname">fontTools.varLib.</code><code class="descname">main</code><span class="sig-paren">(</span><em>args=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/varLib.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.varLib.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../ttx.html"
+                        title="previous chapter">ttx</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="designspace.html"
+                        title="next chapter">designspace</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/varLib/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="designspace.html" title="designspace"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../ttx.html" title="ttx"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">fontTools 3.10 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fontTools.ttLib.tables.G_M_A_P_ &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../ttLib.html" accesskey="U">fontTools.ttLib</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fontTools.ttLib.tables.G_M_A_P_</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.py23</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc</span> <span class="k">import</span> <span class="n">sstruct</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.textTools</span> <span class="k">import</span> <span class="n">safeEval</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">DefaultTable</span>
+
+<span class="n">GMAPFormat</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">		&gt;	# big endian</span>
+<span class="s2">		tableVersionMajor:	H</span>
+<span class="s2">		tableVersionMinor: 	H</span>
+<span class="s2">		flags:	H</span>
+<span class="s2">		recordsCount:		H</span>
+<span class="s2">		recordsOffset:		H</span>
+<span class="s2">		fontNameLength:		H</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="c1"># psFontName is a byte string which follows the record above. This is zero padded</span>
+<span class="c1"># to the beginning of the records array. The recordsOffsst is 32 bit aligned.</span>
+
+<span class="n">GMAPRecordFormat1</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">		&gt;	# big endian</span>
+<span class="s2">		UV:			L</span>
+<span class="s2">		cid:		H</span>
+<span class="s2">		gid:		H</span>
+<span class="s2">		ggid:		H</span>
+<span class="s2">		name:		32s</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="GMAPRecord"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.G_M_A_P_.GMAPRecord">[docs]</a><span class="k">class</span> <span class="nc">GMAPRecord</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uv</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">cid</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">gid</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ggid</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">UV</span> <span class="o">=</span> <span class="n">uv</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">cid</span> <span class="o">=</span> <span class="n">cid</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">gid</span> <span class="o">=</span> <span class="n">gid</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">ggid</span> <span class="o">=</span> <span class="n">ggid</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+
+<div class="viewcode-block" id="GMAPRecord.toXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.G_M_A_P_.GMAPRecord.toXML">[docs]</a>	<span class="k">def</span> <span class="nf">toXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">begintag</span><span class="p">(</span><span class="s2">&quot;GMAPRecord&quot;</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="s2">&quot;UV&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">UV</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="s2">&quot;cid&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cid</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="s2">&quot;gid&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gid</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="s2">&quot;glyphletGid&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gid</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="s2">&quot;GlyphletName&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">endtag</span><span class="p">(</span><span class="s2">&quot;GMAPRecord&quot;</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="GMAPRecord.fromXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.G_M_A_P_.GMAPRecord.fromXML">[docs]</a>	<span class="k">def</span> <span class="nf">fromXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">value</span> <span class="o">=</span> <span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+		<span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;GlyphletName&quot;</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">value</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">value</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="GMAPRecord.compile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.G_M_A_P_.GMAPRecord.compile">[docs]</a>	<span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="k">if</span> 	<span class="bp">self</span><span class="o">.</span><span class="n">UV</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">UV</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="n">nameLen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">nameLen</span> <span class="o">&lt;</span> <span class="mi">32</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\0</span><span class="s2">&quot;</span><span class="o">*</span><span class="p">(</span><span class="mi">32</span> <span class="o">-</span> <span class="n">nameLen</span><span class="p">)</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">GMAPRecordFormat1</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">data</span></div>
+
+	<span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="s2">&quot;GMAPRecord[ UV: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">UV</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;, cid: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cid</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;, gid: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gid</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;, ggid: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ggid</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;, Glyphlet Name: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; ]&quot;</span></div>
+
+
+<div class="viewcode-block" id="table_G_M_A_P_"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.G_M_A_P_.table_G_M_A_P_">[docs]</a><span class="k">class</span> <span class="nc">table_G_M_A_P_</span><span class="p">(</span><span class="n">DefaultTable</span><span class="o">.</span><span class="n">DefaultTable</span><span class="p">):</span>
+
+	<span class="n">dependencies</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="table_G_M_A_P_.decompile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.G_M_A_P_.table_G_M_A_P_.decompile">[docs]</a>	<span class="k">def</span> <span class="nf">decompile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">dummy</span><span class="p">,</span> <span class="n">newData</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">unpack2</span><span class="p">(</span><span class="n">GMAPFormat</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">psFontName</span> <span class="o">=</span> <span class="n">tostr</span><span class="p">(</span><span class="n">newData</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">fontNameLength</span><span class="p">])</span>
+		<span class="k">assert</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">recordsOffset</span> <span class="o">%</span> <span class="mi">4</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;GMAP error: recordsOffset is not 32 bit aligned.&quot;</span>
+		<span class="n">newData</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">recordsOffset</span><span class="p">:]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">gmapRecords</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">recordsCount</span><span class="p">):</span>
+			<span class="n">gmapRecord</span><span class="p">,</span> <span class="n">newData</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">unpack2</span><span class="p">(</span><span class="n">GMAPRecordFormat1</span><span class="p">,</span> <span class="n">newData</span><span class="p">,</span> <span class="n">GMAPRecord</span><span class="p">())</span>
+			<span class="n">gmapRecord</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">gmapRecord</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\0</span><span class="s1">&#39;</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">gmapRecords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gmapRecord</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="table_G_M_A_P_.compile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.G_M_A_P_.table_G_M_A_P_.compile">[docs]</a>	<span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">recordsCount</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gmapRecords</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">fontNameLength</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">psFontName</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">recordsOffset</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="p">(((</span><span class="bp">self</span><span class="o">.</span><span class="n">fontNameLength</span> <span class="o">+</span> <span class="mi">12</span><span class="p">)</span> <span class="o">+</span> <span class="mi">3</span><span class="p">)</span> <span class="o">//</span> <span class="mi">4</span><span class="p">)</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">GMAPFormat</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="n">data</span> <span class="o">+</span> <span class="n">tobytes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">psFontName</span><span class="p">)</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="n">data</span> <span class="o">+</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\0</span><span class="s2">&quot;</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">recordsOffset</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+		<span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">gmapRecords</span><span class="p">:</span>
+			<span class="n">data</span> <span class="o">=</span> <span class="n">data</span> <span class="o">+</span> <span class="n">record</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">ttFont</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="table_G_M_A_P_.toXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.G_M_A_P_.table_G_M_A_P_.toXML">[docs]</a>	<span class="k">def</span> <span class="nf">toXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">comment</span><span class="p">(</span><span class="s2">&quot;Most of this table will be recalculated by the compiler&quot;</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">formatstring</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">fixes</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">getformat</span><span class="p">(</span><span class="n">GMAPFormat</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+			<span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="s2">&quot;PSFontName&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">psFontName</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">gmapRecord</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">gmapRecords</span><span class="p">:</span>
+			<span class="n">gmapRecord</span><span class="o">.</span><span class="n">toXML</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="table_G_M_A_P_.fromXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.G_M_A_P_.table_G_M_A_P_.fromXML">[docs]</a>	<span class="k">def</span> <span class="nf">fromXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;GMAPRecord&quot;</span><span class="p">:</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;gmapRecords&quot;</span><span class="p">):</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">gmapRecords</span> <span class="o">=</span> <span class="p">[]</span>
+			<span class="n">gmapRecord</span> <span class="o">=</span> <span class="n">GMAPRecord</span><span class="p">()</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">gmapRecords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gmapRecord</span><span class="p">)</span>
+			<span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+				<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">basestring</span><span class="p">):</span>
+					<span class="k">continue</span>
+				<span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span> <span class="o">=</span> <span class="n">element</span>
+				<span class="n">gmapRecord</span><span class="o">.</span><span class="n">fromXML</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">value</span> <span class="o">=</span> <span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+			<span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;PSFontName&quot;</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">psFontName</span> <span class="o">=</span> <span class="n">value</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">value</span><span class="p">))</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../ttLib.html" >fontTools.ttLib</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

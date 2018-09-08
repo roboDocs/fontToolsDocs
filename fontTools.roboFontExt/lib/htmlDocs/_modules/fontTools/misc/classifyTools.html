@@ -1,0 +1,263 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fontTools.misc.classifyTools &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fontTools.misc.classifyTools</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; fontTools.misc.classifyTools.py -- tools for classifying things.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.py23</span> <span class="k">import</span> <span class="o">*</span>
+
+<div class="viewcode-block" id="Classifier"><a class="viewcode-back" href="../../../misc/classifyTools.html#fontTools.misc.classifyTools.Classifier">[docs]</a><span class="k">class</span> <span class="nc">Classifier</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Main Classifier object, used to classify things into similar sets.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_things</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span> <span class="c1"># set of all things known so far</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_sets</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># list of class sets produced so far</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_mapping</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># map from things to their class set</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_dirty</span> <span class="o">=</span> <span class="kc">False</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_sort</span> <span class="o">=</span> <span class="n">sort</span>
+
+<div class="viewcode-block" id="Classifier.add"><a class="viewcode-back" href="../../../misc/classifyTools.html#fontTools.misc.classifyTools.Classifier.add">[docs]</a>	<span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">set_of_things</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Add a set to the classifier.  Any iterable is accepted.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">set_of_things</span><span class="p">:</span>
+			<span class="k">return</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_dirty</span> <span class="o">=</span> <span class="kc">True</span>
+
+		<span class="n">things</span><span class="p">,</span> <span class="n">sets</span><span class="p">,</span> <span class="n">mapping</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_things</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sets</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mapping</span>
+
+		<span class="n">s</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">set_of_things</span><span class="p">)</span>
+		<span class="n">intersection</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">things</span><span class="p">)</span> <span class="c1"># existing things</span>
+		<span class="n">s</span><span class="o">.</span><span class="n">difference_update</span><span class="p">(</span><span class="n">intersection</span><span class="p">)</span> <span class="c1"># new things</span>
+		<span class="n">difference</span> <span class="o">=</span> <span class="n">s</span>
+		<span class="k">del</span> <span class="n">s</span>
+
+		<span class="c1"># Add new class for new things</span>
+		<span class="k">if</span> <span class="n">difference</span><span class="p">:</span>
+			<span class="n">things</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">difference</span><span class="p">)</span>
+			<span class="n">sets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">difference</span><span class="p">)</span>
+			<span class="k">for</span> <span class="n">thing</span> <span class="ow">in</span> <span class="n">difference</span><span class="p">:</span>
+				<span class="n">mapping</span><span class="p">[</span><span class="n">thing</span><span class="p">]</span> <span class="o">=</span> <span class="n">difference</span>
+		<span class="k">del</span> <span class="n">difference</span>
+
+		<span class="k">while</span> <span class="n">intersection</span><span class="p">:</span>
+			<span class="c1"># Take one item and process the old class it belongs to</span>
+			<span class="n">old_class</span> <span class="o">=</span> <span class="n">mapping</span><span class="p">[</span><span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">intersection</span><span class="p">))]</span>
+			<span class="n">old_class_intersection</span> <span class="o">=</span> <span class="n">old_class</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">intersection</span><span class="p">)</span>
+
+			<span class="c1"># Update old class to remove items from new set</span>
+			<span class="n">old_class</span><span class="o">.</span><span class="n">difference_update</span><span class="p">(</span><span class="n">old_class_intersection</span><span class="p">)</span>
+
+			<span class="c1"># Remove processed items from todo list</span>
+			<span class="n">intersection</span><span class="o">.</span><span class="n">difference_update</span><span class="p">(</span><span class="n">old_class_intersection</span><span class="p">)</span>
+
+			<span class="c1"># Add new class for the intersection with old class</span>
+			<span class="n">sets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">old_class_intersection</span><span class="p">)</span>
+			<span class="k">for</span> <span class="n">thing</span> <span class="ow">in</span> <span class="n">old_class_intersection</span><span class="p">:</span>
+				<span class="n">mapping</span><span class="p">[</span><span class="n">thing</span><span class="p">]</span> <span class="o">=</span> <span class="n">old_class_intersection</span>
+			<span class="k">del</span> <span class="n">old_class_intersection</span></div>
+
+<div class="viewcode-block" id="Classifier.update"><a class="viewcode-back" href="../../../misc/classifyTools.html#fontTools.misc.classifyTools.Classifier.update">[docs]</a>	<span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">list_of_sets</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Add a a list of sets to the classifier.  Any iterable of iterables is accepted.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">list_of_sets</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">s</span><span class="p">)</span></div>
+
+	<span class="k">def</span> <span class="nf">_process</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dirty</span><span class="p">:</span>
+			<span class="k">return</span>
+
+		<span class="c1"># Do any deferred processing</span>
+		<span class="n">sets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sets</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_sets</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sets</span> <span class="k">if</span> <span class="n">s</span><span class="p">]</span>
+
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sort</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_sets</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sets</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">s</span><span class="p">)))</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_dirty</span> <span class="o">=</span> <span class="kc">False</span>
+
+	<span class="c1"># Output methods</span>
+
+<div class="viewcode-block" id="Classifier.getThings"><a class="viewcode-back" href="../../../misc/classifyTools.html#fontTools.misc.classifyTools.Classifier.getThings">[docs]</a>	<span class="k">def</span> <span class="nf">getThings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Returns the set of all things known so far.</span>
+
+<span class="sd">		The return value belongs to the Classifier object and should NOT</span>
+<span class="sd">		be modified while the classifier is still in use.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_process</span><span class="p">()</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_things</span></div>
+
+<div class="viewcode-block" id="Classifier.getMapping"><a class="viewcode-back" href="../../../misc/classifyTools.html#fontTools.misc.classifyTools.Classifier.getMapping">[docs]</a>	<span class="k">def</span> <span class="nf">getMapping</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Returns the mapping from things to their class set.</span>
+
+<span class="sd">		The return value belongs to the Classifier object and should NOT</span>
+<span class="sd">		be modified while the classifier is still in use.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_process</span><span class="p">()</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mapping</span></div>
+
+<div class="viewcode-block" id="Classifier.getClasses"><a class="viewcode-back" href="../../../misc/classifyTools.html#fontTools.misc.classifyTools.Classifier.getClasses">[docs]</a>	<span class="k">def</span> <span class="nf">getClasses</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Returns the list of class sets.</span>
+
+<span class="sd">		The return value belongs to the Classifier object and should NOT</span>
+<span class="sd">		be modified while the classifier is still in use.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_process</span><span class="p">()</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sets</span></div></div>
+
+
+<div class="viewcode-block" id="classify"><a class="viewcode-back" href="../../../misc/classifyTools.html#fontTools.misc.classifyTools.classify">[docs]</a><span class="k">def</span> <span class="nf">classify</span><span class="p">(</span><span class="n">list_of_sets</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Takes a iterable of iterables (list of sets from here on; but any</span>
+<span class="sd">	iterable works.), and returns the smallest list of sets such that</span>
+<span class="sd">	each set, is either a subset, or is disjoint from, each of the input</span>
+<span class="sd">	sets.</span>
+
+<span class="sd">	In other words, this function classifies all the things present in</span>
+<span class="sd">	any of the input sets, into similar classes, based on which sets</span>
+<span class="sd">	things are a member of.</span>
+
+<span class="sd">	If sort=True, return class sets are sorted by decreasing size and</span>
+<span class="sd">	their natural sort order within each class size.  Otherwise, class</span>
+<span class="sd">	sets are returned in the order that they were identified, which is</span>
+<span class="sd">	generally not significant.</span>
+
+<span class="sd">	&gt;&gt;&gt; classify([]) == ([], {})</span>
+<span class="sd">	True</span>
+<span class="sd">	&gt;&gt;&gt; classify([[]]) == ([], {})</span>
+<span class="sd">	True</span>
+<span class="sd">	&gt;&gt;&gt; classify([[], []]) == ([], {})</span>
+<span class="sd">	True</span>
+<span class="sd">	&gt;&gt;&gt; classify([[1]]) == ([{1}], {1: {1}})</span>
+<span class="sd">	True</span>
+<span class="sd">	&gt;&gt;&gt; classify([[1,2]]) == ([{1, 2}], {1: {1, 2}, 2: {1, 2}})</span>
+<span class="sd">	True</span>
+<span class="sd">	&gt;&gt;&gt; classify([[1],[2]]) == ([{1}, {2}], {1: {1}, 2: {2}})</span>
+<span class="sd">	True</span>
+<span class="sd">	&gt;&gt;&gt; classify([[1,2],[2]]) == ([{1}, {2}], {1: {1}, 2: {2}})</span>
+<span class="sd">	True</span>
+<span class="sd">	&gt;&gt;&gt; classify([[1,2],[2,4]]) == ([{1}, {2}, {4}], {1: {1}, 2: {2}, 4: {4}})</span>
+<span class="sd">	True</span>
+<span class="sd">	&gt;&gt;&gt; classify([[1,2],[2,4,5]]) == (</span>
+<span class="sd">	...     [{4, 5}, {1}, {2}], {1: {1}, 2: {2}, 4: {4, 5}, 5: {4, 5}})</span>
+<span class="sd">	True</span>
+<span class="sd">	&gt;&gt;&gt; classify([[1,2],[2,4,5]], sort=False) == (</span>
+<span class="sd">	...     [{1}, {4, 5}, {2}], {1: {1}, 2: {2}, 4: {4, 5}, 5: {4, 5}})</span>
+<span class="sd">	True</span>
+<span class="sd">	&gt;&gt;&gt; classify([[1,2,9],[2,4,5]], sort=False) == (</span>
+<span class="sd">	...     [{1, 9}, {4, 5}, {2}], {1: {1, 9}, 2: {2}, 4: {4, 5}, 5: {4, 5},</span>
+<span class="sd">	...     9: {1, 9}})</span>
+<span class="sd">	True</span>
+<span class="sd">	&gt;&gt;&gt; classify([[1,2,9,15],[2,4,5]], sort=False) == (</span>
+<span class="sd">	...     [{1, 9, 15}, {4, 5}, {2}], {1: {1, 9, 15}, 2: {2}, 4: {4, 5},</span>
+<span class="sd">	...     5: {4, 5}, 9: {1, 9, 15}, 15: {1, 9, 15}})</span>
+<span class="sd">	True</span>
+<span class="sd">	&gt;&gt;&gt; classes, mapping = classify([[1,2,9,15],[2,4,5],[15,5]], sort=False)</span>
+<span class="sd">	&gt;&gt;&gt; set([frozenset(c) for c in classes]) == set(</span>
+<span class="sd">	...     [frozenset(s) for s in ({1, 9}, {4}, {2}, {5}, {15})])</span>
+<span class="sd">	True</span>
+<span class="sd">	&gt;&gt;&gt; mapping == {1: {1, 9}, 2: {2}, 4: {4}, 5: {5}, 9: {1, 9}, 15: {15}}</span>
+<span class="sd">	True</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">classifier</span> <span class="o">=</span> <span class="n">Classifier</span><span class="p">(</span><span class="n">sort</span><span class="o">=</span><span class="n">sort</span><span class="p">)</span>
+	<span class="n">classifier</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">list_of_sets</span><span class="p">)</span>
+	<span class="k">return</span> <span class="n">classifier</span><span class="o">.</span><span class="n">getClasses</span><span class="p">(),</span> <span class="n">classifier</span><span class="o">.</span><span class="n">getMapping</span><span class="p">()</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+	<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">doctest</span>
+	<span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">doctest</span><span class="o">.</span><span class="n">testmod</span><span class="p">(</span><span class="n">optionflags</span><span class="o">=</span><span class="n">doctest</span><span class="o">.</span><span class="n">ELLIPSIS</span><span class="p">)</span><span class="o">.</span><span class="n">failed</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,217 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fontTools.ttLib.tables.G_P_K_G_ &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../ttLib.html" accesskey="U">fontTools.ttLib</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fontTools.ttLib.tables.G_P_K_G_</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.py23</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc</span> <span class="k">import</span> <span class="n">sstruct</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.textTools</span> <span class="k">import</span> <span class="n">safeEval</span><span class="p">,</span> <span class="n">readHex</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">DefaultTable</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">array</span>
+
+<span class="n">GPKGFormat</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">		&gt;	# big endian</span>
+<span class="s2">		version:	H</span>
+<span class="s2">		flags:	H</span>
+<span class="s2">		numGMAPs:		H</span>
+<span class="s2">		numGlyplets:		H</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="c1"># psFontName is a byte string which follows the record above. This is zero padded</span>
+<span class="c1"># to the beginning of the records array. The recordsOffsst is 32 bit aligned.</span>
+
+
+<div class="viewcode-block" id="table_G_P_K_G_"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.G_P_K_G_.table_G_P_K_G_">[docs]</a><span class="k">class</span> <span class="nc">table_G_P_K_G_</span><span class="p">(</span><span class="n">DefaultTable</span><span class="o">.</span><span class="n">DefaultTable</span><span class="p">):</span>
+
+<div class="viewcode-block" id="table_G_P_K_G_.decompile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.G_P_K_G_.table_G_P_K_G_.decompile">[docs]</a>	<span class="k">def</span> <span class="nf">decompile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">dummy</span><span class="p">,</span> <span class="n">newData</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">unpack2</span><span class="p">(</span><span class="n">GPKGFormat</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+
+		<span class="n">GMAPoffsets</span> <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="s2">&quot;I&quot;</span><span class="p">)</span>
+		<span class="n">endPos</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numGMAPs</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">4</span>
+		<span class="n">GMAPoffsets</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">newData</span><span class="p">[:</span><span class="n">endPos</span><span class="p">])</span>
+		<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">byteorder</span> <span class="o">!=</span> <span class="s2">&quot;big&quot;</span><span class="p">:</span> <span class="n">GMAPoffsets</span><span class="o">.</span><span class="n">byteswap</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">GMAPs</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numGMAPs</span><span class="p">):</span>
+			<span class="n">start</span> <span class="o">=</span> <span class="n">GMAPoffsets</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+			<span class="n">end</span> <span class="o">=</span> <span class="n">GMAPoffsets</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">GMAPs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">])</span>
+		<span class="n">pos</span> <span class="o">=</span> <span class="n">endPos</span>
+		<span class="n">endPos</span> <span class="o">=</span> <span class="n">pos</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numGlyplets</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="mi">4</span>
+		<span class="n">glyphletOffsets</span> <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="s2">&quot;I&quot;</span><span class="p">)</span>
+		<span class="n">glyphletOffsets</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">newData</span><span class="p">[</span><span class="n">pos</span><span class="p">:</span><span class="n">endPos</span><span class="p">])</span>
+		<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">byteorder</span> <span class="o">!=</span> <span class="s2">&quot;big&quot;</span><span class="p">:</span> <span class="n">glyphletOffsets</span><span class="o">.</span><span class="n">byteswap</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">glyphlets</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numGlyplets</span><span class="p">):</span>
+			<span class="n">start</span> <span class="o">=</span> <span class="n">glyphletOffsets</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+			<span class="n">end</span> <span class="o">=</span> <span class="n">glyphletOffsets</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">glyphlets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="table_G_P_K_G_.compile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.G_P_K_G_.table_G_P_K_G_.compile">[docs]</a>	<span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">numGMAPs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GMAPs</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">numGlyplets</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">glyphlets</span><span class="p">)</span>
+		<span class="n">GMAPoffsets</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numGMAPs</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+		<span class="n">glyphletOffsets</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numGlyplets</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+		<span class="n">dataList</span> <span class="o">=</span><span class="p">[</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">GPKGFormat</span><span class="p">,</span> <span class="bp">self</span><span class="p">)]</span>
+
+		<span class="n">pos</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataList</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numGMAPs</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="mi">4</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numGlyplets</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="mi">4</span>
+		<span class="n">GMAPoffsets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">pos</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">numGMAPs</span> <span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+			<span class="n">pos</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GMAPs</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+			<span class="n">GMAPoffsets</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">pos</span>
+		<span class="n">gmapArray</span> <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="s2">&quot;I&quot;</span><span class="p">,</span> <span class="n">GMAPoffsets</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">byteorder</span> <span class="o">!=</span> <span class="s2">&quot;big&quot;</span><span class="p">:</span> <span class="n">gmapArray</span><span class="o">.</span><span class="n">byteswap</span><span class="p">()</span>
+		<span class="n">dataList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gmapArray</span><span class="o">.</span><span class="n">tostring</span><span class="p">())</span>
+
+		<span class="n">glyphletOffsets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">pos</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">numGlyplets</span> <span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+			<span class="n">pos</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">glyphlets</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+			<span class="n">glyphletOffsets</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">pos</span>
+		<span class="n">glyphletArray</span> <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="s2">&quot;I&quot;</span><span class="p">,</span> <span class="n">glyphletOffsets</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">byteorder</span> <span class="o">!=</span> <span class="s2">&quot;big&quot;</span><span class="p">:</span> <span class="n">glyphletArray</span><span class="o">.</span><span class="n">byteswap</span><span class="p">()</span>
+		<span class="n">dataList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">glyphletArray</span><span class="o">.</span><span class="n">tostring</span><span class="p">())</span>
+		<span class="n">dataList</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GMAPs</span>
+		<span class="n">dataList</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">glyphlets</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="n">bytesjoin</span><span class="p">(</span><span class="n">dataList</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="table_G_P_K_G_.toXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.G_P_K_G_.table_G_P_K_G_.toXML">[docs]</a>	<span class="k">def</span> <span class="nf">toXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">comment</span><span class="p">(</span><span class="s2">&quot;Most of this table will be recalculated by the compiler&quot;</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">formatstring</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">fixes</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">getformat</span><span class="p">(</span><span class="n">GPKGFormat</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+			<span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+
+		<span class="n">writer</span><span class="o">.</span><span class="n">begintag</span><span class="p">(</span><span class="s2">&quot;GMAPs&quot;</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">gmapData</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">GMAPs</span><span class="p">:</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">begintag</span><span class="p">(</span><span class="s2">&quot;hexdata&quot;</span><span class="p">)</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">dumphex</span><span class="p">(</span><span class="n">gmapData</span><span class="p">)</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">endtag</span><span class="p">(</span><span class="s2">&quot;hexdata&quot;</span><span class="p">)</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">endtag</span><span class="p">(</span><span class="s2">&quot;GMAPs&quot;</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+
+		<span class="n">writer</span><span class="o">.</span><span class="n">begintag</span><span class="p">(</span><span class="s2">&quot;glyphlets&quot;</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">glyphletData</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">glyphlets</span><span class="p">:</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">begintag</span><span class="p">(</span><span class="s2">&quot;hexdata&quot;</span><span class="p">)</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">dumphex</span><span class="p">(</span><span class="n">glyphletData</span><span class="p">)</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">endtag</span><span class="p">(</span><span class="s2">&quot;hexdata&quot;</span><span class="p">)</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">endtag</span><span class="p">(</span><span class="s2">&quot;glyphlets&quot;</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="table_G_P_K_G_.fromXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.G_P_K_G_.table_G_P_K_G_.fromXML">[docs]</a>	<span class="k">def</span> <span class="nf">fromXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;GMAPs&quot;</span><span class="p">:</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;GMAPs&quot;</span><span class="p">):</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">GMAPs</span> <span class="o">=</span> <span class="p">[]</span>
+			<span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+				<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">basestring</span><span class="p">):</span>
+					<span class="k">continue</span>
+				<span class="n">itemName</span><span class="p">,</span> <span class="n">itemAttrs</span><span class="p">,</span> <span class="n">itemContent</span> <span class="o">=</span> <span class="n">element</span>
+				<span class="k">if</span> <span class="n">itemName</span> <span class="o">==</span> <span class="s2">&quot;hexdata&quot;</span><span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">GMAPs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">readHex</span><span class="p">(</span><span class="n">itemContent</span><span class="p">))</span>
+		<span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;glyphlets&quot;</span><span class="p">:</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;glyphlets&quot;</span><span class="p">):</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">glyphlets</span> <span class="o">=</span> <span class="p">[]</span>
+			<span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+				<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">basestring</span><span class="p">):</span>
+					<span class="k">continue</span>
+				<span class="n">itemName</span><span class="p">,</span> <span class="n">itemAttrs</span><span class="p">,</span> <span class="n">itemContent</span> <span class="o">=</span> <span class="n">element</span>
+				<span class="k">if</span> <span class="n">itemName</span> <span class="o">==</span> <span class="s2">&quot;hexdata&quot;</span><span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">glyphlets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">readHex</span><span class="p">(</span><span class="n">itemContent</span><span class="p">))</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]))</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../ttLib.html" >fontTools.ttLib</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

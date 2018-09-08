@@ -1,0 +1,816 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>voltLib &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="mutator" href="varLib/mutator.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="varLib/mutator.html" title="mutator"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">fontTools 3.10 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-fontTools.voltLib">
+<span id="voltlib"></span><h1>voltLib<a class="headerlink" href="#module-fontTools.voltLib" title="Permalink to this headline">¶</a></h1>
+<p>fontTools.voltLib &#8211; a package for dealing with Visual OpenType Layout Tool
+(VOLT) files.</p>
+<div class="section" id="module-fontTools.voltLib.ast">
+<span id="ast"></span><h2>ast<a class="headerlink" href="#module-fontTools.voltLib.ast" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="fontTools.voltLib.ast.AnchorDefinition">
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.ast.</code><code class="descname">AnchorDefinition</code><span class="sig-paren">(</span><em>name</em>, <em>gid</em>, <em>glyph_name</em>, <em>component</em>, <em>locked</em>, <em>pos</em>, <em>location=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#AnchorDefinition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.AnchorDefinition" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="fontTools.voltLib.ast.Block">
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.ast.</code><code class="descname">Block</code><span class="sig-paren">(</span><em>location=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#Block"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.Block" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="fontTools.voltLib.ast.Block.build">
+<code class="descname">build</code><span class="sig-paren">(</span><em>builder</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#Block.build"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.Block.build" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.voltLib.ast.ContextDefinition">
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.ast.</code><code class="descname">ContextDefinition</code><span class="sig-paren">(</span><em>ex_or_in</em>, <em>left=None</em>, <em>right=None</em>, <em>location=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#ContextDefinition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.ContextDefinition" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="fontTools.voltLib.ast.Enum">
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.ast.</code><code class="descname">Enum</code><span class="sig-paren">(</span><em>enum</em>, <em>location=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#Enum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.Enum" title="Permalink to this definition">¶</a></dt>
+<dd><p>An enum</p>
+<dl class="method">
+<dt id="fontTools.voltLib.ast.Enum.glyphSet">
+<code class="descname">glyphSet</code><span class="sig-paren">(</span><em>groups=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#Enum.glyphSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.Enum.glyphSet" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.voltLib.ast.Expression">
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.ast.</code><code class="descname">Expression</code><span class="sig-paren">(</span><em>location=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#Expression"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.Expression" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="fontTools.voltLib.ast.Expression.build">
+<code class="descname">build</code><span class="sig-paren">(</span><em>builder</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#Expression.build"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.Expression.build" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.voltLib.ast.FeatureDefinition">
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.ast.</code><code class="descname">FeatureDefinition</code><span class="sig-paren">(</span><em>name</em>, <em>tag</em>, <em>lookups</em>, <em>location=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#FeatureDefinition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.FeatureDefinition" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="fontTools.voltLib.ast.GlyphDefinition">
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.ast.</code><code class="descname">GlyphDefinition</code><span class="sig-paren">(</span><em>name</em>, <em>gid</em>, <em>gunicode</em>, <em>gtype</em>, <em>components</em>, <em>location=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#GlyphDefinition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.GlyphDefinition" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="fontTools.voltLib.ast.GlyphName">
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.ast.</code><code class="descname">GlyphName</code><span class="sig-paren">(</span><em>glyph</em>, <em>location=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#GlyphName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.GlyphName" title="Permalink to this definition">¶</a></dt>
+<dd><p>A single glyph name, such as cedilla.</p>
+<dl class="method">
+<dt id="fontTools.voltLib.ast.GlyphName.glyphSet">
+<code class="descname">glyphSet</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#GlyphName.glyphSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.GlyphName.glyphSet" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.voltLib.ast.GroupDefinition">
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.ast.</code><code class="descname">GroupDefinition</code><span class="sig-paren">(</span><em>name</em>, <em>enum</em>, <em>location=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#GroupDefinition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.GroupDefinition" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="fontTools.voltLib.ast.GroupDefinition.glyphSet">
+<code class="descname">glyphSet</code><span class="sig-paren">(</span><em>groups=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#GroupDefinition.glyphSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.GroupDefinition.glyphSet" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.voltLib.ast.GroupName">
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.ast.</code><code class="descname">GroupName</code><span class="sig-paren">(</span><em>group</em>, <em>parser</em>, <em>location=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#GroupName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.GroupName" title="Permalink to this definition">¶</a></dt>
+<dd><p>A glyph group</p>
+<dl class="method">
+<dt id="fontTools.voltLib.ast.GroupName.glyphSet">
+<code class="descname">glyphSet</code><span class="sig-paren">(</span><em>groups=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#GroupName.glyphSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.GroupName.glyphSet" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.voltLib.ast.LangSysDefinition">
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.ast.</code><code class="descname">LangSysDefinition</code><span class="sig-paren">(</span><em>name</em>, <em>tag</em>, <em>features</em>, <em>location=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#LangSysDefinition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.LangSysDefinition" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="fontTools.voltLib.ast.LookupBlock">
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.ast.</code><code class="descname">LookupBlock</code><span class="sig-paren">(</span><em>name</em>, <em>location=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#LookupBlock"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.LookupBlock" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="fontTools.voltLib.ast.LookupBlock.build">
+<code class="descname">build</code><span class="sig-paren">(</span><em>builder</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#LookupBlock.build"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.LookupBlock.build" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.voltLib.ast.LookupDefinition">
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.ast.</code><code class="descname">LookupDefinition</code><span class="sig-paren">(</span><em>name</em>, <em>process_base</em>, <em>process_marks</em>, <em>direction</em>, <em>reversal</em>, <em>comments</em>, <em>context</em>, <em>sub</em>, <em>pos</em>, <em>location=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#LookupDefinition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.LookupDefinition" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="fontTools.voltLib.ast.PositionAdjustPairDefinition">
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.ast.</code><code class="descname">PositionAdjustPairDefinition</code><span class="sig-paren">(</span><em>coverages_1</em>, <em>coverages_2</em>, <em>adjust_pair</em>, <em>location=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#PositionAdjustPairDefinition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.PositionAdjustPairDefinition" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="fontTools.voltLib.ast.PositionAdjustSingleDefinition">
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.ast.</code><code class="descname">PositionAdjustSingleDefinition</code><span class="sig-paren">(</span><em>adjust_single</em>, <em>location=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#PositionAdjustSingleDefinition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.PositionAdjustSingleDefinition" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="fontTools.voltLib.ast.PositionAttachCursiveDefinition">
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.ast.</code><code class="descname">PositionAttachCursiveDefinition</code><span class="sig-paren">(</span><em>coverages_exit</em>, <em>coverages_enter</em>, <em>location=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#PositionAttachCursiveDefinition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.PositionAttachCursiveDefinition" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="fontTools.voltLib.ast.PositionAttachDefinition">
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.ast.</code><code class="descname">PositionAttachDefinition</code><span class="sig-paren">(</span><em>coverage</em>, <em>coverage_to</em>, <em>location=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#PositionAttachDefinition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.PositionAttachDefinition" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="fontTools.voltLib.ast.Range">
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.ast.</code><code class="descname">Range</code><span class="sig-paren">(</span><em>start</em>, <em>end</em>, <em>parser</em>, <em>location=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#Range"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.Range" title="Permalink to this definition">¶</a></dt>
+<dd><p>A glyph range</p>
+<dl class="method">
+<dt id="fontTools.voltLib.ast.Range.glyphSet">
+<code class="descname">glyphSet</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#Range.glyphSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.Range.glyphSet" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.voltLib.ast.ScriptDefinition">
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.ast.</code><code class="descname">ScriptDefinition</code><span class="sig-paren">(</span><em>name</em>, <em>tag</em>, <em>langs</em>, <em>location=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#ScriptDefinition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.ScriptDefinition" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="fontTools.voltLib.ast.SettingDefinition">
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.ast.</code><code class="descname">SettingDefinition</code><span class="sig-paren">(</span><em>name</em>, <em>value</em>, <em>location=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#SettingDefinition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.SettingDefinition" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="fontTools.voltLib.ast.Statement">
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.ast.</code><code class="descname">Statement</code><span class="sig-paren">(</span><em>location=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#Statement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.Statement" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="fontTools.voltLib.ast.Statement.build">
+<code class="descname">build</code><span class="sig-paren">(</span><em>builder</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#Statement.build"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.Statement.build" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.voltLib.ast.SubstitutionDefinition">
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.ast.</code><code class="descname">SubstitutionDefinition</code><span class="sig-paren">(</span><em>mapping</em>, <em>location=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#SubstitutionDefinition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.SubstitutionDefinition" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="fontTools.voltLib.ast.SubstitutionLigatureDefinition">
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.ast.</code><code class="descname">SubstitutionLigatureDefinition</code><span class="sig-paren">(</span><em>mapping</em>, <em>location=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#SubstitutionLigatureDefinition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.SubstitutionLigatureDefinition" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="fontTools.voltLib.ast.SubstitutionMultipleDefinition">
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.ast.</code><code class="descname">SubstitutionMultipleDefinition</code><span class="sig-paren">(</span><em>mapping</em>, <em>location=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#SubstitutionMultipleDefinition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.SubstitutionMultipleDefinition" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="fontTools.voltLib.ast.SubstitutionReverseChainingSingleDefinition">
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.ast.</code><code class="descname">SubstitutionReverseChainingSingleDefinition</code><span class="sig-paren">(</span><em>mapping</em>, <em>location=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#SubstitutionReverseChainingSingleDefinition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.SubstitutionReverseChainingSingleDefinition" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="fontTools.voltLib.ast.SubstitutionSingleDefinition">
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.ast.</code><code class="descname">SubstitutionSingleDefinition</code><span class="sig-paren">(</span><em>mapping</em>, <em>location=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#SubstitutionSingleDefinition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.SubstitutionSingleDefinition" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="fontTools.voltLib.ast.VoltFile">
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.ast.</code><code class="descname">VoltFile</code><a class="reference internal" href="_modules/fontTools/voltLib/ast.html#VoltFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.ast.VoltFile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-fontTools.voltLib.parser">
+<span id="error"></span><h2>error<a class="headerlink" href="#module-fontTools.voltLib.parser" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="fontTools.voltLib.parser.OrderedSymbolTable">
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.parser.</code><code class="descname">OrderedSymbolTable</code><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#OrderedSymbolTable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.OrderedSymbolTable" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="fontTools.voltLib.parser.OrderedSymbolTable.enter_scope">
+<code class="descname">enter_scope</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#OrderedSymbolTable.enter_scope"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.OrderedSymbolTable.enter_scope" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.OrderedSymbolTable.range">
+<code class="descname">range</code><span class="sig-paren">(</span><em>start</em>, <em>end</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#OrderedSymbolTable.range"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.OrderedSymbolTable.range" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.OrderedSymbolTable.resolve">
+<code class="descname">resolve</code><span class="sig-paren">(</span><em>name</em>, <em>case_insensitive=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#OrderedSymbolTable.resolve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.OrderedSymbolTable.resolve" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.voltLib.parser.Parser">
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.parser.</code><code class="descname">Parser</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="fontTools.voltLib.parser.Parser.advance_lexer_">
+<code class="descname">advance_lexer_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.advance_lexer_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser.advance_lexer_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.Parser.expect_keyword_">
+<code class="descname">expect_keyword_</code><span class="sig-paren">(</span><em>keyword</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.expect_keyword_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser.expect_keyword_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.Parser.expect_name_">
+<code class="descname">expect_name_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.expect_name_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser.expect_name_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.Parser.expect_number_">
+<code class="descname">expect_number_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.expect_number_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser.expect_number_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.Parser.expect_string_">
+<code class="descname">expect_string_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.expect_string_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser.expect_string_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.Parser.glyph_range">
+<code class="descname">glyph_range</code><span class="sig-paren">(</span><em>start</em>, <em>end</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.glyph_range"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser.glyph_range" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.Parser.is_cur_keyword_">
+<code class="descname">is_cur_keyword_</code><span class="sig-paren">(</span><em>k</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.is_cur_keyword_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser.is_cur_keyword_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.Parser.parse">
+<code class="descname">parse</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser.parse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.Parser.parse_adjust_by_">
+<code class="descname">parse_adjust_by_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_adjust_by_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser.parse_adjust_by_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.Parser.parse_adjust_pair_">
+<code class="descname">parse_adjust_pair_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_adjust_pair_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser.parse_adjust_pair_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.Parser.parse_adjust_single_">
+<code class="descname">parse_adjust_single_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_adjust_single_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser.parse_adjust_single_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.Parser.parse_attach_">
+<code class="descname">parse_attach_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_attach_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser.parse_attach_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.Parser.parse_attach_cursive_">
+<code class="descname">parse_attach_cursive_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_attach_cursive_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser.parse_attach_cursive_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.Parser.parse_cmap_format">
+<code class="descname">parse_cmap_format</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_cmap_format"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser.parse_cmap_format" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.Parser.parse_compiler_flag_">
+<code class="descname">parse_compiler_flag_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_compiler_flag_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser.parse_compiler_flag_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.Parser.parse_context_">
+<code class="descname">parse_context_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_context_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser.parse_context_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.Parser.parse_coverage_">
+<code class="descname">parse_coverage_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_coverage_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser.parse_coverage_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.Parser.parse_def_anchor_">
+<code class="descname">parse_def_anchor_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_def_anchor_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser.parse_def_anchor_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.Parser.parse_def_glyph_">
+<code class="descname">parse_def_glyph_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_def_glyph_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser.parse_def_glyph_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.Parser.parse_def_group_">
+<code class="descname">parse_def_group_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_def_group_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser.parse_def_group_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.Parser.parse_def_lookup_">
+<code class="descname">parse_def_lookup_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_def_lookup_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser.parse_def_lookup_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.Parser.parse_def_script_">
+<code class="descname">parse_def_script_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_def_script_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser.parse_def_script_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.Parser.parse_enum_">
+<code class="descname">parse_enum_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_enum_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser.parse_enum_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.Parser.parse_feature_">
+<code class="descname">parse_feature_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_feature_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser.parse_feature_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.Parser.parse_langsys_">
+<code class="descname">parse_langsys_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_langsys_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser.parse_langsys_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.Parser.parse_pos_">
+<code class="descname">parse_pos_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_pos_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser.parse_pos_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.Parser.parse_position_">
+<code class="descname">parse_position_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_position_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser.parse_position_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.Parser.parse_ppem_">
+<code class="descname">parse_ppem_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_ppem_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser.parse_ppem_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.Parser.parse_substitution_">
+<code class="descname">parse_substitution_</code><span class="sig-paren">(</span><em>reversal</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_substitution_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser.parse_substitution_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.Parser.parse_unicode_values_">
+<code class="descname">parse_unicode_values_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_unicode_values_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser.parse_unicode_values_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.Parser.resolve_group">
+<code class="descname">resolve_group</code><span class="sig-paren">(</span><em>group_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.resolve_group"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.Parser.resolve_group" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.voltLib.parser.SymbolTable">
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.parser.</code><code class="descname">SymbolTable</code><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#SymbolTable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.SymbolTable" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="fontTools.voltLib.parser.SymbolTable.define">
+<code class="descname">define</code><span class="sig-paren">(</span><em>name</em>, <em>item</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#SymbolTable.define"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.SymbolTable.define" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.SymbolTable.enter_scope">
+<code class="descname">enter_scope</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#SymbolTable.enter_scope"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.SymbolTable.enter_scope" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.SymbolTable.exit_scope">
+<code class="descname">exit_scope</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#SymbolTable.exit_scope"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.SymbolTable.exit_scope" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.parser.SymbolTable.resolve">
+<code class="descname">resolve</code><span class="sig-paren">(</span><em>name</em>, <em>case_insensitive=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#SymbolTable.resolve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.parser.SymbolTable.resolve" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-fontTools.voltLib.lexer">
+<span id="lexer"></span><h2>lexer<a class="headerlink" href="#module-fontTools.voltLib.lexer" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="fontTools.voltLib.lexer.Lexer">
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.lexer.</code><code class="descname">Lexer</code><span class="sig-paren">(</span><em>text</em>, <em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/lexer.html#Lexer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.lexer.Lexer" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="fontTools.voltLib.lexer.Lexer.CHAR_DIGIT_">
+<code class="descname">CHAR_DIGIT_</code><em class="property"> = u'0123456789'</em><a class="headerlink" href="#fontTools.voltLib.lexer.Lexer.CHAR_DIGIT_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.voltLib.lexer.Lexer.CHAR_LC_LETTER_">
+<code class="descname">CHAR_LC_LETTER_</code><em class="property"> = u'abcdefghijklmnopqrstuvwxyz'</em><a class="headerlink" href="#fontTools.voltLib.lexer.Lexer.CHAR_LC_LETTER_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.voltLib.lexer.Lexer.CHAR_NAME_CONTINUATION_">
+<code class="descname">CHAR_NAME_CONTINUATION_</code><em class="property"> = u'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz._0123456789'</em><a class="headerlink" href="#fontTools.voltLib.lexer.Lexer.CHAR_NAME_CONTINUATION_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.voltLib.lexer.Lexer.CHAR_NAME_START_">
+<code class="descname">CHAR_NAME_START_</code><em class="property"> = u'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz._'</em><a class="headerlink" href="#fontTools.voltLib.lexer.Lexer.CHAR_NAME_START_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.voltLib.lexer.Lexer.CHAR_NEWLINE_">
+<code class="descname">CHAR_NEWLINE_</code><em class="property"> = u'\r\n'</em><a class="headerlink" href="#fontTools.voltLib.lexer.Lexer.CHAR_NEWLINE_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.voltLib.lexer.Lexer.CHAR_PERIOD_">
+<code class="descname">CHAR_PERIOD_</code><em class="property"> = u'.'</em><a class="headerlink" href="#fontTools.voltLib.lexer.Lexer.CHAR_PERIOD_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.voltLib.lexer.Lexer.CHAR_UC_LETTER_">
+<code class="descname">CHAR_UC_LETTER_</code><em class="property"> = u'ABCDEFGHIJKLMNOPQRSTUVWXYZ'</em><a class="headerlink" href="#fontTools.voltLib.lexer.Lexer.CHAR_UC_LETTER_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.voltLib.lexer.Lexer.CHAR_UNDERSCORE_">
+<code class="descname">CHAR_UNDERSCORE_</code><em class="property"> = u'_'</em><a class="headerlink" href="#fontTools.voltLib.lexer.Lexer.CHAR_UNDERSCORE_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.voltLib.lexer.Lexer.CHAR_WHITESPACE_">
+<code class="descname">CHAR_WHITESPACE_</code><em class="property"> = u' \t'</em><a class="headerlink" href="#fontTools.voltLib.lexer.Lexer.CHAR_WHITESPACE_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.voltLib.lexer.Lexer.NAME">
+<code class="descname">NAME</code><em class="property"> = u'NAME'</em><a class="headerlink" href="#fontTools.voltLib.lexer.Lexer.NAME" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.voltLib.lexer.Lexer.NEWLINE">
+<code class="descname">NEWLINE</code><em class="property"> = u'NEWLINE'</em><a class="headerlink" href="#fontTools.voltLib.lexer.Lexer.NEWLINE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.voltLib.lexer.Lexer.NUMBER">
+<code class="descname">NUMBER</code><em class="property"> = u'NUMBER'</em><a class="headerlink" href="#fontTools.voltLib.lexer.Lexer.NUMBER" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.voltLib.lexer.Lexer.STRING">
+<code class="descname">STRING</code><em class="property"> = u'STRING'</em><a class="headerlink" href="#fontTools.voltLib.lexer.Lexer.STRING" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.lexer.Lexer.next">
+<code class="descname">next</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/lexer.html#Lexer.next"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.lexer.Lexer.next" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.lexer.Lexer.next_">
+<code class="descname">next_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/lexer.html#Lexer.next_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.lexer.Lexer.next_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.lexer.Lexer.scan_over_">
+<code class="descname">scan_over_</code><span class="sig-paren">(</span><em>valid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/lexer.html#Lexer.scan_over_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.lexer.Lexer.scan_over_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.voltLib.lexer.Lexer.scan_until_">
+<code class="descname">scan_until_</code><span class="sig-paren">(</span><em>stop_at</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/lexer.html#Lexer.scan_until_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.voltLib.lexer.Lexer.scan_until_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-fontTools.voltLib.parser">
+<span id="parser"></span><h2>parser<a class="headerlink" href="#module-fontTools.voltLib.parser" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt>
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.parser.</code><code class="descname">OrderedSymbolTable</code><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#OrderedSymbolTable"><span class="viewcode-link">[source]</span></a></dt>
+<dd><dl class="method">
+<dt>
+<code class="descname">enter_scope</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#OrderedSymbolTable.enter_scope"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">range</code><span class="sig-paren">(</span><em>start</em>, <em>end</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#OrderedSymbolTable.range"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">resolve</code><span class="sig-paren">(</span><em>name</em>, <em>case_insensitive=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#OrderedSymbolTable.resolve"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.parser.</code><code class="descname">Parser</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser"><span class="viewcode-link">[source]</span></a></dt>
+<dd><dl class="method">
+<dt>
+<code class="descname">advance_lexer_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.advance_lexer_"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">expect_keyword_</code><span class="sig-paren">(</span><em>keyword</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.expect_keyword_"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">expect_name_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.expect_name_"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">expect_number_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.expect_number_"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">expect_string_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.expect_string_"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">glyph_range</code><span class="sig-paren">(</span><em>start</em>, <em>end</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.glyph_range"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">is_cur_keyword_</code><span class="sig-paren">(</span><em>k</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.is_cur_keyword_"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">parse</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">parse_adjust_by_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_adjust_by_"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">parse_adjust_pair_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_adjust_pair_"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">parse_adjust_single_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_adjust_single_"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">parse_attach_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_attach_"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">parse_attach_cursive_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_attach_cursive_"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">parse_cmap_format</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_cmap_format"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">parse_compiler_flag_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_compiler_flag_"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">parse_context_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_context_"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">parse_coverage_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_coverage_"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">parse_def_anchor_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_def_anchor_"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">parse_def_glyph_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_def_glyph_"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">parse_def_group_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_def_group_"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">parse_def_lookup_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_def_lookup_"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">parse_def_script_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_def_script_"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">parse_enum_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_enum_"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">parse_feature_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_feature_"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">parse_langsys_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_langsys_"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">parse_pos_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_pos_"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">parse_position_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_position_"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">parse_ppem_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_ppem_"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">parse_substitution_</code><span class="sig-paren">(</span><em>reversal</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_substitution_"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">parse_unicode_values_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.parse_unicode_values_"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">resolve_group</code><span class="sig-paren">(</span><em>group_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#Parser.resolve_group"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><code class="descclassname">fontTools.voltLib.parser.</code><code class="descname">SymbolTable</code><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#SymbolTable"><span class="viewcode-link">[source]</span></a></dt>
+<dd><dl class="method">
+<dt>
+<code class="descname">define</code><span class="sig-paren">(</span><em>name</em>, <em>item</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#SymbolTable.define"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">enter_scope</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#SymbolTable.enter_scope"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">exit_scope</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#SymbolTable.exit_scope"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">resolve</code><span class="sig-paren">(</span><em>name</em>, <em>case_insensitive=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/voltLib/parser.html#SymbolTable.resolve"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">voltLib</a><ul>
+<li><a class="reference internal" href="#module-fontTools.voltLib.ast">ast</a></li>
+<li><a class="reference internal" href="#module-fontTools.voltLib.parser">error</a></li>
+<li><a class="reference internal" href="#module-fontTools.voltLib.lexer">lexer</a></li>
+<li><a class="reference internal" href="#module-fontTools.voltLib.parser">parser</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="varLib/mutator.html"
+                        title="previous chapter">mutator</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/voltLib.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="varLib/mutator.html" title="mutator"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">fontTools 3.10 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

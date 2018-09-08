@@ -1,0 +1,375 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ttx &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="varLib" href="varLib/index.html" />
+    <link rel="prev" title="woff2" href="ttLib/woff2.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="varLib/index.html" title="varLib"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="ttLib/woff2.html" title="woff2"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">fontTools 3.10 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-fontTools.ttx">
+<span id="ttx"></span><h1>ttx<a class="headerlink" href="#module-fontTools.ttx" title="Permalink to this headline">¶</a></h1>
+<p>usage: ttx [options] inputfile1 [... inputfileN]</p>
+<p>TTX &#8211; From OpenType To XML And Back</p>
+<dl class="docutils">
+<dt>If an input file is a TrueType or OpenType font file, it will be</dt>
+<dd>decompiled to a TTX file (an XML-based text format).</dd>
+<dt>If an input file is a TTX file, it will be compiled to whatever </dt>
+<dd>format the data is in, a TrueType or OpenType/CFF font file.</dd>
+<dt>Output files are created so they are unique: an existing file is</dt>
+<dd>never overwritten.</dd>
+</dl>
+<p>General options:
+-h Help: print this message.
+&#8211;version: show version and exit.
+-d &lt;outputfolder&gt; Specify a directory where the output files are</p>
+<blockquote>
+<div>to be created.</div></blockquote>
+<dl class="docutils">
+<dt>-o &lt;outputfile&gt; Specify a file to write the output to. A special</dt>
+<dd>value of - would use the standard output.</dd>
+</dl>
+<p>-f Overwrite existing output file(s), ie. don&#8217;t append numbers.
+-v Verbose: more messages will be written to stdout about what</p>
+<blockquote>
+<div>is being done.</div></blockquote>
+<dl class="docutils">
+<dt>-q Quiet: No messages will be written to stdout about what</dt>
+<dd>is being done.</dd>
+</dl>
+<p>-a allow virtual glyphs ID&#8217;s on compile or decompile.</p>
+<p>Dump options:
+-l List table info: instead of dumping to a TTX file, list some</p>
+<blockquote>
+<div>minimal info about each table.</div></blockquote>
+<dl class="docutils">
+<dt>-t &lt;table&gt; Specify a table to dump. Multiple -t options</dt>
+<dd>are allowed. When no -t option is specified, all tables
+will be dumped.</dd>
+<dt>-x &lt;table&gt; Specify a table to exclude from the dump. Multiple</dt>
+<dd>-x options are allowed. -t and -x are mutually exclusive.</dd>
+<dt>-s Split tables: save the TTX data into separate TTX files per</dt>
+<dd>table and write one small TTX file that contains references
+to the individual table dumps. This file can be used as
+input to ttx, as long as the table files are in the
+same directory.</dd>
+<dt>-g Split glyf table: Save the glyf data into separate TTX files</dt>
+<dd>per glyph and write a small TTX for the glyf table which
+contains references to the individual TTGlyph elements.
+NOTE: specifying -g implies -s (no need for -s together with -g)</dd>
+<dt>-i Do NOT disassemble TT instructions: when this option is given,</dt>
+<dd>all TrueType programs (glyph programs, the font program and the
+pre-program) will be written to the TTX file as hex data
+instead of assembly. This saves some time and makes the TTX
+file smaller.</dd>
+<dt>-z &lt;format&gt; Specify a bitmap data export option for EBDT:</dt>
+<dd><p class="first">{&#8216;raw&#8217;, &#8216;row&#8217;, &#8216;bitwise&#8217;, &#8216;extfile&#8217;} or for the CBDT:
+{&#8216;raw&#8217;, &#8216;extfile&#8217;} Each option does one of the following:</p>
+<blockquote>
+<div><table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd><span class="option">-z <var>raw</var></span></kbd></td>
+<td><ul class="first last simple">
+<li>export the bitmap data as a hex dump</li>
+</ul>
+</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-z <var>row</var></span></kbd></td>
+<td><ul class="first last simple">
+<li>export each row as hex data</li>
+</ul>
+</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-z <var>bitwise</var></span></kbd></td>
+<td><ul class="first last simple">
+<li>export each row as binary in an ASCII art style</li>
+</ul>
+</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-z <var>extfile</var></span></kbd></td>
+<td><ul class="first last simple">
+<li>export the data as external files with XML references</li>
+</ul>
+</td></tr>
+</tbody>
+</table>
+</div></blockquote>
+<p class="last">If no export format is specified &#8216;raw&#8217; format is used.</p>
+</dd>
+<dt>-e Don&#8217;t ignore decompilation errors, but show a full traceback</dt>
+<dd>and abort.</dd>
+<dt>-y &lt;number&gt; Select font number for TrueType Collection (.ttc/.otc),</dt>
+<dd>starting from 0.</dd>
+<dt>&#8211;unicodedata &lt;UnicodeData.txt&gt; Use custom database file to write</dt>
+<dd>character names in the comments of the cmap TTX output.</dd>
+<dt>&#8211;newline &lt;value&gt; Control how line endings are written in the XML</dt>
+<dd>file. It can be &#8216;LF&#8217;, &#8216;CR&#8217;, or &#8216;CRLF&#8217;. If not specified, the
+default platform-specific line endings are used.</dd>
+</dl>
+<p>Compile options:
+-m Merge with TrueType-input-file: specify a TrueType or OpenType</p>
+<blockquote>
+<div>font file to be merged with the TTX file. This option is only
+valid when at most one TTX file is specified.</div></blockquote>
+<dl class="docutils">
+<dt>-b Don&#8217;t recalc glyph bounding boxes: use the values in the TTX</dt>
+<dd>file as-is.</dd>
+<dt>&#8211;recalc-timestamp Set font &#8216;modified&#8217; timestamp to current time.</dt>
+<dd>By default, the modification time of the TTX file will be used.</dd>
+<dt>&#8211;flavor &lt;type&gt; Specify flavor of output font file. May be &#8216;woff&#8217;</dt>
+<dd>or &#8216;woff2&#8217;. Note that WOFF2 requires the Brotli Python extension,
+available at <a class="reference external" href="https://github.com/google/brotli">https://github.com/google/brotli</a></dd>
+<dt>&#8211;with-zopfli Use Zopfli instead of Zlib to compress WOFF. The Python</dt>
+<dd>extension is available at <a class="reference external" href="https://pypi.python.org/pypi/zopfli">https://pypi.python.org/pypi/zopfli</a></dd>
+</dl>
+<dl class="class">
+<dt id="fontTools.ttx.Options">
+<em class="property">class </em><code class="descclassname">fontTools.ttx.</code><code class="descname">Options</code><span class="sig-paren">(</span><em>rawOptions</em>, <em>numFiles</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/ttx.html#Options"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttx.Options" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="fontTools.ttx.Options.allowVID">
+<code class="descname">allowVID</code><em class="property"> = False</em><a class="headerlink" href="#fontTools.ttx.Options.allowVID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.ttx.Options.bitmapGlyphDataFormat">
+<code class="descname">bitmapGlyphDataFormat</code><em class="property"> = 'raw'</em><a class="headerlink" href="#fontTools.ttx.Options.bitmapGlyphDataFormat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.ttx.Options.disassembleInstructions">
+<code class="descname">disassembleInstructions</code><em class="property"> = True</em><a class="headerlink" href="#fontTools.ttx.Options.disassembleInstructions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.ttx.Options.flavor">
+<code class="descname">flavor</code><em class="property"> = None</em><a class="headerlink" href="#fontTools.ttx.Options.flavor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.ttx.Options.ignoreDecompileErrors">
+<code class="descname">ignoreDecompileErrors</code><em class="property"> = True</em><a class="headerlink" href="#fontTools.ttx.Options.ignoreDecompileErrors" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.ttx.Options.listTables">
+<code class="descname">listTables</code><em class="property"> = False</em><a class="headerlink" href="#fontTools.ttx.Options.listTables" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.ttx.Options.mergeFile">
+<code class="descname">mergeFile</code><em class="property"> = None</em><a class="headerlink" href="#fontTools.ttx.Options.mergeFile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.ttx.Options.newlinestr">
+<code class="descname">newlinestr</code><em class="property"> = None</em><a class="headerlink" href="#fontTools.ttx.Options.newlinestr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.ttx.Options.outputDir">
+<code class="descname">outputDir</code><em class="property"> = None</em><a class="headerlink" href="#fontTools.ttx.Options.outputDir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.ttx.Options.outputFile">
+<code class="descname">outputFile</code><em class="property"> = None</em><a class="headerlink" href="#fontTools.ttx.Options.outputFile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.ttx.Options.overWrite">
+<code class="descname">overWrite</code><em class="property"> = False</em><a class="headerlink" href="#fontTools.ttx.Options.overWrite" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.ttx.Options.quiet">
+<code class="descname">quiet</code><em class="property"> = False</em><a class="headerlink" href="#fontTools.ttx.Options.quiet" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.ttx.Options.recalcBBoxes">
+<code class="descname">recalcBBoxes</code><em class="property"> = True</em><a class="headerlink" href="#fontTools.ttx.Options.recalcBBoxes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.ttx.Options.recalcTimestamp">
+<code class="descname">recalcTimestamp</code><em class="property"> = False</em><a class="headerlink" href="#fontTools.ttx.Options.recalcTimestamp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.ttx.Options.splitGlyphs">
+<code class="descname">splitGlyphs</code><em class="property"> = False</em><a class="headerlink" href="#fontTools.ttx.Options.splitGlyphs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.ttx.Options.splitTables">
+<code class="descname">splitTables</code><em class="property"> = False</em><a class="headerlink" href="#fontTools.ttx.Options.splitTables" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.ttx.Options.unicodedata">
+<code class="descname">unicodedata</code><em class="property"> = None</em><a class="headerlink" href="#fontTools.ttx.Options.unicodedata" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.ttx.Options.useZopfli">
+<code class="descname">useZopfli</code><em class="property"> = False</em><a class="headerlink" href="#fontTools.ttx.Options.useZopfli" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.ttx.Options.verbose">
+<code class="descname">verbose</code><em class="property"> = False</em><a class="headerlink" href="#fontTools.ttx.Options.verbose" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="fontTools.ttx.guessFileType">
+<code class="descclassname">fontTools.ttx.</code><code class="descname">guessFileType</code><span class="sig-paren">(</span><em>fileName</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/ttx.html#guessFileType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttx.guessFileType" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.ttx.main">
+<code class="descclassname">fontTools.ttx.</code><code class="descname">main</code><span class="sig-paren">(</span><em>args=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/ttx.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttx.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.ttx.parseOptions">
+<code class="descclassname">fontTools.ttx.</code><code class="descname">parseOptions</code><span class="sig-paren">(</span><em>args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/ttx.html#parseOptions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttx.parseOptions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.ttx.process">
+<code class="descclassname">fontTools.ttx.</code><code class="descname">process</code><span class="sig-paren">(</span><em>jobs</em>, <em>options</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/ttx.html#process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttx.process" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.ttx.ttCompile">
+<code class="descclassname">fontTools.ttx.</code><code class="descname">ttCompile</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/ttx.html#ttCompile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttx.ttCompile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.ttx.ttDump">
+<code class="descclassname">fontTools.ttx.</code><code class="descname">ttDump</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/ttx.html#ttDump"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttx.ttDump" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.ttx.ttList">
+<code class="descclassname">fontTools.ttx.</code><code class="descname">ttList</code><span class="sig-paren">(</span><em>input</em>, <em>output</em>, <em>options</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/ttx.html#ttList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttx.ttList" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.ttx.waitForKeyPress">
+<code class="descclassname">fontTools.ttx.</code><code class="descname">waitForKeyPress</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fontTools/ttx.html#waitForKeyPress"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.ttx.waitForKeyPress" title="Permalink to this definition">¶</a></dt>
+<dd><p>Force the DOS Prompt window to stay open so the user gets
+a chance to see what&#8217;s wrong.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="ttLib/woff2.html"
+                        title="previous chapter">woff2</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="varLib/index.html"
+                        title="next chapter">varLib</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/ttx.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="varLib/index.html" title="varLib"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="ttLib/woff2.html" title="woff2"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">fontTools 3.10 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

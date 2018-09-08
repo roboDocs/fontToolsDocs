@@ -1,0 +1,613 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fontTools.ttLib.tables.O_S_2f_2 &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../ttLib.html" accesskey="U">fontTools.ttLib</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fontTools.ttLib.tables.O_S_2f_2</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.py23</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc</span> <span class="k">import</span> <span class="n">sstruct</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.textTools</span> <span class="k">import</span> <span class="n">safeEval</span><span class="p">,</span> <span class="n">num2binary</span><span class="p">,</span> <span class="n">binary2num</span>
+<span class="kn">from</span> <span class="nn">fontTools.ttLib.tables</span> <span class="k">import</span> <span class="n">DefaultTable</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="c1"># panose classification</span>
+
+<span class="n">panoseFormat</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">	bFamilyType:        B</span>
+<span class="s2">	bSerifStyle:        B</span>
+<span class="s2">	bWeight:            B</span>
+<span class="s2">	bProportion:        B</span>
+<span class="s2">	bContrast:          B</span>
+<span class="s2">	bStrokeVariation:   B</span>
+<span class="s2">	bArmStyle:          B</span>
+<span class="s2">	bLetterForm:        B</span>
+<span class="s2">	bMidline:           B</span>
+<span class="s2">	bXHeight:           B</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Panose"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.O_S_2f_2.Panose">[docs]</a><span class="k">class</span> <span class="nc">Panose</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Panose.toXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.O_S_2f_2.Panose.toXML">[docs]</a>	<span class="k">def</span> <span class="nf">toXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">formatstring</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">fixes</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">getformat</span><span class="p">(</span><span class="n">panoseFormat</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Panose.fromXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.O_S_2f_2.Panose.fromXML">[docs]</a>	<span class="k">def</span> <span class="nf">fromXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]))</span></div></div>
+
+
+<span class="c1"># &#39;sfnt&#39; OS/2 and Windows Metrics table - &#39;OS/2&#39;</span>
+
+<span class="n">OS2_format_0</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">	&gt;   # big endian</span>
+<span class="s2">	version:                H       # version</span>
+<span class="s2">	xAvgCharWidth:          h       # average character width</span>
+<span class="s2">	usWeightClass:          H       # degree of thickness of strokes</span>
+<span class="s2">	usWidthClass:           H       # aspect ratio</span>
+<span class="s2">	fsType:                 h       # type flags</span>
+<span class="s2">	ySubscriptXSize:        h       # subscript horizontal font size</span>
+<span class="s2">	ySubscriptYSize:        h       # subscript vertical font size</span>
+<span class="s2">	ySubscriptXOffset:      h       # subscript x offset</span>
+<span class="s2">	ySubscriptYOffset:      h       # subscript y offset</span>
+<span class="s2">	ySuperscriptXSize:      h       # superscript horizontal font size</span>
+<span class="s2">	ySuperscriptYSize:      h       # superscript vertical font size</span>
+<span class="s2">	ySuperscriptXOffset:    h       # superscript x offset</span>
+<span class="s2">	ySuperscriptYOffset:    h       # superscript y offset</span>
+<span class="s2">	yStrikeoutSize:         h       # strikeout size</span>
+<span class="s2">	yStrikeoutPosition:     h       # strikeout position</span>
+<span class="s2">	sFamilyClass:           h       # font family class and subclass</span>
+<span class="s2">	panose:                 10s     # panose classification number</span>
+<span class="s2">	ulUnicodeRange1:        L       # character range</span>
+<span class="s2">	ulUnicodeRange2:        L       # character range</span>
+<span class="s2">	ulUnicodeRange3:        L       # character range</span>
+<span class="s2">	ulUnicodeRange4:        L       # character range</span>
+<span class="s2">	achVendID:              4s      # font vendor identification</span>
+<span class="s2">	fsSelection:            H       # font selection flags</span>
+<span class="s2">	usFirstCharIndex:       H       # first unicode character index</span>
+<span class="s2">	usLastCharIndex:        H       # last unicode character index</span>
+<span class="s2">	sTypoAscender:          h       # typographic ascender</span>
+<span class="s2">	sTypoDescender:         h       # typographic descender</span>
+<span class="s2">	sTypoLineGap:           h       # typographic line gap</span>
+<span class="s2">	usWinAscent:            H       # Windows ascender</span>
+<span class="s2">	usWinDescent:           H       # Windows descender</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="n">OS2_format_1_addition</span> <span class="o">=</span>  <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">	ulCodePageRange1:   L</span>
+<span class="s2">	ulCodePageRange2:   L</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="n">OS2_format_2_addition</span> <span class="o">=</span>  <span class="n">OS2_format_1_addition</span> <span class="o">+</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">	sxHeight:           h</span>
+<span class="s2">	sCapHeight:         h</span>
+<span class="s2">	usDefaultChar:      H</span>
+<span class="s2">	usBreakChar:        H</span>
+<span class="s2">	usMaxContext:       H</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="n">OS2_format_5_addition</span> <span class="o">=</span>  <span class="n">OS2_format_2_addition</span> <span class="o">+</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">	usLowerOpticalPointSize:    H</span>
+<span class="s2">	usUpperOpticalPointSize:    H</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="n">bigendian</span> <span class="o">=</span> <span class="s2">&quot;	&gt;	# big endian</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+<span class="n">OS2_format_1</span> <span class="o">=</span> <span class="n">OS2_format_0</span> <span class="o">+</span> <span class="n">OS2_format_1_addition</span>
+<span class="n">OS2_format_2</span> <span class="o">=</span> <span class="n">OS2_format_0</span> <span class="o">+</span> <span class="n">OS2_format_2_addition</span>
+<span class="n">OS2_format_5</span> <span class="o">=</span> <span class="n">OS2_format_0</span> <span class="o">+</span> <span class="n">OS2_format_5_addition</span>
+<span class="n">OS2_format_1_addition</span> <span class="o">=</span> <span class="n">bigendian</span> <span class="o">+</span> <span class="n">OS2_format_1_addition</span>
+<span class="n">OS2_format_2_addition</span> <span class="o">=</span> <span class="n">bigendian</span> <span class="o">+</span> <span class="n">OS2_format_2_addition</span>
+<span class="n">OS2_format_5_addition</span> <span class="o">=</span> <span class="n">bigendian</span> <span class="o">+</span> <span class="n">OS2_format_5_addition</span>
+
+
+<div class="viewcode-block" id="table_O_S_2f_2"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.O_S_2f_2.table_O_S_2f_2">[docs]</a><span class="k">class</span> <span class="nc">table_O_S_2f_2</span><span class="p">(</span><span class="n">DefaultTable</span><span class="o">.</span><span class="n">DefaultTable</span><span class="p">):</span>
+
+	<span class="sd">&quot;&quot;&quot;the OS/2 table&quot;&quot;&quot;</span>
+
+	<span class="n">dependencies</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;head&quot;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="table_O_S_2f_2.decompile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.O_S_2f_2.table_O_S_2f_2.decompile">[docs]</a>	<span class="k">def</span> <span class="nf">decompile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">dummy</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">unpack2</span><span class="p">(</span><span class="n">OS2_format_0</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+			<span class="n">dummy</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">unpack2</span><span class="p">(</span><span class="n">OS2_format_1_addition</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span>
+			<span class="n">dummy</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">unpack2</span><span class="p">(</span><span class="n">OS2_format_2_addition</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+			<span class="n">dummy</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">unpack2</span><span class="p">(</span><span class="n">OS2_format_5_addition</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">usLowerOpticalPointSize</span> <span class="o">/=</span> <span class="mi">20</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">usUpperOpticalPointSize</span> <span class="o">/=</span> <span class="mi">20</span>
+		<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+			<span class="kn">from</span> <span class="nn">fontTools</span> <span class="k">import</span> <span class="n">ttLib</span>
+			<span class="k">raise</span> <span class="n">ttLib</span><span class="o">.</span><span class="n">TTLibError</span><span class="p">(</span><span class="s2">&quot;unknown format for OS/2 table: version </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;too much &#39;OS/2&#39; table data&quot;</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">panose</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">panoseFormat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">panose</span><span class="p">,</span> <span class="n">Panose</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="table_O_S_2f_2.compile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.O_S_2f_2.table_O_S_2f_2.compile">[docs]</a>	<span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">updateFirstAndLastCharIndex</span><span class="p">(</span><span class="n">ttFont</span><span class="p">)</span>
+		<span class="n">panose</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">panose</span>
+		<span class="n">head</span> <span class="o">=</span> <span class="n">ttFont</span><span class="p">[</span><span class="s2">&quot;head&quot;</span><span class="p">]</span>
+		<span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fsSelection</span> <span class="o">&amp;</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">head</span><span class="o">.</span><span class="n">macStyle</span> <span class="o">&amp;</span> <span class="mi">1</span><span class="o">&lt;&lt;</span><span class="mi">1</span><span class="p">):</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;fsSelection bit 0 (italic) and &quot;</span>
+				<span class="s2">&quot;head table macStyle bit 1 (italic) should match&quot;</span><span class="p">)</span>
+		<span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fsSelection</span> <span class="o">&amp;</span> <span class="mi">1</span><span class="o">&lt;&lt;</span><span class="mi">5</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">head</span><span class="o">.</span><span class="n">macStyle</span> <span class="o">&amp;</span> <span class="mi">1</span><span class="p">):</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;fsSelection bit 5 (bold) and &quot;</span>
+				<span class="s2">&quot;head table macStyle bit 0 (bold) should match&quot;</span><span class="p">)</span>
+		<span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fsSelection</span> <span class="o">&amp;</span> <span class="mi">1</span><span class="o">&lt;&lt;</span><span class="mi">6</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fsSelection</span> <span class="o">&amp;</span> <span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="o">&lt;&lt;</span><span class="mi">5</span><span class="p">)):</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;fsSelection bit 6 (regular) is set, &quot;</span>
+				<span class="s2">&quot;bits 0 (italic) and 5 (bold) must be clear&quot;</span><span class="p">)</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">&lt;</span> <span class="mi">4</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">fsSelection</span> <span class="o">&amp;</span> <span class="mb">0b1110000000</span><span class="p">:</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;fsSelection bits 7, 8 and 9 are only defined in &quot;</span>
+				<span class="s2">&quot;OS/2 table version 4 and up: version </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">panose</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">panoseFormat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">panose</span><span class="p">)</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+			<span class="n">data</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">OS2_format_0</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+			<span class="n">data</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">OS2_format_1</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span>
+			<span class="n">data</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">OS2_format_2</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+			<span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+			<span class="n">d</span><span class="p">[</span><span class="s1">&#39;usLowerOpticalPointSize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">usLowerOpticalPointSize</span> <span class="o">*</span> <span class="mi">20</span><span class="p">)</span>
+			<span class="n">d</span><span class="p">[</span><span class="s1">&#39;usUpperOpticalPointSize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">usUpperOpticalPointSize</span> <span class="o">*</span> <span class="mi">20</span><span class="p">)</span>
+			<span class="n">data</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">OS2_format_5</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="kn">from</span> <span class="nn">fontTools</span> <span class="k">import</span> <span class="n">ttLib</span>
+			<span class="k">raise</span> <span class="n">ttLib</span><span class="o">.</span><span class="n">TTLibError</span><span class="p">(</span><span class="s2">&quot;unknown format for OS/2 table: version </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">panose</span> <span class="o">=</span> <span class="n">panose</span>
+		<span class="k">return</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="table_O_S_2f_2.toXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.O_S_2f_2.table_O_S_2f_2.toXML">[docs]</a>	<span class="k">def</span> <span class="nf">toXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">comment</span><span class="p">(</span>
+			<span class="s2">&quot;The fields &#39;usFirstCharIndex&#39; and &#39;usLastCharIndex&#39;</span><span class="se">\n</span><span class="s2">&quot;</span>
+			<span class="s2">&quot;will be recalculated by the compiler&quot;</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+			<span class="nb">format</span> <span class="o">=</span> <span class="n">OS2_format_1</span>
+		<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span>
+			<span class="nb">format</span> <span class="o">=</span> <span class="n">OS2_format_2</span>
+		<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+			<span class="nb">format</span> <span class="o">=</span> <span class="n">OS2_format_5</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="nb">format</span> <span class="o">=</span> <span class="n">OS2_format_0</span>
+		<span class="n">formatstring</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">fixes</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">getformat</span><span class="p">(</span><span class="nb">format</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+			<span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">name</span><span class="o">==</span><span class="s2">&quot;panose&quot;</span><span class="p">:</span>
+				<span class="n">writer</span><span class="o">.</span><span class="n">begintag</span><span class="p">(</span><span class="s2">&quot;panose&quot;</span><span class="p">)</span>
+				<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+				<span class="n">value</span><span class="o">.</span><span class="n">toXML</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span>
+				<span class="n">writer</span><span class="o">.</span><span class="n">endtag</span><span class="p">(</span><span class="s2">&quot;panose&quot;</span><span class="p">)</span>
+			<span class="k">elif</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;ulUnicodeRange1&quot;</span><span class="p">,</span> <span class="s2">&quot;ulUnicodeRange2&quot;</span><span class="p">,</span>
+					<span class="s2">&quot;ulUnicodeRange3&quot;</span><span class="p">,</span> <span class="s2">&quot;ulUnicodeRange4&quot;</span><span class="p">,</span>
+					<span class="s2">&quot;ulCodePageRange1&quot;</span><span class="p">,</span> <span class="s2">&quot;ulCodePageRange2&quot;</span><span class="p">):</span>
+				<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">num2binary</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+			<span class="k">elif</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;fsType&quot;</span><span class="p">,</span> <span class="s2">&quot;fsSelection&quot;</span><span class="p">):</span>
+				<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">num2binary</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="mi">16</span><span class="p">))</span>
+			<span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;achVendID&quot;</span><span class="p">:</span>
+				<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="nb">repr</span><span class="p">(</span><span class="n">value</span><span class="p">)[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="table_O_S_2f_2.fromXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.O_S_2f_2.table_O_S_2f_2.fromXML">[docs]</a>	<span class="k">def</span> <span class="nf">fromXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;panose&quot;</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">panose</span> <span class="o">=</span> <span class="n">panose</span> <span class="o">=</span> <span class="n">Panose</span><span class="p">()</span>
+			<span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+				<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+					<span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span> <span class="o">=</span> <span class="n">element</span>
+					<span class="n">panose</span><span class="o">.</span><span class="n">fromXML</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;ulUnicodeRange1&quot;</span><span class="p">,</span> <span class="s2">&quot;ulUnicodeRange2&quot;</span><span class="p">,</span>
+				<span class="s2">&quot;ulUnicodeRange3&quot;</span><span class="p">,</span> <span class="s2">&quot;ulUnicodeRange4&quot;</span><span class="p">,</span>
+				<span class="s2">&quot;ulCodePageRange1&quot;</span><span class="p">,</span> <span class="s2">&quot;ulCodePageRange2&quot;</span><span class="p">,</span>
+				<span class="s2">&quot;fsType&quot;</span><span class="p">,</span> <span class="s2">&quot;fsSelection&quot;</span><span class="p">):</span>
+			<span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">binary2num</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]))</span>
+		<span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;achVendID&quot;</span><span class="p">:</span>
+			<span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">safeEval</span><span class="p">(</span><span class="s2">&quot;&#39;&#39;&#39;&quot;</span> <span class="o">+</span> <span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;&#39;&#39;&#39;&quot;</span><span class="p">))</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]))</span></div>
+
+<div class="viewcode-block" id="table_O_S_2f_2.updateFirstAndLastCharIndex"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.O_S_2f_2.table_O_S_2f_2.updateFirstAndLastCharIndex">[docs]</a>	<span class="k">def</span> <span class="nf">updateFirstAndLastCharIndex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="k">if</span> <span class="s1">&#39;cmap&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ttFont</span><span class="p">:</span>
+			<span class="k">return</span>
+		<span class="n">codes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ttFont</span><span class="p">[</span><span class="s1">&#39;cmap&#39;</span><span class="p">],</span> <span class="s1">&#39;tables&#39;</span><span class="p">,</span> <span class="p">[]):</span>
+			<span class="k">if</span> <span class="n">table</span><span class="o">.</span><span class="n">isUnicode</span><span class="p">():</span>
+				<span class="n">codes</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">cmap</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+		<span class="k">if</span> <span class="n">codes</span><span class="p">:</span>
+			<span class="n">minCode</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">codes</span><span class="p">)</span>
+			<span class="n">maxCode</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">codes</span><span class="p">)</span>
+			<span class="c1"># USHORT cannot hold codepoints greater than 0xFFFF</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">usFirstCharIndex</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mh">0xFFFF</span><span class="p">,</span> <span class="n">minCode</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">usLastCharIndex</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mh">0xFFFF</span><span class="p">,</span> <span class="n">maxCode</span><span class="p">)</span></div>
+
+	<span class="c1"># misspelled attributes kept for legacy reasons</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">usMaxContex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">usMaxContext</span>
+
+	<span class="nd">@usMaxContex</span><span class="o">.</span><span class="n">setter</span>
+	<span class="k">def</span> <span class="nf">usMaxContex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">usMaxContext</span> <span class="o">=</span> <span class="n">value</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">fsFirstCharIndex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">usFirstCharIndex</span>
+
+	<span class="nd">@fsFirstCharIndex</span><span class="o">.</span><span class="n">setter</span>
+	<span class="k">def</span> <span class="nf">fsFirstCharIndex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">usFirstCharIndex</span> <span class="o">=</span> <span class="n">value</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">fsLastCharIndex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">usLastCharIndex</span>
+
+	<span class="nd">@fsLastCharIndex</span><span class="o">.</span><span class="n">setter</span>
+	<span class="k">def</span> <span class="nf">fsLastCharIndex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">usLastCharIndex</span> <span class="o">=</span> <span class="n">value</span>
+
+<div class="viewcode-block" id="table_O_S_2f_2.getUnicodeRanges"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.O_S_2f_2.table_O_S_2f_2.getUnicodeRanges">[docs]</a>	<span class="k">def</span> <span class="nf">getUnicodeRanges</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; Return the set of &#39;ulUnicodeRange*&#39; bits currently enabled. &quot;&quot;&quot;</span>
+		<span class="n">bits</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+		<span class="n">ul1</span><span class="p">,</span> <span class="n">ul2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ulUnicodeRange1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ulUnicodeRange2</span>
+		<span class="n">ul3</span><span class="p">,</span> <span class="n">ul4</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ulUnicodeRange3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ulUnicodeRange4</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">32</span><span class="p">):</span>
+			<span class="k">if</span> <span class="n">ul1</span> <span class="o">&amp;</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">i</span><span class="p">):</span>
+				<span class="n">bits</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">ul2</span> <span class="o">&amp;</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">i</span><span class="p">):</span>
+				<span class="n">bits</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">32</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">ul3</span> <span class="o">&amp;</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">i</span><span class="p">):</span>
+				<span class="n">bits</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">64</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">ul4</span> <span class="o">&amp;</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">i</span><span class="p">):</span>
+				<span class="n">bits</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">96</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">bits</span></div>
+
+<div class="viewcode-block" id="table_O_S_2f_2.setUnicodeRanges"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.O_S_2f_2.table_O_S_2f_2.setUnicodeRanges">[docs]</a>	<span class="k">def</span> <span class="nf">setUnicodeRanges</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bits</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; Set the &#39;ulUnicodeRange*&#39; fields to the specified &#39;bits&#39;. &quot;&quot;&quot;</span>
+		<span class="n">ul1</span><span class="p">,</span> <span class="n">ul2</span><span class="p">,</span> <span class="n">ul3</span><span class="p">,</span> <span class="n">ul4</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+		<span class="k">for</span> <span class="n">bit</span> <span class="ow">in</span> <span class="n">bits</span><span class="p">:</span>
+			<span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">bit</span> <span class="o">&lt;</span> <span class="mi">32</span><span class="p">:</span>
+				<span class="n">ul1</span> <span class="o">|=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">bit</span><span class="p">)</span>
+			<span class="k">elif</span> <span class="mi">32</span> <span class="o">&lt;=</span> <span class="n">bit</span> <span class="o">&lt;</span> <span class="mi">64</span><span class="p">:</span>
+				<span class="n">ul2</span> <span class="o">|=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">bit</span> <span class="o">-</span> <span class="mi">32</span><span class="p">))</span>
+			<span class="k">elif</span> <span class="mi">64</span> <span class="o">&lt;=</span> <span class="n">bit</span> <span class="o">&lt;</span> <span class="mi">96</span><span class="p">:</span>
+				<span class="n">ul3</span> <span class="o">|=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">bit</span> <span class="o">-</span> <span class="mi">64</span><span class="p">))</span>
+			<span class="k">elif</span> <span class="mi">96</span> <span class="o">&lt;=</span> <span class="n">bit</span> <span class="o">&lt;</span> <span class="mi">123</span><span class="p">:</span>
+				<span class="n">ul4</span> <span class="o">|=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">bit</span> <span class="o">-</span> <span class="mi">96</span><span class="p">))</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;expected 0 &lt;= int &lt;= 122, found: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">bit</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">ulUnicodeRange1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ulUnicodeRange2</span> <span class="o">=</span> <span class="n">ul1</span><span class="p">,</span> <span class="n">ul2</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">ulUnicodeRange3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ulUnicodeRange4</span> <span class="o">=</span> <span class="n">ul3</span><span class="p">,</span> <span class="n">ul4</span></div>
+
+<div class="viewcode-block" id="table_O_S_2f_2.recalcUnicodeRanges"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.O_S_2f_2.table_O_S_2f_2.recalcUnicodeRanges">[docs]</a>	<span class="k">def</span> <span class="nf">recalcUnicodeRanges</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">,</span> <span class="n">pruneOnly</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; Intersect the codepoints in the font&#39;s Unicode cmap subtables with</span>
+<span class="sd">		the Unicode block ranges defined in the OpenType specification (v1.7),</span>
+<span class="sd">		and set the respective &#39;ulUnicodeRange*&#39; bits if there is at least ONE</span>
+<span class="sd">		intersection.</span>
+<span class="sd">		If &#39;pruneOnly&#39; is True, only clear unused bits with NO intersection.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">unicodes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">ttFont</span><span class="p">[</span><span class="s1">&#39;cmap&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">tables</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">table</span><span class="o">.</span><span class="n">isUnicode</span><span class="p">():</span>
+				<span class="n">unicodes</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">cmap</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+		<span class="k">if</span> <span class="n">pruneOnly</span><span class="p">:</span>
+			<span class="n">empty</span> <span class="o">=</span> <span class="n">intersectUnicodeRanges</span><span class="p">(</span><span class="n">unicodes</span><span class="p">,</span> <span class="n">inverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+			<span class="n">bits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getUnicodeRanges</span><span class="p">()</span> <span class="o">-</span> <span class="n">empty</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">bits</span> <span class="o">=</span> <span class="n">intersectUnicodeRanges</span><span class="p">(</span><span class="n">unicodes</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">setUnicodeRanges</span><span class="p">(</span><span class="n">bits</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">bits</span></div></div>
+
+
+<span class="c1"># Unicode ranges data from the OpenType OS/2 table specification v1.7</span>
+
+<span class="n">OS2_UNICODE_RANGES</span> <span class="o">=</span> <span class="p">(</span>
+	<span class="p">((</span><span class="s1">&#39;Basic Latin&#39;</span><span class="p">,</span>                              <span class="p">(</span><span class="mh">0x0000</span><span class="p">,</span> <span class="mh">0x007F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Latin-1 Supplement&#39;</span><span class="p">,</span>                       <span class="p">(</span><span class="mh">0x0080</span><span class="p">,</span> <span class="mh">0x00FF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Latin Extended-A&#39;</span><span class="p">,</span>                         <span class="p">(</span><span class="mh">0x0100</span><span class="p">,</span> <span class="mh">0x017F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Latin Extended-B&#39;</span><span class="p">,</span>                         <span class="p">(</span><span class="mh">0x0180</span><span class="p">,</span> <span class="mh">0x024F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;IPA Extensions&#39;</span><span class="p">,</span>                           <span class="p">(</span><span class="mh">0x0250</span><span class="p">,</span> <span class="mh">0x02AF</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Phonetic Extensions&#39;</span><span class="p">,</span>                      <span class="p">(</span><span class="mh">0x1D00</span><span class="p">,</span> <span class="mh">0x1D7F</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Phonetic Extensions Supplement&#39;</span><span class="p">,</span>           <span class="p">(</span><span class="mh">0x1D80</span><span class="p">,</span> <span class="mh">0x1DBF</span><span class="p">))),</span>
+	<span class="p">((</span><span class="s1">&#39;Spacing Modifier Letters&#39;</span><span class="p">,</span>                 <span class="p">(</span><span class="mh">0x02B0</span><span class="p">,</span> <span class="mh">0x02FF</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Modifier Tone Letters&#39;</span><span class="p">,</span>                    <span class="p">(</span><span class="mh">0xA700</span><span class="p">,</span> <span class="mh">0xA71F</span><span class="p">))),</span>
+	<span class="p">((</span><span class="s1">&#39;Combining Diacritical Marks&#39;</span><span class="p">,</span>              <span class="p">(</span><span class="mh">0x0300</span><span class="p">,</span> <span class="mh">0x036F</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Combining Diacritical Marks Supplement&#39;</span><span class="p">,</span>   <span class="p">(</span><span class="mh">0x1DC0</span><span class="p">,</span> <span class="mh">0x1DFF</span><span class="p">))),</span>
+	<span class="p">((</span><span class="s1">&#39;Greek and Coptic&#39;</span><span class="p">,</span>                         <span class="p">(</span><span class="mh">0x0370</span><span class="p">,</span> <span class="mh">0x03FF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Coptic&#39;</span><span class="p">,</span>                                   <span class="p">(</span><span class="mh">0x2C80</span><span class="p">,</span> <span class="mh">0x2CFF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Cyrillic&#39;</span><span class="p">,</span>                                 <span class="p">(</span><span class="mh">0x0400</span><span class="p">,</span> <span class="mh">0x04FF</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Cyrillic Supplement&#39;</span><span class="p">,</span>                      <span class="p">(</span><span class="mh">0x0500</span><span class="p">,</span> <span class="mh">0x052F</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Cyrillic Extended-A&#39;</span><span class="p">,</span>                      <span class="p">(</span><span class="mh">0x2DE0</span><span class="p">,</span> <span class="mh">0x2DFF</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Cyrillic Extended-B&#39;</span><span class="p">,</span>                      <span class="p">(</span><span class="mh">0xA640</span><span class="p">,</span> <span class="mh">0xA69F</span><span class="p">))),</span>
+	<span class="p">((</span><span class="s1">&#39;Armenian&#39;</span><span class="p">,</span>                                 <span class="p">(</span><span class="mh">0x0530</span><span class="p">,</span> <span class="mh">0x058F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Hebrew&#39;</span><span class="p">,</span>                                   <span class="p">(</span><span class="mh">0x0590</span><span class="p">,</span> <span class="mh">0x05FF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Vai&#39;</span><span class="p">,</span>                                      <span class="p">(</span><span class="mh">0xA500</span><span class="p">,</span> <span class="mh">0xA63F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Arabic&#39;</span><span class="p">,</span>                                   <span class="p">(</span><span class="mh">0x0600</span><span class="p">,</span> <span class="mh">0x06FF</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Arabic Supplement&#39;</span><span class="p">,</span>                        <span class="p">(</span><span class="mh">0x0750</span><span class="p">,</span> <span class="mh">0x077F</span><span class="p">))),</span>
+	<span class="p">((</span><span class="s1">&#39;NKo&#39;</span><span class="p">,</span>                                      <span class="p">(</span><span class="mh">0x07C0</span><span class="p">,</span> <span class="mh">0x07FF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Devanagari&#39;</span><span class="p">,</span>                               <span class="p">(</span><span class="mh">0x0900</span><span class="p">,</span> <span class="mh">0x097F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Bengali&#39;</span><span class="p">,</span>                                  <span class="p">(</span><span class="mh">0x0980</span><span class="p">,</span> <span class="mh">0x09FF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Gurmukhi&#39;</span><span class="p">,</span>                                 <span class="p">(</span><span class="mh">0x0A00</span><span class="p">,</span> <span class="mh">0x0A7F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Gujarati&#39;</span><span class="p">,</span>                                 <span class="p">(</span><span class="mh">0x0A80</span><span class="p">,</span> <span class="mh">0x0AFF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Oriya&#39;</span><span class="p">,</span>                                    <span class="p">(</span><span class="mh">0x0B00</span><span class="p">,</span> <span class="mh">0x0B7F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Tamil&#39;</span><span class="p">,</span>                                    <span class="p">(</span><span class="mh">0x0B80</span><span class="p">,</span> <span class="mh">0x0BFF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Telugu&#39;</span><span class="p">,</span>                                   <span class="p">(</span><span class="mh">0x0C00</span><span class="p">,</span> <span class="mh">0x0C7F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Kannada&#39;</span><span class="p">,</span>                                  <span class="p">(</span><span class="mh">0x0C80</span><span class="p">,</span> <span class="mh">0x0CFF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Malayalam&#39;</span><span class="p">,</span>                                <span class="p">(</span><span class="mh">0x0D00</span><span class="p">,</span> <span class="mh">0x0D7F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Thai&#39;</span><span class="p">,</span>                                     <span class="p">(</span><span class="mh">0x0E00</span><span class="p">,</span> <span class="mh">0x0E7F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Lao&#39;</span><span class="p">,</span>                                      <span class="p">(</span><span class="mh">0x0E80</span><span class="p">,</span> <span class="mh">0x0EFF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Georgian&#39;</span><span class="p">,</span>                                 <span class="p">(</span><span class="mh">0x10A0</span><span class="p">,</span> <span class="mh">0x10FF</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Georgian Supplement&#39;</span><span class="p">,</span>                      <span class="p">(</span><span class="mh">0x2D00</span><span class="p">,</span> <span class="mh">0x2D2F</span><span class="p">))),</span>
+	<span class="p">((</span><span class="s1">&#39;Balinese&#39;</span><span class="p">,</span>                                 <span class="p">(</span><span class="mh">0x1B00</span><span class="p">,</span> <span class="mh">0x1B7F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Hangul Jamo&#39;</span><span class="p">,</span>                              <span class="p">(</span><span class="mh">0x1100</span><span class="p">,</span> <span class="mh">0x11FF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Latin Extended Additional&#39;</span><span class="p">,</span>                <span class="p">(</span><span class="mh">0x1E00</span><span class="p">,</span> <span class="mh">0x1EFF</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Latin Extended-C&#39;</span><span class="p">,</span>                         <span class="p">(</span><span class="mh">0x2C60</span><span class="p">,</span> <span class="mh">0x2C7F</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Latin Extended-D&#39;</span><span class="p">,</span>                         <span class="p">(</span><span class="mh">0xA720</span><span class="p">,</span> <span class="mh">0xA7FF</span><span class="p">))),</span>
+	<span class="p">((</span><span class="s1">&#39;Greek Extended&#39;</span><span class="p">,</span>                           <span class="p">(</span><span class="mh">0x1F00</span><span class="p">,</span> <span class="mh">0x1FFF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;General Punctuation&#39;</span><span class="p">,</span>                      <span class="p">(</span><span class="mh">0x2000</span><span class="p">,</span> <span class="mh">0x206F</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Supplemental Punctuation&#39;</span><span class="p">,</span>                 <span class="p">(</span><span class="mh">0x2E00</span><span class="p">,</span> <span class="mh">0x2E7F</span><span class="p">))),</span>
+	<span class="p">((</span><span class="s1">&#39;Superscripts And Subscripts&#39;</span><span class="p">,</span>              <span class="p">(</span><span class="mh">0x2070</span><span class="p">,</span> <span class="mh">0x209F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Currency Symbols&#39;</span><span class="p">,</span>                         <span class="p">(</span><span class="mh">0x20A0</span><span class="p">,</span> <span class="mh">0x20CF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Combining Diacritical Marks For Symbols&#39;</span><span class="p">,</span>  <span class="p">(</span><span class="mh">0x20D0</span><span class="p">,</span> <span class="mh">0x20FF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Letterlike Symbols&#39;</span><span class="p">,</span>                       <span class="p">(</span><span class="mh">0x2100</span><span class="p">,</span> <span class="mh">0x214F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Number Forms&#39;</span><span class="p">,</span>                             <span class="p">(</span><span class="mh">0x2150</span><span class="p">,</span> <span class="mh">0x218F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Arrows&#39;</span><span class="p">,</span>                                   <span class="p">(</span><span class="mh">0x2190</span><span class="p">,</span> <span class="mh">0x21FF</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Supplemental Arrows-A&#39;</span><span class="p">,</span>                    <span class="p">(</span><span class="mh">0x27F0</span><span class="p">,</span> <span class="mh">0x27FF</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Supplemental Arrows-B&#39;</span><span class="p">,</span>                    <span class="p">(</span><span class="mh">0x2900</span><span class="p">,</span> <span class="mh">0x297F</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Miscellaneous Symbols and Arrows&#39;</span><span class="p">,</span>         <span class="p">(</span><span class="mh">0x2B00</span><span class="p">,</span> <span class="mh">0x2BFF</span><span class="p">))),</span>
+	<span class="p">((</span><span class="s1">&#39;Mathematical Operators&#39;</span><span class="p">,</span>                   <span class="p">(</span><span class="mh">0x2200</span><span class="p">,</span> <span class="mh">0x22FF</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Supplemental Mathematical Operators&#39;</span><span class="p">,</span>      <span class="p">(</span><span class="mh">0x2A00</span><span class="p">,</span> <span class="mh">0x2AFF</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Miscellaneous Mathematical Symbols-A&#39;</span><span class="p">,</span>     <span class="p">(</span><span class="mh">0x27C0</span><span class="p">,</span> <span class="mh">0x27EF</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Miscellaneous Mathematical Symbols-B&#39;</span><span class="p">,</span>     <span class="p">(</span><span class="mh">0x2980</span><span class="p">,</span> <span class="mh">0x29FF</span><span class="p">))),</span>
+	<span class="p">((</span><span class="s1">&#39;Miscellaneous Technical&#39;</span><span class="p">,</span>                  <span class="p">(</span><span class="mh">0x2300</span><span class="p">,</span> <span class="mh">0x23FF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Control Pictures&#39;</span><span class="p">,</span>                         <span class="p">(</span><span class="mh">0x2400</span><span class="p">,</span> <span class="mh">0x243F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Optical Character Recognition&#39;</span><span class="p">,</span>            <span class="p">(</span><span class="mh">0x2440</span><span class="p">,</span> <span class="mh">0x245F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Enclosed Alphanumerics&#39;</span><span class="p">,</span>                   <span class="p">(</span><span class="mh">0x2460</span><span class="p">,</span> <span class="mh">0x24FF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Box Drawing&#39;</span><span class="p">,</span>                              <span class="p">(</span><span class="mh">0x2500</span><span class="p">,</span> <span class="mh">0x257F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Block Elements&#39;</span><span class="p">,</span>                           <span class="p">(</span><span class="mh">0x2580</span><span class="p">,</span> <span class="mh">0x259F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Geometric Shapes&#39;</span><span class="p">,</span>                         <span class="p">(</span><span class="mh">0x25A0</span><span class="p">,</span> <span class="mh">0x25FF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Miscellaneous Symbols&#39;</span><span class="p">,</span>                    <span class="p">(</span><span class="mh">0x2600</span><span class="p">,</span> <span class="mh">0x26FF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Dingbats&#39;</span><span class="p">,</span>                                 <span class="p">(</span><span class="mh">0x2700</span><span class="p">,</span> <span class="mh">0x27BF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;CJK Symbols And Punctuation&#39;</span><span class="p">,</span>              <span class="p">(</span><span class="mh">0x3000</span><span class="p">,</span> <span class="mh">0x303F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Hiragana&#39;</span><span class="p">,</span>                                 <span class="p">(</span><span class="mh">0x3040</span><span class="p">,</span> <span class="mh">0x309F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Katakana&#39;</span><span class="p">,</span>                                 <span class="p">(</span><span class="mh">0x30A0</span><span class="p">,</span> <span class="mh">0x30FF</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Katakana Phonetic Extensions&#39;</span><span class="p">,</span>             <span class="p">(</span><span class="mh">0x31F0</span><span class="p">,</span> <span class="mh">0x31FF</span><span class="p">))),</span>
+	<span class="p">((</span><span class="s1">&#39;Bopomofo&#39;</span><span class="p">,</span>                                 <span class="p">(</span><span class="mh">0x3100</span><span class="p">,</span> <span class="mh">0x312F</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Bopomofo Extended&#39;</span><span class="p">,</span>                        <span class="p">(</span><span class="mh">0x31A0</span><span class="p">,</span> <span class="mh">0x31BF</span><span class="p">))),</span>
+	<span class="p">((</span><span class="s1">&#39;Hangul Compatibility Jamo&#39;</span><span class="p">,</span>                <span class="p">(</span><span class="mh">0x3130</span><span class="p">,</span> <span class="mh">0x318F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Phags-pa&#39;</span><span class="p">,</span>                                 <span class="p">(</span><span class="mh">0xA840</span><span class="p">,</span> <span class="mh">0xA87F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Enclosed CJK Letters And Months&#39;</span><span class="p">,</span>          <span class="p">(</span><span class="mh">0x3200</span><span class="p">,</span> <span class="mh">0x32FF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;CJK Compatibility&#39;</span><span class="p">,</span>                        <span class="p">(</span><span class="mh">0x3300</span><span class="p">,</span> <span class="mh">0x33FF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Hangul Syllables&#39;</span><span class="p">,</span>                         <span class="p">(</span><span class="mh">0xAC00</span><span class="p">,</span> <span class="mh">0xD7AF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Non-Plane 0 *&#39;</span><span class="p">,</span>                            <span class="p">(</span><span class="mh">0xD800</span><span class="p">,</span> <span class="mh">0xDFFF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Phoenician&#39;</span><span class="p">,</span>                               <span class="p">(</span><span class="mh">0x10900</span><span class="p">,</span> <span class="mh">0x1091F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;CJK Unified Ideographs&#39;</span><span class="p">,</span>                   <span class="p">(</span><span class="mh">0x4E00</span><span class="p">,</span> <span class="mh">0x9FFF</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;CJK Radicals Supplement&#39;</span><span class="p">,</span>                  <span class="p">(</span><span class="mh">0x2E80</span><span class="p">,</span> <span class="mh">0x2EFF</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Kangxi Radicals&#39;</span><span class="p">,</span>                          <span class="p">(</span><span class="mh">0x2F00</span><span class="p">,</span> <span class="mh">0x2FDF</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Ideographic Description Characters&#39;</span><span class="p">,</span>       <span class="p">(</span><span class="mh">0x2FF0</span><span class="p">,</span> <span class="mh">0x2FFF</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;CJK Unified Ideographs Extension A&#39;</span><span class="p">,</span>       <span class="p">(</span><span class="mh">0x3400</span><span class="p">,</span> <span class="mh">0x4DBF</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;CJK Unified Ideographs Extension B&#39;</span><span class="p">,</span>       <span class="p">(</span><span class="mh">0x20000</span><span class="p">,</span> <span class="mh">0x2A6DF</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Kanbun&#39;</span><span class="p">,</span>                                   <span class="p">(</span><span class="mh">0x3190</span><span class="p">,</span> <span class="mh">0x319F</span><span class="p">))),</span>
+	<span class="p">((</span><span class="s1">&#39;Private Use Area (plane 0)&#39;</span><span class="p">,</span>               <span class="p">(</span><span class="mh">0xE000</span><span class="p">,</span> <span class="mh">0xF8FF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;CJK Strokes&#39;</span><span class="p">,</span>                              <span class="p">(</span><span class="mh">0x31C0</span><span class="p">,</span> <span class="mh">0x31EF</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;CJK Compatibility Ideographs&#39;</span><span class="p">,</span>             <span class="p">(</span><span class="mh">0xF900</span><span class="p">,</span> <span class="mh">0xFAFF</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;CJK Compatibility Ideographs Supplement&#39;</span><span class="p">,</span>  <span class="p">(</span><span class="mh">0x2F800</span><span class="p">,</span> <span class="mh">0x2FA1F</span><span class="p">))),</span>
+	<span class="p">((</span><span class="s1">&#39;Alphabetic Presentation Forms&#39;</span><span class="p">,</span>            <span class="p">(</span><span class="mh">0xFB00</span><span class="p">,</span> <span class="mh">0xFB4F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Arabic Presentation Forms-A&#39;</span><span class="p">,</span>              <span class="p">(</span><span class="mh">0xFB50</span><span class="p">,</span> <span class="mh">0xFDFF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Combining Half Marks&#39;</span><span class="p">,</span>                     <span class="p">(</span><span class="mh">0xFE20</span><span class="p">,</span> <span class="mh">0xFE2F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Vertical Forms&#39;</span><span class="p">,</span>                           <span class="p">(</span><span class="mh">0xFE10</span><span class="p">,</span> <span class="mh">0xFE1F</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;CJK Compatibility Forms&#39;</span><span class="p">,</span>                  <span class="p">(</span><span class="mh">0xFE30</span><span class="p">,</span> <span class="mh">0xFE4F</span><span class="p">))),</span>
+	<span class="p">((</span><span class="s1">&#39;Small Form Variants&#39;</span><span class="p">,</span>                      <span class="p">(</span><span class="mh">0xFE50</span><span class="p">,</span> <span class="mh">0xFE6F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Arabic Presentation Forms-B&#39;</span><span class="p">,</span>              <span class="p">(</span><span class="mh">0xFE70</span><span class="p">,</span> <span class="mh">0xFEFF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Halfwidth And Fullwidth Forms&#39;</span><span class="p">,</span>            <span class="p">(</span><span class="mh">0xFF00</span><span class="p">,</span> <span class="mh">0xFFEF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Specials&#39;</span><span class="p">,</span>                                 <span class="p">(</span><span class="mh">0xFFF0</span><span class="p">,</span> <span class="mh">0xFFFF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Tibetan&#39;</span><span class="p">,</span>                                  <span class="p">(</span><span class="mh">0x0F00</span><span class="p">,</span> <span class="mh">0x0FFF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Syriac&#39;</span><span class="p">,</span>                                   <span class="p">(</span><span class="mh">0x0700</span><span class="p">,</span> <span class="mh">0x074F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Thaana&#39;</span><span class="p">,</span>                                   <span class="p">(</span><span class="mh">0x0780</span><span class="p">,</span> <span class="mh">0x07BF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Sinhala&#39;</span><span class="p">,</span>                                  <span class="p">(</span><span class="mh">0x0D80</span><span class="p">,</span> <span class="mh">0x0DFF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Myanmar&#39;</span><span class="p">,</span>                                  <span class="p">(</span><span class="mh">0x1000</span><span class="p">,</span> <span class="mh">0x109F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Ethiopic&#39;</span><span class="p">,</span>                                 <span class="p">(</span><span class="mh">0x1200</span><span class="p">,</span> <span class="mh">0x137F</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Ethiopic Supplement&#39;</span><span class="p">,</span>                      <span class="p">(</span><span class="mh">0x1380</span><span class="p">,</span> <span class="mh">0x139F</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Ethiopic Extended&#39;</span><span class="p">,</span>                        <span class="p">(</span><span class="mh">0x2D80</span><span class="p">,</span> <span class="mh">0x2DDF</span><span class="p">))),</span>
+	<span class="p">((</span><span class="s1">&#39;Cherokee&#39;</span><span class="p">,</span>                                 <span class="p">(</span><span class="mh">0x13A0</span><span class="p">,</span> <span class="mh">0x13FF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Unified Canadian Aboriginal Syllabics&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="mh">0x1400</span><span class="p">,</span> <span class="mh">0x167F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Ogham&#39;</span><span class="p">,</span>                                    <span class="p">(</span><span class="mh">0x1680</span><span class="p">,</span> <span class="mh">0x169F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Runic&#39;</span><span class="p">,</span>                                    <span class="p">(</span><span class="mh">0x16A0</span><span class="p">,</span> <span class="mh">0x16FF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Khmer&#39;</span><span class="p">,</span>                                    <span class="p">(</span><span class="mh">0x1780</span><span class="p">,</span> <span class="mh">0x17FF</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Khmer Symbols&#39;</span><span class="p">,</span>                            <span class="p">(</span><span class="mh">0x19E0</span><span class="p">,</span> <span class="mh">0x19FF</span><span class="p">))),</span>
+	<span class="p">((</span><span class="s1">&#39;Mongolian&#39;</span><span class="p">,</span>                                <span class="p">(</span><span class="mh">0x1800</span><span class="p">,</span> <span class="mh">0x18AF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Braille Patterns&#39;</span><span class="p">,</span>                         <span class="p">(</span><span class="mh">0x2800</span><span class="p">,</span> <span class="mh">0x28FF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Yi Syllables&#39;</span><span class="p">,</span>                             <span class="p">(</span><span class="mh">0xA000</span><span class="p">,</span> <span class="mh">0xA48F</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Yi Radicals&#39;</span><span class="p">,</span>                              <span class="p">(</span><span class="mh">0xA490</span><span class="p">,</span> <span class="mh">0xA4CF</span><span class="p">))),</span>
+	<span class="p">((</span><span class="s1">&#39;Tagalog&#39;</span><span class="p">,</span>                                  <span class="p">(</span><span class="mh">0x1700</span><span class="p">,</span> <span class="mh">0x171F</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Hanunoo&#39;</span><span class="p">,</span>                                  <span class="p">(</span><span class="mh">0x1720</span><span class="p">,</span> <span class="mh">0x173F</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Buhid&#39;</span><span class="p">,</span>                                    <span class="p">(</span><span class="mh">0x1740</span><span class="p">,</span> <span class="mh">0x175F</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Tagbanwa&#39;</span><span class="p">,</span>                                 <span class="p">(</span><span class="mh">0x1760</span><span class="p">,</span> <span class="mh">0x177F</span><span class="p">))),</span>
+	<span class="p">((</span><span class="s1">&#39;Old Italic&#39;</span><span class="p">,</span>                               <span class="p">(</span><span class="mh">0x10300</span><span class="p">,</span> <span class="mh">0x1032F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Gothic&#39;</span><span class="p">,</span>                                   <span class="p">(</span><span class="mh">0x10330</span><span class="p">,</span> <span class="mh">0x1034F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Deseret&#39;</span><span class="p">,</span>                                  <span class="p">(</span><span class="mh">0x10400</span><span class="p">,</span> <span class="mh">0x1044F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Byzantine Musical Symbols&#39;</span><span class="p">,</span>                <span class="p">(</span><span class="mh">0x1D000</span><span class="p">,</span> <span class="mh">0x1D0FF</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Musical Symbols&#39;</span><span class="p">,</span>                          <span class="p">(</span><span class="mh">0x1D100</span><span class="p">,</span> <span class="mh">0x1D1FF</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Ancient Greek Musical Notation&#39;</span><span class="p">,</span>           <span class="p">(</span><span class="mh">0x1D200</span><span class="p">,</span> <span class="mh">0x1D24F</span><span class="p">))),</span>
+	<span class="p">((</span><span class="s1">&#39;Mathematical Alphanumeric Symbols&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="mh">0x1D400</span><span class="p">,</span> <span class="mh">0x1D7FF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Private Use (plane 15)&#39;</span><span class="p">,</span>                   <span class="p">(</span><span class="mh">0xF0000</span><span class="p">,</span> <span class="mh">0xFFFFD</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Private Use (plane 16)&#39;</span><span class="p">,</span>                   <span class="p">(</span><span class="mh">0x100000</span><span class="p">,</span> <span class="mh">0x10FFFD</span><span class="p">))),</span>
+	<span class="p">((</span><span class="s1">&#39;Variation Selectors&#39;</span><span class="p">,</span>                      <span class="p">(</span><span class="mh">0xFE00</span><span class="p">,</span> <span class="mh">0xFE0F</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Variation Selectors Supplement&#39;</span><span class="p">,</span>           <span class="p">(</span><span class="mh">0xE0100</span><span class="p">,</span> <span class="mh">0xE01EF</span><span class="p">))),</span>
+	<span class="p">((</span><span class="s1">&#39;Tags&#39;</span><span class="p">,</span>                                     <span class="p">(</span><span class="mh">0xE0000</span><span class="p">,</span> <span class="mh">0xE007F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Limbu&#39;</span><span class="p">,</span>                                    <span class="p">(</span><span class="mh">0x1900</span><span class="p">,</span> <span class="mh">0x194F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Tai Le&#39;</span><span class="p">,</span>                                   <span class="p">(</span><span class="mh">0x1950</span><span class="p">,</span> <span class="mh">0x197F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;New Tai Lue&#39;</span><span class="p">,</span>                              <span class="p">(</span><span class="mh">0x1980</span><span class="p">,</span> <span class="mh">0x19DF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Buginese&#39;</span><span class="p">,</span>                                 <span class="p">(</span><span class="mh">0x1A00</span><span class="p">,</span> <span class="mh">0x1A1F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Glagolitic&#39;</span><span class="p">,</span>                               <span class="p">(</span><span class="mh">0x2C00</span><span class="p">,</span> <span class="mh">0x2C5F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Tifinagh&#39;</span><span class="p">,</span>                                 <span class="p">(</span><span class="mh">0x2D30</span><span class="p">,</span> <span class="mh">0x2D7F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Yijing Hexagram Symbols&#39;</span><span class="p">,</span>                  <span class="p">(</span><span class="mh">0x4DC0</span><span class="p">,</span> <span class="mh">0x4DFF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Syloti Nagri&#39;</span><span class="p">,</span>                             <span class="p">(</span><span class="mh">0xA800</span><span class="p">,</span> <span class="mh">0xA82F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Linear B Syllabary&#39;</span><span class="p">,</span>                       <span class="p">(</span><span class="mh">0x10000</span><span class="p">,</span> <span class="mh">0x1007F</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Linear B Ideograms&#39;</span><span class="p">,</span>                       <span class="p">(</span><span class="mh">0x10080</span><span class="p">,</span> <span class="mh">0x100FF</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Aegean Numbers&#39;</span><span class="p">,</span>                           <span class="p">(</span><span class="mh">0x10100</span><span class="p">,</span> <span class="mh">0x1013F</span><span class="p">))),</span>
+	<span class="p">((</span><span class="s1">&#39;Ancient Greek Numbers&#39;</span><span class="p">,</span>                    <span class="p">(</span><span class="mh">0x10140</span><span class="p">,</span> <span class="mh">0x1018F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Ugaritic&#39;</span><span class="p">,</span>                                 <span class="p">(</span><span class="mh">0x10380</span><span class="p">,</span> <span class="mh">0x1039F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Old Persian&#39;</span><span class="p">,</span>                              <span class="p">(</span><span class="mh">0x103A0</span><span class="p">,</span> <span class="mh">0x103DF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Shavian&#39;</span><span class="p">,</span>                                  <span class="p">(</span><span class="mh">0x10450</span><span class="p">,</span> <span class="mh">0x1047F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Osmanya&#39;</span><span class="p">,</span>                                  <span class="p">(</span><span class="mh">0x10480</span><span class="p">,</span> <span class="mh">0x104AF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Cypriot Syllabary&#39;</span><span class="p">,</span>                        <span class="p">(</span><span class="mh">0x10800</span><span class="p">,</span> <span class="mh">0x1083F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Kharoshthi&#39;</span><span class="p">,</span>                               <span class="p">(</span><span class="mh">0x10A00</span><span class="p">,</span> <span class="mh">0x10A5F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Tai Xuan Jing Symbols&#39;</span><span class="p">,</span>                    <span class="p">(</span><span class="mh">0x1D300</span><span class="p">,</span> <span class="mh">0x1D35F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Cuneiform&#39;</span><span class="p">,</span>                                <span class="p">(</span><span class="mh">0x12000</span><span class="p">,</span> <span class="mh">0x123FF</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Cuneiform Numbers and Punctuation&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="mh">0x12400</span><span class="p">,</span> <span class="mh">0x1247F</span><span class="p">))),</span>
+	<span class="p">((</span><span class="s1">&#39;Counting Rod Numerals&#39;</span><span class="p">,</span>                    <span class="p">(</span><span class="mh">0x1D360</span><span class="p">,</span> <span class="mh">0x1D37F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Sundanese&#39;</span><span class="p">,</span>                                <span class="p">(</span><span class="mh">0x1B80</span><span class="p">,</span> <span class="mh">0x1BBF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Lepcha&#39;</span><span class="p">,</span>                                   <span class="p">(</span><span class="mh">0x1C00</span><span class="p">,</span> <span class="mh">0x1C4F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Ol Chiki&#39;</span><span class="p">,</span>                                 <span class="p">(</span><span class="mh">0x1C50</span><span class="p">,</span> <span class="mh">0x1C7F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Saurashtra&#39;</span><span class="p">,</span>                               <span class="p">(</span><span class="mh">0xA880</span><span class="p">,</span> <span class="mh">0xA8DF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Kayah Li&#39;</span><span class="p">,</span>                                 <span class="p">(</span><span class="mh">0xA900</span><span class="p">,</span> <span class="mh">0xA92F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Rejang&#39;</span><span class="p">,</span>                                   <span class="p">(</span><span class="mh">0xA930</span><span class="p">,</span> <span class="mh">0xA95F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Cham&#39;</span><span class="p">,</span>                                     <span class="p">(</span><span class="mh">0xAA00</span><span class="p">,</span> <span class="mh">0xAA5F</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Ancient Symbols&#39;</span><span class="p">,</span>                          <span class="p">(</span><span class="mh">0x10190</span><span class="p">,</span> <span class="mh">0x101CF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Phaistos Disc&#39;</span><span class="p">,</span>                            <span class="p">(</span><span class="mh">0x101D0</span><span class="p">,</span> <span class="mh">0x101FF</span><span class="p">)),),</span>
+	<span class="p">((</span><span class="s1">&#39;Carian&#39;</span><span class="p">,</span>                                   <span class="p">(</span><span class="mh">0x102A0</span><span class="p">,</span> <span class="mh">0x102DF</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Lycian&#39;</span><span class="p">,</span>                                   <span class="p">(</span><span class="mh">0x10280</span><span class="p">,</span> <span class="mh">0x1029F</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Lydian&#39;</span><span class="p">,</span>                                   <span class="p">(</span><span class="mh">0x10920</span><span class="p">,</span> <span class="mh">0x1093F</span><span class="p">))),</span>
+	<span class="p">((</span><span class="s1">&#39;Domino Tiles&#39;</span><span class="p">,</span>                             <span class="p">(</span><span class="mh">0x1F030</span><span class="p">,</span> <span class="mh">0x1F09F</span><span class="p">)),</span>
+	 <span class="p">(</span><span class="s1">&#39;Mahjong Tiles&#39;</span><span class="p">,</span>                            <span class="p">(</span><span class="mh">0x1F000</span><span class="p">,</span> <span class="mh">0x1F02F</span><span class="p">))),</span>
+<span class="p">)</span>
+
+
+<span class="n">_unicodeRangeSets</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">def</span> <span class="nf">_getUnicodeRangeSets</span><span class="p">():</span>
+	<span class="c1"># build the sets of codepoints for each unicode range bit, and cache result</span>
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">_unicodeRangeSets</span><span class="p">:</span>
+		<span class="k">for</span> <span class="n">bit</span><span class="p">,</span> <span class="n">blocks</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">OS2_UNICODE_RANGES</span><span class="p">):</span>
+			<span class="n">rangeset</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+			<span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span> <span class="ow">in</span> <span class="n">blocks</span><span class="p">:</span>
+				<span class="n">rangeset</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="o">+</span><span class="mi">1</span><span class="p">)))</span>
+			<span class="k">if</span> <span class="n">bit</span> <span class="o">==</span> <span class="mi">57</span><span class="p">:</span>
+				<span class="c1"># The spec says that bit 57 (&quot;Non Plane 0&quot;) implies that there&#39;s</span>
+				<span class="c1"># at least one codepoint beyond the BMP; so I also include all</span>
+				<span class="c1"># the non-BMP codepoints here</span>
+				<span class="n">rangeset</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mh">0x10000</span><span class="p">,</span> <span class="mh">0x110000</span><span class="p">)))</span>
+			<span class="n">_unicodeRangeSets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rangeset</span><span class="p">)</span>
+	<span class="k">return</span> <span class="n">_unicodeRangeSets</span>
+
+
+<div class="viewcode-block" id="intersectUnicodeRanges"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.O_S_2f_2.intersectUnicodeRanges">[docs]</a><span class="k">def</span> <span class="nf">intersectUnicodeRanges</span><span class="p">(</span><span class="n">unicodes</span><span class="p">,</span> <span class="n">inverse</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot; Intersect a sequence of (int) Unicode codepoints with the Unicode block</span>
+<span class="sd">	ranges defined in the OpenType specification v1.7, and return the set of</span>
+<span class="sd">	&#39;ulUnicodeRanges&#39; bits for which there is at least ONE intersection.</span>
+<span class="sd">	If &#39;inverse&#39; is True, return the the bits for which there is NO intersection.</span>
+
+<span class="sd">	&gt;&gt;&gt; intersectUnicodeRanges([0x0410]) == {9}</span>
+<span class="sd">	True</span>
+<span class="sd">	&gt;&gt;&gt; intersectUnicodeRanges([0x0410, 0x1F000]) == {9, 57, 122}</span>
+<span class="sd">	True</span>
+<span class="sd">	&gt;&gt;&gt; intersectUnicodeRanges([0x0410, 0x1F000], inverse=True) == (</span>
+<span class="sd">	...     set(range(123)) - {9, 57, 122})</span>
+<span class="sd">	True</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">unicodes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">unicodes</span><span class="p">)</span>
+	<span class="n">uniranges</span> <span class="o">=</span> <span class="n">_getUnicodeRangeSets</span><span class="p">()</span>
+	<span class="n">bits</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span>
+		<span class="n">bit</span> <span class="k">for</span> <span class="n">bit</span><span class="p">,</span> <span class="n">unirange</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">uniranges</span><span class="p">)</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">unirange</span><span class="o">.</span><span class="n">isdisjoint</span><span class="p">(</span><span class="n">unicodes</span><span class="p">)</span> <span class="o">^</span> <span class="n">inverse</span><span class="p">])</span>
+	<span class="k">return</span> <span class="n">bits</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+	<span class="kn">import</span> <span class="nn">doctest</span><span class="o">,</span> <span class="nn">sys</span>
+	<span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">doctest</span><span class="o">.</span><span class="n">testmod</span><span class="p">()</span><span class="o">.</span><span class="n">failed</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../ttLib.html" >fontTools.ttLib</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

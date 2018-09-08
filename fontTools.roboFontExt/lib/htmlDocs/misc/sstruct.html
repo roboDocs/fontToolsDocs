@@ -1,0 +1,190 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>sstruct &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="psCharStrings" href="psCharStrings.html" />
+    <link rel="prev" title="loggingTools" href="loggingTools.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="psCharStrings.html" title="psCharStrings"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="loggingTools.html" title="loggingTools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">misc</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-fontTools.misc.sstruct">
+<span id="sstruct"></span><h1>sstruct<a class="headerlink" href="#module-fontTools.misc.sstruct" title="Permalink to this headline">¶</a></h1>
+<p>sstruct.py &#8211; SuperStruct</p>
+<p>Higher level layer on top of the struct module, enabling to
+bind names to struct elements. The interface is similar to
+struct, except the objects passed and returned are not tuples
+(or argument lists), but dictionaries or instances.</p>
+<p>Just like struct, we use fmt strings to describe a data
+structure, except we use one line per element. Lines are
+separated by newlines or semi-colons. Each line contains
+either one of the special struct characters (&#8216;&#64;&#8217;, &#8216;=&#8217;, &#8216;&lt;&#8217;,
+&#8216;&gt;&#8217; or &#8216;!&#8217;) or a &#8216;name:formatchar&#8217; combo (eg. &#8216;myFloat:f&#8217;).
+Repetitions, like the struct module offers them are not useful
+in this context, except for fixed length strings  (eg. &#8216;myInt:5h&#8217;
+is not allowed but &#8216;myString:5s&#8217; is). The &#8216;x&#8217; fmt character
+(pad byte) is treated as &#8216;special&#8217;, since it is by definition
+anonymous. Extra whitespace is allowed everywhere.</p>
+<p>The sstruct module offers one feature that the &#8220;normal&#8221; struct
+module doesn&#8217;t: support for fixed point numbers. These are spelled
+as &#8220;n.mF&#8221;, where n is the number of bits before the point, and m
+the number of bits after the point. Fixed point numbers get
+converted to floats.</p>
+<dl class="docutils">
+<dt>pack(fmt, object):</dt>
+<dd>&#8216;object&#8217; is either a dictionary or an instance (or actually
+anything that has a __dict__ attribute). If it is a dictionary,
+its keys are used for names. If it is an instance, it&#8217;s
+attributes are used to grab struct elements from. Returns
+a string containing the data.</dd>
+<dt>unpack(fmt, data, object=None)</dt>
+<dd>If &#8216;object&#8217; is omitted (or None), a new dictionary will be
+returned. If &#8216;object&#8217; is a dictionary, it will be used to add
+struct elements to. If it is an instance (or in fact anything
+that has a __dict__ attribute), an attribute will be added for
+each struct element. In the latter two cases, &#8216;object&#8217; itself
+is returned.</dd>
+<dt>unpack2(fmt, data, object=None)</dt>
+<dd>Convenience function. Same as unpack, except data may be longer
+than needed. The returned value is a tuple: (object, leftoverdata).</dd>
+<dt>calcsize(fmt)</dt>
+<dd>like struct.calcsize(), but uses our own fmt strings:
+it returns the size of the data in bytes.</dd>
+</dl>
+<dl class="exception">
+<dt id="fontTools.misc.sstruct.Error">
+<em class="property">exception </em><code class="descclassname">fontTools.misc.sstruct.</code><code class="descname">Error</code><a class="reference internal" href="../_modules/fontTools/misc/sstruct.html#Error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.sstruct.Error" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.sstruct.calcsize">
+<code class="descclassname">fontTools.misc.sstruct.</code><code class="descname">calcsize</code><span class="sig-paren">(</span><em>fmt</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/sstruct.html#calcsize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.sstruct.calcsize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.sstruct.getformat">
+<code class="descclassname">fontTools.misc.sstruct.</code><code class="descname">getformat</code><span class="sig-paren">(</span><em>fmt</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/sstruct.html#getformat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.sstruct.getformat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.sstruct.pack">
+<code class="descclassname">fontTools.misc.sstruct.</code><code class="descname">pack</code><span class="sig-paren">(</span><em>fmt</em>, <em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/sstruct.html#pack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.sstruct.pack" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.sstruct.unpack">
+<code class="descclassname">fontTools.misc.sstruct.</code><code class="descname">unpack</code><span class="sig-paren">(</span><em>fmt</em>, <em>data</em>, <em>obj=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/sstruct.html#unpack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.sstruct.unpack" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.sstruct.unpack2">
+<code class="descclassname">fontTools.misc.sstruct.</code><code class="descname">unpack2</code><span class="sig-paren">(</span><em>fmt</em>, <em>data</em>, <em>obj=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/sstruct.html#unpack2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.sstruct.unpack2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="loggingTools.html"
+                        title="previous chapter">loggingTools</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="psCharStrings.html"
+                        title="next chapter">psCharStrings</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/misc/sstruct.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="psCharStrings.html" title="psCharStrings"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="loggingTools.html" title="loggingTools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >misc</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

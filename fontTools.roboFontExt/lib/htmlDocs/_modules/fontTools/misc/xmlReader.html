@@ -1,0 +1,262 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fontTools.misc.xmlReader &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fontTools.misc.xmlReader</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.py23</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">fontTools</span> <span class="k">import</span> <span class="n">ttLib</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.textTools</span> <span class="k">import</span> <span class="n">safeEval</span>
+<span class="kn">from</span> <span class="nn">fontTools.ttLib.tables.DefaultTable</span> <span class="k">import</span> <span class="n">DefaultTable</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TTXParseError"><a class="viewcode-back" href="../../../misc/xmlReader.html#fontTools.misc.xmlReader.TTXParseError">[docs]</a><span class="k">class</span> <span class="nc">TTXParseError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="k">pass</span></div>
+
+<span class="n">BUFSIZE</span> <span class="o">=</span> <span class="mh">0x4000</span>
+
+
+<div class="viewcode-block" id="XMLReader"><a class="viewcode-back" href="../../../misc/xmlReader.html#fontTools.misc.xmlReader.XMLReader">[docs]</a><span class="k">class</span> <span class="nc">XMLReader</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fileOrPath</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">,</span> <span class="n">progress</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">quiet</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">contentOnly</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">fileOrPath</span> <span class="o">==</span> <span class="s1">&#39;-&#39;</span><span class="p">:</span>
+			<span class="n">fileOrPath</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdin</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fileOrPath</span><span class="p">,</span> <span class="s2">&quot;read&quot;</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fileOrPath</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_closeStream</span> <span class="o">=</span> <span class="kc">True</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="c1"># assume readable file object</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">file</span> <span class="o">=</span> <span class="n">fileOrPath</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_closeStream</span> <span class="o">=</span> <span class="kc">False</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">ttFont</span> <span class="o">=</span> <span class="n">ttFont</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">progress</span> <span class="o">=</span> <span class="n">progress</span>
+		<span class="k">if</span> <span class="n">quiet</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="kn">from</span> <span class="nn">fontTools.misc.loggingTools</span> <span class="k">import</span> <span class="n">deprecateArgument</span>
+			<span class="n">deprecateArgument</span><span class="p">(</span><span class="s2">&quot;quiet&quot;</span><span class="p">,</span> <span class="s2">&quot;configure logging instead&quot;</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">quiet</span> <span class="o">=</span> <span class="n">quiet</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="kc">None</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">contentStack</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">contentOnly</span> <span class="o">=</span> <span class="n">contentOnly</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">stackSize</span> <span class="o">=</span> <span class="mi">0</span>
+
+<div class="viewcode-block" id="XMLReader.read"><a class="viewcode-back" href="../../../misc/xmlReader.html#fontTools.misc.xmlReader.XMLReader.read">[docs]</a>	<span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rootless</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">rootless</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">stackSize</span> <span class="o">+=</span> <span class="mi">1</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">progress</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+			<span class="n">fileSize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">fileSize</span> <span class="o">//</span> <span class="mi">100</span> <span class="ow">or</span> <span class="mi">1</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_parseFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">)</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_closeStream</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+		<span class="k">if</span> <span class="n">rootless</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">stackSize</span> <span class="o">-=</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="XMLReader.close"><a class="viewcode-back" href="../../../misc/xmlReader.html#fontTools.misc.xmlReader.XMLReader.close">[docs]</a>	<span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+	<span class="k">def</span> <span class="nf">_parseFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
+		<span class="kn">from</span> <span class="nn">xml.parsers.expat</span> <span class="k">import</span> <span class="n">ParserCreate</span>
+		<span class="n">parser</span> <span class="o">=</span> <span class="n">ParserCreate</span><span class="p">()</span>
+		<span class="n">parser</span><span class="o">.</span><span class="n">StartElementHandler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_startElementHandler</span>
+		<span class="n">parser</span><span class="o">.</span><span class="n">EndElementHandler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_endElementHandler</span>
+		<span class="n">parser</span><span class="o">.</span><span class="n">CharacterDataHandler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_characterDataHandler</span>
+
+		<span class="n">pos</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+			<span class="n">chunk</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">BUFSIZE</span><span class="p">)</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">chunk</span><span class="p">:</span>
+				<span class="n">parser</span><span class="o">.</span><span class="n">Parse</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+				<span class="k">break</span>
+			<span class="n">pos</span> <span class="o">=</span> <span class="n">pos</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">progress</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">pos</span> <span class="o">//</span> <span class="mi">100</span><span class="p">)</span>
+			<span class="n">parser</span><span class="o">.</span><span class="n">Parse</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">_startElementHandler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">):</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stackSize</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">contentOnly</span><span class="p">:</span>
+			<span class="c1"># We already know the table we&#39;re parsing, skip</span>
+			<span class="c1"># parsing the table tag and continue to</span>
+			<span class="c1"># stack &#39;2&#39; which begins parsing content</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">contentStack</span><span class="o">.</span><span class="n">append</span><span class="p">([])</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">stackSize</span> <span class="o">=</span> <span class="mi">2</span>
+			<span class="k">return</span>
+		<span class="n">stackSize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stackSize</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">stackSize</span> <span class="o">=</span> <span class="n">stackSize</span> <span class="o">+</span> <span class="mi">1</span>
+		<span class="n">subFile</span> <span class="o">=</span> <span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;src&quot;</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">subFile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">):</span>
+				<span class="c1"># if file has a name, get its parent directory</span>
+				<span class="n">dirname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="c1"># else fall back to using the current working directory</span>
+				<span class="n">dirname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+			<span class="n">subFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span> <span class="n">subFile</span><span class="p">)</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">stackSize</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;ttFont&quot;</span><span class="p">:</span>
+				<span class="k">raise</span> <span class="n">TTXParseError</span><span class="p">(</span><span class="s2">&quot;illegal root tag: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
+			<span class="n">sfntVersion</span> <span class="o">=</span> <span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;sfntVersion&quot;</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">sfntVersion</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sfntVersion</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">:</span>
+					<span class="n">sfntVersion</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">sfntVersion</span> <span class="o">+</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">)</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">ttFont</span><span class="o">.</span><span class="n">sfntVersion</span> <span class="o">=</span> <span class="n">sfntVersion</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">contentStack</span><span class="o">.</span><span class="n">append</span><span class="p">([])</span>
+		<span class="k">elif</span> <span class="n">stackSize</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">subFile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">subReader</span> <span class="o">=</span> <span class="n">XMLReader</span><span class="p">(</span><span class="n">subFile</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ttFont</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">progress</span><span class="p">)</span>
+				<span class="n">subReader</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">contentStack</span><span class="o">.</span><span class="n">append</span><span class="p">([])</span>
+				<span class="k">return</span>
+			<span class="n">tag</span> <span class="o">=</span> <span class="n">ttLib</span><span class="o">.</span><span class="n">xmlToTag</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+			<span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Parsing &#39;</span><span class="si">%s</span><span class="s2">&#39; table...&quot;</span> <span class="o">%</span> <span class="n">tag</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">progress</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">setLabel</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s2">&quot;GlyphOrder&quot;</span><span class="p">:</span>
+				<span class="n">tableClass</span> <span class="o">=</span> <span class="n">ttLib</span><span class="o">.</span><span class="n">GlyphOrder</span>
+			<span class="k">elif</span> <span class="s2">&quot;ERROR&quot;</span> <span class="ow">in</span> <span class="n">attrs</span> <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;raw&#39;</span> <span class="ow">in</span> <span class="n">attrs</span> <span class="ow">and</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;raw&#39;</span><span class="p">])):</span>
+				<span class="n">tableClass</span> <span class="o">=</span> <span class="n">DefaultTable</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">tableClass</span> <span class="o">=</span> <span class="n">ttLib</span><span class="o">.</span><span class="n">getTableClass</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+				<span class="k">if</span> <span class="n">tableClass</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+					<span class="n">tableClass</span> <span class="o">=</span> <span class="n">DefaultTable</span>
+			<span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;loca&#39;</span> <span class="ow">and</span> <span class="n">tag</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ttFont</span><span class="p">:</span>
+				<span class="c1"># Special-case the &#39;loca&#39; table as we need the</span>
+				<span class="c1">#    original if the &#39;glyf&#39; table isn&#39;t recompiled.</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">currentTable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ttFont</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">currentTable</span> <span class="o">=</span> <span class="n">tableClass</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">ttFont</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">currentTable</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">contentStack</span><span class="o">.</span><span class="n">append</span><span class="p">([])</span>
+		<span class="k">elif</span> <span class="n">stackSize</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">subFile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">subReader</span> <span class="o">=</span> <span class="n">XMLReader</span><span class="p">(</span><span class="n">subFile</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ttFont</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">progress</span><span class="p">,</span> <span class="n">contentOnly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+			<span class="n">subReader</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">contentStack</span><span class="o">.</span><span class="n">append</span><span class="p">([])</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">subReader</span><span class="o">.</span><span class="n">root</span>
+		<span class="k">elif</span> <span class="n">stackSize</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">contentStack</span><span class="o">.</span><span class="n">append</span><span class="p">([])</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">contentStack</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">l</span> <span class="o">=</span> <span class="p">[]</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">contentStack</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">l</span><span class="p">))</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">contentStack</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">_characterDataHandler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stackSize</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">contentStack</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">_endElementHandler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">stackSize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stackSize</span> <span class="o">-</span> <span class="mi">1</span>
+		<span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">contentStack</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">contentOnly</span><span class="p">:</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stackSize</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="kc">None</span>
+			<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">stackSize</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+				<span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">currentTable</span><span class="o">.</span><span class="n">fromXML</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ttFont</span><span class="p">)</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="ProgressPrinter"><a class="viewcode-back" href="../../../misc/xmlReader.html#fontTools.misc.xmlReader.ProgressPrinter">[docs]</a><span class="k">class</span> <span class="nc">ProgressPrinter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+		<span class="nb">print</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ProgressPrinter.set"><a class="viewcode-back" href="../../../misc/xmlReader.html#fontTools.misc.xmlReader.ProgressPrinter.set">[docs]</a>	<span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+		<span class="k">pass</span></div>
+
+<div class="viewcode-block" id="ProgressPrinter.increment"><a class="viewcode-back" href="../../../misc/xmlReader.html#fontTools.misc.xmlReader.ProgressPrinter.increment">[docs]</a>	<span class="k">def</span> <span class="nf">increment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+		<span class="k">pass</span></div>
+
+<div class="viewcode-block" id="ProgressPrinter.setLabel"><a class="viewcode-back" href="../../../misc/xmlReader.html#fontTools.misc.xmlReader.ProgressPrinter.setLabel">[docs]</a>	<span class="k">def</span> <span class="nf">setLabel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+		<span class="nb">print</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

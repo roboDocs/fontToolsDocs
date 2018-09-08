@@ -1,0 +1,210 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fontTools.ttLib.tables._s_b_i_x &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../ttLib.html" accesskey="U">fontTools.ttLib</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fontTools.ttLib.tables._s_b_i_x</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.py23</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc</span> <span class="k">import</span> <span class="n">sstruct</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.textTools</span> <span class="k">import</span> <span class="n">safeEval</span><span class="p">,</span> <span class="n">num2binary</span><span class="p">,</span> <span class="n">binary2num</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">DefaultTable</span>
+<span class="kn">from</span> <span class="nn">.sbixGlyph</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">.sbixStrike</span> <span class="k">import</span> <span class="o">*</span>
+
+
+<span class="n">sbixHeaderFormat</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">	&gt;</span>
+<span class="s2">	version:       H	# Version number (set to 1)</span>
+<span class="s2">	flags:         H	# The only two bits used in the flags field are bits 0</span>
+<span class="s2">						# and 1. For historical reasons, bit 0 must always be 1.</span>
+<span class="s2">						# Bit 1 is a sbixDrawOutlines flag and is interpreted as</span>
+<span class="s2">						# follows:</span>
+<span class="s2">						#     0: Draw only &#39;sbix&#39; bitmaps</span>
+<span class="s2">						#     1: Draw both &#39;sbix&#39; bitmaps and outlines, in that</span>
+<span class="s2">						#        order</span>
+<span class="s2">	numStrikes:    L	# Number of bitmap strikes to follow</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="n">sbixHeaderFormatSize</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">sbixHeaderFormat</span><span class="p">)</span>
+
+
+<span class="n">sbixStrikeOffsetFormat</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">	&gt;</span>
+<span class="s2">	strikeOffset:  L	# Offset from begining of table to data for the</span>
+<span class="s2">						# individual strike</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="n">sbixStrikeOffsetFormatSize</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">sbixStrikeOffsetFormat</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="table__s_b_i_x"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._s_b_i_x.table__s_b_i_x">[docs]</a><span class="k">class</span> <span class="nc">table__s_b_i_x</span><span class="p">(</span><span class="n">DefaultTable</span><span class="o">.</span><span class="n">DefaultTable</span><span class="p">):</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+		<span class="n">DefaultTable</span><span class="o">.</span><span class="n">DefaultTable</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="mi">1</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">flags</span> <span class="o">=</span> <span class="mi">1</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">numStrikes</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">strikes</span> <span class="o">=</span> <span class="p">{}</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">strikeOffsets</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="table__s_b_i_x.decompile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._s_b_i_x.table__s_b_i_x.decompile">[docs]</a>	<span class="k">def</span> <span class="nf">decompile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="c1"># read table header</span>
+		<span class="n">sstruct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">sbixHeaderFormat</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span> <span class="p">:</span> <span class="n">sbixHeaderFormatSize</span><span class="p">],</span> <span class="bp">self</span><span class="p">)</span>
+		<span class="c1"># collect offsets to individual strikes in self.strikeOffsets</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numStrikes</span><span class="p">):</span>
+			<span class="n">current_offset</span> <span class="o">=</span> <span class="n">sbixHeaderFormatSize</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="n">sbixStrikeOffsetFormatSize</span>
+			<span class="n">offset_entry</span> <span class="o">=</span> <span class="n">sbixStrikeOffset</span><span class="p">()</span>
+			<span class="n">sstruct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">sbixStrikeOffsetFormat</span><span class="p">,</span> \
+				<span class="n">data</span><span class="p">[</span><span class="n">current_offset</span><span class="p">:</span><span class="n">current_offset</span><span class="o">+</span><span class="n">sbixStrikeOffsetFormatSize</span><span class="p">],</span> \
+				<span class="n">offset_entry</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">strikeOffsets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">offset_entry</span><span class="o">.</span><span class="n">strikeOffset</span><span class="p">)</span>
+
+		<span class="c1"># decompile Strikes</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numStrikes</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+			<span class="n">current_strike</span> <span class="o">=</span> <span class="n">Strike</span><span class="p">(</span><span class="n">rawdata</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">strikeOffsets</span><span class="p">[</span><span class="n">i</span><span class="p">]:])</span>
+			<span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">strikeOffsets</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+			<span class="n">current_strike</span><span class="o">.</span><span class="n">decompile</span><span class="p">(</span><span class="n">ttFont</span><span class="p">)</span>
+			<span class="c1">#print &quot;  Strike length: %xh&quot; % len(bitmapSetData)</span>
+			<span class="c1">#print &quot;Number of Glyph entries:&quot;, len(current_strike.glyphs)</span>
+			<span class="k">if</span> <span class="n">current_strike</span><span class="o">.</span><span class="n">ppem</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">strikes</span><span class="p">:</span>
+				<span class="kn">from</span> <span class="nn">fontTools</span> <span class="k">import</span> <span class="n">ttLib</span>
+				<span class="k">raise</span> <span class="n">ttLib</span><span class="o">.</span><span class="n">TTLibError</span><span class="p">(</span><span class="s2">&quot;Pixel &#39;ppem&#39; must be unique for each Strike&quot;</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">strikes</span><span class="p">[</span><span class="n">current_strike</span><span class="o">.</span><span class="n">ppem</span><span class="p">]</span> <span class="o">=</span> <span class="n">current_strike</span>
+
+		<span class="c1"># after the glyph data records have been extracted, we don&#39;t need the offsets anymore</span>
+		<span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">strikeOffsets</span>
+		<span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">numStrikes</span></div>
+
+<div class="viewcode-block" id="table__s_b_i_x.compile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._s_b_i_x.table__s_b_i_x.compile">[docs]</a>	<span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">sbixData</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">numStrikes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">strikes</span><span class="p">)</span>
+		<span class="n">sbixHeader</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">sbixHeaderFormat</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+
+		<span class="c1"># calculate offset to start of first strike</span>
+		<span class="n">setOffset</span> <span class="o">=</span> <span class="n">sbixHeaderFormatSize</span> <span class="o">+</span> <span class="n">sbixStrikeOffsetFormatSize</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">numStrikes</span>
+
+		<span class="k">for</span> <span class="n">si</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">strikes</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+			<span class="n">current_strike</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">strikes</span><span class="p">[</span><span class="n">si</span><span class="p">]</span>
+			<span class="n">current_strike</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">ttFont</span><span class="p">)</span>
+			<span class="c1"># append offset to this strike to table header</span>
+			<span class="n">current_strike</span><span class="o">.</span><span class="n">strikeOffset</span> <span class="o">=</span> <span class="n">setOffset</span>
+			<span class="n">sbixHeader</span> <span class="o">+=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">sbixStrikeOffsetFormat</span><span class="p">,</span> <span class="n">current_strike</span><span class="p">)</span>
+			<span class="n">setOffset</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_strike</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+			<span class="n">sbixData</span> <span class="o">+=</span> <span class="n">current_strike</span><span class="o">.</span><span class="n">data</span>
+
+		<span class="k">return</span> <span class="n">sbixHeader</span> <span class="o">+</span> <span class="n">sbixData</span></div>
+
+<div class="viewcode-block" id="table__s_b_i_x.toXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._s_b_i_x.table__s_b_i_x.toXML">[docs]</a>	<span class="k">def</span> <span class="nf">toXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xmlWriter</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">xmlWriter</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="s2">&quot;version&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+		<span class="n">xmlWriter</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">xmlWriter</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="s2">&quot;flags&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">num2binary</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flags</span><span class="p">,</span> <span class="mi">16</span><span class="p">))</span>
+		<span class="n">xmlWriter</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">strikes</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">strikes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">toXML</span><span class="p">(</span><span class="n">xmlWriter</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="table__s_b_i_x.fromXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._s_b_i_x.table__s_b_i_x.fromXML">[docs]</a>	<span class="k">def</span> <span class="nf">fromXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">name</span> <span class="o">==</span><span class="s2">&quot;version&quot;</span><span class="p">:</span>
+			<span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]))</span>
+		<span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;flags&quot;</span><span class="p">:</span>
+			<span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">binary2num</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]))</span>
+		<span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;strike&quot;</span><span class="p">:</span>
+			<span class="n">current_strike</span> <span class="o">=</span> <span class="n">Strike</span><span class="p">()</span>
+			<span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+				<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+					<span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span> <span class="o">=</span> <span class="n">element</span>
+					<span class="n">current_strike</span><span class="o">.</span><span class="n">fromXML</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">strikes</span><span class="p">[</span><span class="n">current_strike</span><span class="o">.</span><span class="n">ppem</span><span class="p">]</span> <span class="o">=</span> <span class="n">current_strike</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="kn">from</span> <span class="nn">fontTools</span> <span class="k">import</span> <span class="n">ttLib</span>
+			<span class="k">raise</span> <span class="n">ttLib</span><span class="o">.</span><span class="n">TTLibError</span><span class="p">(</span><span class="s2">&quot;can&#39;t handle &#39;</span><span class="si">%s</span><span class="s2">&#39; element&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span></div></div>
+
+
+<span class="c1"># Helper classes</span>
+
+<div class="viewcode-block" id="sbixStrikeOffset"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._s_b_i_x.sbixStrikeOffset">[docs]</a><span class="k">class</span> <span class="nc">sbixStrikeOffset</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../ttLib.html" >fontTools.ttLib</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

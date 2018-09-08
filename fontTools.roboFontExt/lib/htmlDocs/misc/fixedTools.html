@@ -1,0 +1,170 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fixedTools &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="loggingTools" href="loggingTools.html" />
+    <link rel="prev" title="encodingTools" href="encodingTools.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="loggingTools.html" title="loggingTools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="encodingTools.html" title="encodingTools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">misc</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-fontTools.misc.fixedTools">
+<span id="fixedtools"></span><h1>fixedTools<a class="headerlink" href="#module-fontTools.misc.fixedTools" title="Permalink to this headline">¶</a></h1>
+<p>fontTools.misc.fixedTools.py &#8211; tools for working with fixed numbers.</p>
+<dl class="function">
+<dt id="fontTools.misc.fixedTools.otRound">
+<code class="descclassname">fontTools.misc.fixedTools.</code><code class="descname">otRound</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/fixedTools.html#otRound"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.fixedTools.otRound" title="Permalink to this definition">¶</a></dt>
+<dd><p>Round float value to nearest integer towards +Infinity.
+For fractional values of 0.5 and higher, take the next higher integer;
+for other fractional values, truncate.</p>
+<p><a class="reference external" href="https://docs.microsoft.com/en-us/typography/opentype/spec/otvaroverview">https://docs.microsoft.com/en-us/typography/opentype/spec/otvaroverview</a>
+<a class="reference external" href="https://github.com/fonttools/fonttools/issues/1248#issuecomment-383198166">https://github.com/fonttools/fonttools/issues/1248#issuecomment-383198166</a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.fixedTools.fixedToFloat">
+<code class="descclassname">fontTools.misc.fixedTools.</code><code class="descname">fixedToFloat</code><span class="sig-paren">(</span><em>value</em>, <em>precisionBits</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/fixedTools.html#fixedToFloat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.fixedTools.fixedToFloat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a fixed-point number to a float, choosing the float
+that has the shortest decimal reprentation.  Eg. to convert a
+fixed number in a 2.14 format, use precisionBits=14.  This is
+pretty slow compared to a simple division.  Use sporadically.</p>
+<p>precisionBits is only supported up to 16.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.fixedTools.floatToFixed">
+<code class="descclassname">fontTools.misc.fixedTools.</code><code class="descname">floatToFixed</code><span class="sig-paren">(</span><em>value</em>, <em>precisionBits</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/fixedTools.html#floatToFixed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.fixedTools.floatToFixed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a float to a fixed-point number given the number of
+precisionBits.  Ie. round(value * (1&lt;&lt;precisionBits)).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.fixedTools.floatToFixedToFloat">
+<code class="descclassname">fontTools.misc.fixedTools.</code><code class="descname">floatToFixedToFloat</code><span class="sig-paren">(</span><em>value</em>, <em>precisionBits</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/fixedTools.html#floatToFixedToFloat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.fixedTools.floatToFixedToFloat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a float to a fixed-point number given the number of
+precisionBits, round it, then convert it back to float again.
+Ie. round(value * (1&lt;&lt;precisionBits)) / (1&lt;&lt;precisionBits)
+Note: this is <em>not</em> equivalent to fixedToFloat(floatToFixed(value)),
+which would return the shortest representation of the rounded value.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.fixedTools.ensureVersionIsLong">
+<code class="descclassname">fontTools.misc.fixedTools.</code><code class="descname">ensureVersionIsLong</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/fixedTools.html#ensureVersionIsLong"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.fixedTools.ensureVersionIsLong" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensure a table version is an unsigned long (unsigned short major,
+unsigned short minor) instead of a float.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.fixedTools.versionToFixed">
+<code class="descclassname">fontTools.misc.fixedTools.</code><code class="descname">versionToFixed</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/fixedTools.html#versionToFixed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.fixedTools.versionToFixed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a table version to a fixed</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="encodingTools.html"
+                        title="previous chapter">encodingTools</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="loggingTools.html"
+                        title="next chapter">loggingTools</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/misc/fixedTools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="loggingTools.html" title="loggingTools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="encodingTools.html" title="encodingTools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >misc</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

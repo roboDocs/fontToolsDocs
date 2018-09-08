@@ -1,0 +1,326 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fontTools.ttLib.tables.V_D_M_X_ &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../ttLib.html" accesskey="U">fontTools.ttLib</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fontTools.ttLib.tables.V_D_M_X_</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.py23</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">DefaultTable</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc</span> <span class="k">import</span> <span class="n">sstruct</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.textTools</span> <span class="k">import</span> <span class="n">safeEval</span>
+<span class="kn">import</span> <span class="nn">struct</span>
+
+<span class="n">VDMX_HeaderFmt</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">	&gt;                 # big endian</span>
+<span class="s2">	version:     H    # Version number (0 or 1)</span>
+<span class="s2">	numRecs:     H    # Number of VDMX groups present</span>
+<span class="s2">	numRatios:   H    # Number of aspect ratio groupings</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="c1"># the VMDX header is followed by an array of RatRange[numRatios] (i.e. aspect</span>
+<span class="c1"># ratio ranges);</span>
+<span class="n">VDMX_RatRangeFmt</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">	&gt;                 # big endian</span>
+<span class="s2">	bCharSet:    B    # Character set</span>
+<span class="s2">	xRatio:      B    # Value to use for x-Ratio</span>
+<span class="s2">	yStartRatio: B    # Starting y-Ratio value</span>
+<span class="s2">	yEndRatio:   B    # Ending y-Ratio value</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="c1"># followed by an array of offset[numRatios] from start of VDMX table to the</span>
+<span class="c1"># VDMX Group for this ratio range (offsets will be re-calculated on compile);</span>
+<span class="c1"># followed by an array of Group[numRecs] records;</span>
+<span class="n">VDMX_GroupFmt</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">	&gt;                 # big endian</span>
+<span class="s2">	recs:        H    # Number of height records in this group</span>
+<span class="s2">	startsz:     B    # Starting yPelHeight</span>
+<span class="s2">	endsz:       B    # Ending yPelHeight</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="c1"># followed by an array of vTable[recs] records.</span>
+<span class="n">VDMX_vTableFmt</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">	&gt;                 # big endian</span>
+<span class="s2">	yPelHeight:  H    # yPelHeight to which values apply</span>
+<span class="s2">	yMax:        h    # Maximum value (in pels) for this yPelHeight</span>
+<span class="s2">	yMin:        h    # Minimum value (in pels) for this yPelHeight</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="table_V_D_M_X_"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.V_D_M_X_.table_V_D_M_X_">[docs]</a><span class="k">class</span> <span class="nc">table_V_D_M_X_</span><span class="p">(</span><span class="n">DefaultTable</span><span class="o">.</span><span class="n">DefaultTable</span><span class="p">):</span>
+
+<div class="viewcode-block" id="table_V_D_M_X_.decompile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.V_D_M_X_.table_V_D_M_X_.decompile">[docs]</a>	<span class="k">def</span> <span class="nf">decompile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">pos</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># track current position from to start of VDMX table</span>
+		<span class="n">dummy</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">unpack2</span><span class="p">(</span><span class="n">VDMX_HeaderFmt</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+		<span class="n">pos</span> <span class="o">+=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">VDMX_HeaderFmt</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">ratRanges</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numRatios</span><span class="p">):</span>
+			<span class="n">ratio</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">unpack2</span><span class="p">(</span><span class="n">VDMX_RatRangeFmt</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+			<span class="n">pos</span> <span class="o">+=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">VDMX_RatRangeFmt</span><span class="p">)</span>
+			<span class="c1"># the mapping between a ratio and a group is defined further below</span>
+			<span class="n">ratio</span><span class="p">[</span><span class="s1">&#39;groupIndex&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">ratRanges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ratio</span><span class="p">)</span>
+		<span class="n">lenOffset</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="s1">&#39;&gt;H&#39;</span><span class="p">)</span>
+		<span class="n">_offsets</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># temporarily store offsets to groups</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numRatios</span><span class="p">):</span>
+			<span class="n">offset</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s1">&#39;&gt;H&#39;</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">lenOffset</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+			<span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">lenOffset</span><span class="p">:]</span>
+			<span class="n">pos</span> <span class="o">+=</span> <span class="n">lenOffset</span>
+			<span class="n">_offsets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">groups</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">groupIndex</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numRecs</span><span class="p">):</span>
+			<span class="c1"># the offset to this group from beginning of the VDMX table</span>
+			<span class="n">currOffset</span> <span class="o">=</span> <span class="n">pos</span>
+			<span class="n">group</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">unpack2</span><span class="p">(</span><span class="n">VDMX_GroupFmt</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+			<span class="c1"># the group lenght and bounding sizes are re-calculated on compile</span>
+			<span class="n">recs</span> <span class="o">=</span> <span class="n">group</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;recs&#39;</span><span class="p">)</span>
+			<span class="n">startsz</span> <span class="o">=</span> <span class="n">group</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;startsz&#39;</span><span class="p">)</span>
+			<span class="n">endsz</span> <span class="o">=</span> <span class="n">group</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;endsz&#39;</span><span class="p">)</span>
+			<span class="n">pos</span> <span class="o">+=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">VDMX_GroupFmt</span><span class="p">)</span>
+			<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">recs</span><span class="p">):</span>
+				<span class="n">vTable</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">unpack2</span><span class="p">(</span><span class="n">VDMX_vTableFmt</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+				<span class="n">vTableLength</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">VDMX_vTableFmt</span><span class="p">)</span>
+				<span class="n">pos</span> <span class="o">+=</span> <span class="n">vTableLength</span>
+				<span class="c1"># group is a dict of (yMax, yMin) tuples keyed by yPelHeight</span>
+				<span class="n">group</span><span class="p">[</span><span class="n">vTable</span><span class="p">[</span><span class="s1">&#39;yPelHeight&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span><span class="n">vTable</span><span class="p">[</span><span class="s1">&#39;yMax&#39;</span><span class="p">],</span> <span class="n">vTable</span><span class="p">[</span><span class="s1">&#39;yMin&#39;</span><span class="p">])</span>
+			<span class="c1"># make sure startsz and endsz match the calculated values</span>
+			<span class="n">minSize</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+			<span class="n">maxSize</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+			<span class="k">assert</span> <span class="n">startsz</span> <span class="o">==</span> <span class="n">minSize</span><span class="p">,</span> \
+				<span class="s2">&quot;startsz (</span><span class="si">%s</span><span class="s2">) must equal min yPelHeight (</span><span class="si">%s</span><span class="s2">): group </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> \
+				<span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">startsz</span><span class="p">,</span> <span class="n">minSize</span><span class="p">,</span> <span class="n">groupIndex</span><span class="p">)</span>
+			<span class="k">assert</span> <span class="n">endsz</span> <span class="o">==</span> <span class="n">maxSize</span><span class="p">,</span> \
+				<span class="s2">&quot;endsz (</span><span class="si">%s</span><span class="s2">) must equal max yPelHeight (</span><span class="si">%s</span><span class="s2">): group </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> \
+				<span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">endsz</span><span class="p">,</span> <span class="n">maxSize</span><span class="p">,</span> <span class="n">groupIndex</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">group</span><span class="p">)</span>
+			<span class="c1"># match the defined offsets with the current group&#39;s offset</span>
+			<span class="k">for</span> <span class="n">offsetIndex</span><span class="p">,</span> <span class="n">offsetValue</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">_offsets</span><span class="p">):</span>
+				<span class="c1"># when numRecs &lt; numRatios there can more than one ratio range</span>
+				<span class="c1"># sharing the same VDMX group</span>
+				<span class="k">if</span> <span class="n">currOffset</span> <span class="o">==</span> <span class="n">offsetValue</span><span class="p">:</span>
+					<span class="c1"># map the group with the ratio range thas has the same</span>
+					<span class="c1"># index as the offset to that group (it took me a while..)</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">ratRanges</span><span class="p">[</span><span class="n">offsetIndex</span><span class="p">][</span><span class="s1">&#39;groupIndex&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">groupIndex</span>
+		<span class="c1"># check that all ratio ranges have a group</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numRatios</span><span class="p">):</span>
+			<span class="n">ratio</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ratRanges</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+			<span class="k">if</span> <span class="n">ratio</span><span class="p">[</span><span class="s1">&#39;groupIndex&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="kn">from</span> <span class="nn">fontTools</span> <span class="k">import</span> <span class="n">ttLib</span>
+				<span class="k">raise</span> <span class="n">ttLib</span><span class="o">.</span><span class="n">TTLibError</span><span class="p">(</span>
+					<span class="s2">&quot;no group defined for ratRange </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span></div>
+
+	<span class="k">def</span> <span class="nf">_getOffsets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Calculate offsets to VDMX_Group records.</span>
+<span class="sd">		For each ratRange return a list of offset values from the beginning of</span>
+<span class="sd">		the VDMX table to a VDMX_Group.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">lenHeader</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">VDMX_HeaderFmt</span><span class="p">)</span>
+		<span class="n">lenRatRange</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">VDMX_RatRangeFmt</span><span class="p">)</span>
+		<span class="n">lenOffset</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="s1">&#39;&gt;H&#39;</span><span class="p">)</span>
+		<span class="n">lenGroupHeader</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">VDMX_GroupFmt</span><span class="p">)</span>
+		<span class="n">lenVTable</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">VDMX_vTableFmt</span><span class="p">)</span>
+		<span class="c1"># offset to the first group</span>
+		<span class="n">pos</span> <span class="o">=</span> <span class="n">lenHeader</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">numRatios</span><span class="o">*</span><span class="n">lenRatRange</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">numRatios</span><span class="o">*</span><span class="n">lenOffset</span>
+		<span class="n">groupOffsets</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">groups</span><span class="p">:</span>
+			<span class="n">groupOffsets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+			<span class="n">lenGroup</span> <span class="o">=</span> <span class="n">lenGroupHeader</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">group</span><span class="p">)</span> <span class="o">*</span> <span class="n">lenVTable</span>
+			<span class="n">pos</span> <span class="o">+=</span> <span class="n">lenGroup</span>  <span class="c1"># offset to next group</span>
+		<span class="n">offsets</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">ratio</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ratRanges</span><span class="p">:</span>
+			<span class="n">groupIndex</span> <span class="o">=</span> <span class="n">ratio</span><span class="p">[</span><span class="s1">&#39;groupIndex&#39;</span><span class="p">]</span>
+			<span class="n">offsets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">groupOffsets</span><span class="p">[</span><span class="n">groupIndex</span><span class="p">])</span>
+		<span class="k">return</span> <span class="n">offsets</span>
+
+<div class="viewcode-block" id="table_V_D_M_X_.compile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.V_D_M_X_.table_V_D_M_X_.compile">[docs]</a>	<span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="k">if</span> <span class="ow">not</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+			<span class="kn">from</span> <span class="nn">fontTools</span> <span class="k">import</span> <span class="n">ttLib</span>
+			<span class="k">raise</span> <span class="n">ttLib</span><span class="o">.</span><span class="n">TTLibError</span><span class="p">(</span>
+				<span class="s2">&quot;unknown format for VDMX table: version </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">VDMX_HeaderFmt</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">ratio</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ratRanges</span><span class="p">:</span>
+			<span class="n">data</span> <span class="o">+=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">VDMX_RatRangeFmt</span><span class="p">,</span> <span class="n">ratio</span><span class="p">)</span>
+		<span class="c1"># recalculate offsets to VDMX groups</span>
+		<span class="k">for</span> <span class="n">offset</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getOffsets</span><span class="p">():</span>
+			<span class="n">data</span> <span class="o">+=</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s1">&#39;&gt;H&#39;</span><span class="p">,</span> <span class="n">offset</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">groups</span><span class="p">:</span>
+			<span class="n">recs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">group</span><span class="p">)</span>
+			<span class="n">startsz</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+			<span class="n">endsz</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+			<span class="n">gHeader</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;recs&#39;</span><span class="p">:</span> <span class="n">recs</span><span class="p">,</span> <span class="s1">&#39;startsz&#39;</span><span class="p">:</span> <span class="n">startsz</span><span class="p">,</span> <span class="s1">&#39;endsz&#39;</span><span class="p">:</span> <span class="n">endsz</span><span class="p">}</span>
+			<span class="n">data</span> <span class="o">+=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">VDMX_GroupFmt</span><span class="p">,</span> <span class="n">gHeader</span><span class="p">)</span>
+			<span class="k">for</span> <span class="n">yPelHeight</span><span class="p">,</span> <span class="p">(</span><span class="n">yMax</span><span class="p">,</span> <span class="n">yMin</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+				<span class="n">vTable</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;yPelHeight&#39;</span><span class="p">:</span> <span class="n">yPelHeight</span><span class="p">,</span> <span class="s1">&#39;yMax&#39;</span><span class="p">:</span> <span class="n">yMax</span><span class="p">,</span> <span class="s1">&#39;yMin&#39;</span><span class="p">:</span> <span class="n">yMin</span><span class="p">}</span>
+				<span class="n">data</span> <span class="o">+=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">VDMX_vTableFmt</span><span class="p">,</span> <span class="n">vTable</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="table_V_D_M_X_.toXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.V_D_M_X_.table_V_D_M_X_.toXML">[docs]</a>	<span class="k">def</span> <span class="nf">toXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="s2">&quot;version&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">begintag</span><span class="p">(</span><span class="s2">&quot;ratRanges&quot;</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">ratio</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ratRanges</span><span class="p">:</span>
+			<span class="n">groupIndex</span> <span class="o">=</span> <span class="n">ratio</span><span class="p">[</span><span class="s1">&#39;groupIndex&#39;</span><span class="p">]</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span>
+				<span class="s2">&quot;ratRange&quot;</span><span class="p">,</span>
+				<span class="n">bCharSet</span><span class="o">=</span><span class="n">ratio</span><span class="p">[</span><span class="s1">&#39;bCharSet&#39;</span><span class="p">],</span>
+				<span class="n">xRatio</span><span class="o">=</span><span class="n">ratio</span><span class="p">[</span><span class="s1">&#39;xRatio&#39;</span><span class="p">],</span>
+				<span class="n">yStartRatio</span><span class="o">=</span><span class="n">ratio</span><span class="p">[</span><span class="s1">&#39;yStartRatio&#39;</span><span class="p">],</span>
+				<span class="n">yEndRatio</span><span class="o">=</span><span class="n">ratio</span><span class="p">[</span><span class="s1">&#39;yEndRatio&#39;</span><span class="p">],</span>
+				<span class="n">groupIndex</span><span class="o">=</span><span class="n">groupIndex</span>
+				<span class="p">)</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">endtag</span><span class="p">(</span><span class="s2">&quot;ratRanges&quot;</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">begintag</span><span class="p">(</span><span class="s2">&quot;groups&quot;</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">groupIndex</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numRecs</span><span class="p">):</span>
+			<span class="n">group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">groups</span><span class="p">[</span><span class="n">groupIndex</span><span class="p">]</span>
+			<span class="n">recs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">group</span><span class="p">)</span>
+			<span class="n">startsz</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+			<span class="n">endsz</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">begintag</span><span class="p">(</span><span class="s2">&quot;group&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">groupIndex</span><span class="p">)</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">comment</span><span class="p">(</span><span class="s2">&quot;recs=</span><span class="si">%d</span><span class="s2">, startsz=</span><span class="si">%d</span><span class="s2">, endsz=</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span>
+							<span class="p">(</span><span class="n">recs</span><span class="p">,</span> <span class="n">startsz</span><span class="p">,</span> <span class="n">endsz</span><span class="p">))</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+			<span class="k">for</span> <span class="n">yPelHeight</span><span class="p">,</span> <span class="p">(</span><span class="n">yMax</span><span class="p">,</span> <span class="n">yMin</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+				<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span>
+					<span class="s2">&quot;record&quot;</span><span class="p">,</span>
+					<span class="p">[(</span><span class="s1">&#39;yPelHeight&#39;</span><span class="p">,</span> <span class="n">yPelHeight</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;yMax&#39;</span><span class="p">,</span> <span class="n">yMax</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;yMin&#39;</span><span class="p">,</span> <span class="n">yMin</span><span class="p">)])</span>
+				<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">endtag</span><span class="p">(</span><span class="s2">&quot;group&quot;</span><span class="p">)</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">endtag</span><span class="p">(</span><span class="s2">&quot;groups&quot;</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="table_V_D_M_X_.fromXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.V_D_M_X_.table_V_D_M_X_.fromXML">[docs]</a>	<span class="k">def</span> <span class="nf">fromXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">])</span>
+		<span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;ratRanges&quot;</span><span class="p">:</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;ratRanges&quot;</span><span class="p">):</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">ratRanges</span> <span class="o">=</span> <span class="p">[]</span>
+			<span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+				<span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+					<span class="k">continue</span>
+				<span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span> <span class="o">=</span> <span class="n">element</span>
+				<span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;ratRange&quot;</span><span class="p">:</span>
+					<span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;numRatios&quot;</span><span class="p">):</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">numRatios</span> <span class="o">=</span> <span class="mi">1</span>
+					<span class="k">else</span><span class="p">:</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">numRatios</span> <span class="o">+=</span> <span class="mi">1</span>
+					<span class="n">ratio</span> <span class="o">=</span> <span class="p">{</span>
+						<span class="s2">&quot;bCharSet&quot;</span><span class="p">:</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;bCharSet&quot;</span><span class="p">]),</span>
+						<span class="s2">&quot;xRatio&quot;</span><span class="p">:</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;xRatio&quot;</span><span class="p">]),</span>
+						<span class="s2">&quot;yStartRatio&quot;</span><span class="p">:</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;yStartRatio&quot;</span><span class="p">]),</span>
+						<span class="s2">&quot;yEndRatio&quot;</span><span class="p">:</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;yEndRatio&quot;</span><span class="p">]),</span>
+						<span class="s2">&quot;groupIndex&quot;</span><span class="p">:</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;groupIndex&quot;</span><span class="p">])</span>
+						<span class="p">}</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">ratRanges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ratio</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;groups&quot;</span><span class="p">:</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;groups&quot;</span><span class="p">):</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">groups</span> <span class="o">=</span> <span class="p">[]</span>
+			<span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+				<span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+					<span class="k">continue</span>
+				<span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span> <span class="o">=</span> <span class="n">element</span>
+				<span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;group&quot;</span><span class="p">:</span>
+					<span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;numRecs&quot;</span><span class="p">):</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">numRecs</span> <span class="o">=</span> <span class="mi">1</span>
+					<span class="k">else</span><span class="p">:</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">numRecs</span> <span class="o">+=</span> <span class="mi">1</span>
+					<span class="n">group</span> <span class="o">=</span> <span class="p">{}</span>
+					<span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+						<span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+							<span class="k">continue</span>
+						<span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span> <span class="o">=</span> <span class="n">element</span>
+						<span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;record&quot;</span><span class="p">:</span>
+							<span class="n">yPelHeight</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;yPelHeight&quot;</span><span class="p">])</span>
+							<span class="n">yMax</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;yMax&quot;</span><span class="p">])</span>
+							<span class="n">yMin</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;yMin&quot;</span><span class="p">])</span>
+							<span class="n">group</span><span class="p">[</span><span class="n">yPelHeight</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">yMax</span><span class="p">,</span> <span class="n">yMin</span><span class="p">)</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">group</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../ttLib.html" >fontTools.ttLib</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

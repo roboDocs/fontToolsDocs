@@ -1,0 +1,406 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fontTools.ttLib.tables._t_r_a_k &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../ttLib.html" accesskey="U">fontTools.ttLib</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fontTools.ttLib.tables._t_r_a_k</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.py23</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc</span> <span class="k">import</span> <span class="n">sstruct</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.fixedTools</span> <span class="k">import</span> <span class="n">fixedToFloat</span> <span class="k">as</span> <span class="n">fi2fl</span><span class="p">,</span> <span class="n">floatToFixed</span> <span class="k">as</span> <span class="n">fl2fi</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.textTools</span> <span class="k">import</span> <span class="n">safeEval</span>
+<span class="kn">from</span> <span class="nn">fontTools.ttLib</span> <span class="k">import</span> <span class="n">TTLibError</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">DefaultTable</span>
+<span class="kn">import</span> <span class="nn">struct</span>
+<span class="k">try</span><span class="p">:</span>
+	<span class="kn">from</span> <span class="nn">collections.abc</span> <span class="k">import</span> <span class="n">MutableMapping</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+	<span class="kn">from</span> <span class="nn">UserDict</span> <span class="k">import</span> <span class="n">DictMixin</span> <span class="k">as</span> <span class="n">MutableMapping</span>
+
+
+<span class="c1"># Apple&#39;s documentation of &#39;trak&#39;:</span>
+<span class="c1"># https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6trak.html</span>
+
+<span class="n">TRAK_HEADER_FORMAT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">	&gt; # big endian</span>
+<span class="s2">	version:     16.16F</span>
+<span class="s2">	format:      H</span>
+<span class="s2">	horizOffset: H</span>
+<span class="s2">	vertOffset:  H</span>
+<span class="s2">	reserved:    H</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="n">TRAK_HEADER_FORMAT_SIZE</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">TRAK_HEADER_FORMAT</span><span class="p">)</span>
+
+
+<span class="n">TRACK_DATA_FORMAT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">	&gt; # big endian</span>
+<span class="s2">	nTracks:         H</span>
+<span class="s2">	nSizes:          H</span>
+<span class="s2">	sizeTableOffset: L</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="n">TRACK_DATA_FORMAT_SIZE</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">TRACK_DATA_FORMAT</span><span class="p">)</span>
+
+
+<span class="n">TRACK_TABLE_ENTRY_FORMAT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">	&gt; # big endian</span>
+<span class="s2">	track:      16.16F</span>
+<span class="s2">	nameIndex:       H</span>
+<span class="s2">	offset:          H</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="n">TRACK_TABLE_ENTRY_FORMAT_SIZE</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">TRACK_TABLE_ENTRY_FORMAT</span><span class="p">)</span>
+
+
+<span class="c1"># size values are actually &#39;16.16F&#39; fixed-point values, but here I do the</span>
+<span class="c1"># fixedToFloat conversion manually instead of relying on sstruct</span>
+<span class="n">SIZE_VALUE_FORMAT</span> <span class="o">=</span> <span class="s2">&quot;&gt;l&quot;</span>
+<span class="n">SIZE_VALUE_FORMAT_SIZE</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">SIZE_VALUE_FORMAT</span><span class="p">)</span>
+
+<span class="c1"># per-Size values are in &#39;FUnits&#39;, i.e. 16-bit signed integers</span>
+<span class="n">PER_SIZE_VALUE_FORMAT</span> <span class="o">=</span> <span class="s2">&quot;&gt;h&quot;</span>
+<span class="n">PER_SIZE_VALUE_FORMAT_SIZE</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">PER_SIZE_VALUE_FORMAT</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="table__t_r_a_k"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._t_r_a_k.table__t_r_a_k">[docs]</a><span class="k">class</span> <span class="nc">table__t_r_a_k</span><span class="p">(</span><span class="n">DefaultTable</span><span class="o">.</span><span class="n">DefaultTable</span><span class="p">):</span>
+	<span class="n">dependencies</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="table__t_r_a_k.compile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._t_r_a_k.table__t_r_a_k.compile">[docs]</a>	<span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">dataList</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="n">offset</span> <span class="o">=</span> <span class="n">TRAK_HEADER_FORMAT_SIZE</span>
+		<span class="k">for</span> <span class="n">direction</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;horiz&#39;</span><span class="p">,</span> <span class="s1">&#39;vert&#39;</span><span class="p">):</span>
+			<span class="n">trackData</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">direction</span> <span class="o">+</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="n">TrackData</span><span class="p">())</span>
+			<span class="n">offsetName</span> <span class="o">=</span> <span class="n">direction</span> <span class="o">+</span> <span class="s1">&#39;Offset&#39;</span>
+			<span class="c1"># set offset to 0 if None or empty</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">trackData</span><span class="p">:</span>
+				<span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">offsetName</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+				<span class="k">continue</span>
+			<span class="c1"># TrackData table format must be longword aligned</span>
+			<span class="n">alignedOffset</span> <span class="o">=</span> <span class="p">(</span><span class="n">offset</span> <span class="o">+</span> <span class="mi">3</span><span class="p">)</span> <span class="o">&amp;</span> <span class="o">~</span><span class="mi">3</span>
+			<span class="n">padding</span><span class="p">,</span> <span class="n">offset</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\x00</span><span class="s2">&quot;</span><span class="o">*</span><span class="p">(</span><span class="n">alignedOffset</span> <span class="o">-</span> <span class="n">offset</span><span class="p">),</span> <span class="n">alignedOffset</span>
+			<span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">offsetName</span><span class="p">,</span> <span class="n">offset</span><span class="p">)</span>
+
+			<span class="n">data</span> <span class="o">=</span> <span class="n">trackData</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span>
+			<span class="n">offset</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+			<span class="n">dataList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">padding</span> <span class="o">+</span> <span class="n">data</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">reserved</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="n">tableData</span> <span class="o">=</span> <span class="n">bytesjoin</span><span class="p">([</span><span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">TRAK_HEADER_FORMAT</span><span class="p">,</span> <span class="bp">self</span><span class="p">)]</span> <span class="o">+</span> <span class="n">dataList</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">tableData</span></div>
+
+<div class="viewcode-block" id="table__t_r_a_k.decompile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._t_r_a_k.table__t_r_a_k.decompile">[docs]</a>	<span class="k">def</span> <span class="nf">decompile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">sstruct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">TRAK_HEADER_FORMAT</span><span class="p">,</span> <span class="n">data</span><span class="p">[:</span><span class="n">TRAK_HEADER_FORMAT_SIZE</span><span class="p">],</span> <span class="bp">self</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">direction</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;horiz&#39;</span><span class="p">,</span> <span class="s1">&#39;vert&#39;</span><span class="p">):</span>
+			<span class="n">trackData</span> <span class="o">=</span> <span class="n">TrackData</span><span class="p">()</span>
+			<span class="n">offset</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">direction</span> <span class="o">+</span> <span class="s1">&#39;Offset&#39;</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">offset</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+				<span class="n">trackData</span><span class="o">.</span><span class="n">decompile</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">offset</span><span class="p">)</span>
+			<span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">direction</span> <span class="o">+</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="n">trackData</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="table__t_r_a_k.toXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._t_r_a_k.table__t_r_a_k.toXML">[docs]</a>	<span class="k">def</span> <span class="nf">toXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="s1">&#39;version&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="s1">&#39;format&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">direction</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;horiz&#39;</span><span class="p">,</span> <span class="s1">&#39;vert&#39;</span><span class="p">):</span>
+			<span class="n">dataName</span> <span class="o">=</span> <span class="n">direction</span> <span class="o">+</span> <span class="s1">&#39;Data&#39;</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">begintag</span><span class="p">(</span><span class="n">dataName</span><span class="p">)</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+			<span class="n">trackData</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataName</span><span class="p">,</span> <span class="n">TrackData</span><span class="p">())</span>
+			<span class="n">trackData</span><span class="o">.</span><span class="n">toXML</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">endtag</span><span class="p">(</span><span class="n">dataName</span><span class="p">)</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="table__t_r_a_k.fromXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._t_r_a_k.table__t_r_a_k.fromXML">[docs]</a>	<span class="k">def</span> <span class="nf">fromXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;version&#39;</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">])</span>
+		<span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;format&#39;</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">format</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">])</span>
+		<span class="k">elif</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;horizData&#39;</span><span class="p">,</span> <span class="s1">&#39;vertData&#39;</span><span class="p">):</span>
+			<span class="n">trackData</span> <span class="o">=</span> <span class="n">TrackData</span><span class="p">()</span>
+			<span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">trackData</span><span class="p">)</span>
+			<span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+				<span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+					<span class="k">continue</span>
+				<span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content_</span> <span class="o">=</span> <span class="n">element</span>
+				<span class="n">trackData</span><span class="o">.</span><span class="n">fromXML</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content_</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="TrackData"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._t_r_a_k.TrackData">[docs]</a><span class="k">class</span> <span class="nc">TrackData</span><span class="p">(</span><span class="n">MutableMapping</span><span class="p">):</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initialdata</span><span class="o">=</span><span class="p">{}):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">initialdata</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TrackData.compile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._t_r_a_k.TrackData.compile">[docs]</a>	<span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">offset</span><span class="p">):</span>
+		<span class="n">nTracks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+		<span class="n">sizes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sizes</span><span class="p">()</span>
+		<span class="n">nSizes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sizes</span><span class="p">)</span>
+
+		<span class="c1"># offset to the start of the size subtable</span>
+		<span class="n">offset</span> <span class="o">+=</span> <span class="n">TRACK_DATA_FORMAT_SIZE</span> <span class="o">+</span> <span class="n">TRACK_TABLE_ENTRY_FORMAT_SIZE</span><span class="o">*</span><span class="n">nTracks</span>
+		<span class="n">trackDataHeader</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span>
+			<span class="n">TRACK_DATA_FORMAT</span><span class="p">,</span>
+			<span class="p">{</span><span class="s1">&#39;nTracks&#39;</span><span class="p">:</span> <span class="n">nTracks</span><span class="p">,</span> <span class="s1">&#39;nSizes&#39;</span><span class="p">:</span> <span class="n">nSizes</span><span class="p">,</span> <span class="s1">&#39;sizeTableOffset&#39;</span><span class="p">:</span> <span class="n">offset</span><span class="p">})</span>
+
+		<span class="n">entryDataList</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="n">perSizeDataList</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="c1"># offset to per-size tracking values</span>
+		<span class="n">offset</span> <span class="o">+=</span> <span class="n">SIZE_VALUE_FORMAT_SIZE</span><span class="o">*</span><span class="n">nSizes</span>
+		<span class="c1"># sort track table entries by track value</span>
+		<span class="k">for</span> <span class="n">track</span><span class="p">,</span> <span class="n">entry</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+			<span class="k">assert</span> <span class="n">entry</span><span class="o">.</span><span class="n">nameIndex</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+			<span class="n">entry</span><span class="o">.</span><span class="n">track</span> <span class="o">=</span> <span class="n">track</span>
+			<span class="n">entry</span><span class="o">.</span><span class="n">offset</span> <span class="o">=</span> <span class="n">offset</span>
+			<span class="n">entryDataList</span> <span class="o">+=</span> <span class="p">[</span><span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">TRACK_TABLE_ENTRY_FORMAT</span><span class="p">,</span> <span class="n">entry</span><span class="p">)]</span>
+			<span class="c1"># sort per-size values by size</span>
+			<span class="k">for</span> <span class="n">size</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+				<span class="n">perSizeDataList</span> <span class="o">+=</span> <span class="p">[</span><span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">PER_SIZE_VALUE_FORMAT</span><span class="p">,</span> <span class="n">value</span><span class="p">)]</span>
+			<span class="n">offset</span> <span class="o">+=</span> <span class="n">PER_SIZE_VALUE_FORMAT_SIZE</span><span class="o">*</span><span class="n">nSizes</span>
+		<span class="c1"># sort size values</span>
+		<span class="n">sizeDataList</span> <span class="o">=</span> <span class="p">[</span><span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">SIZE_VALUE_FORMAT</span><span class="p">,</span> <span class="n">fl2fi</span><span class="p">(</span><span class="n">sv</span><span class="p">,</span> <span class="mi">16</span><span class="p">))</span> <span class="k">for</span> <span class="n">sv</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">sizes</span><span class="p">)]</span>
+
+		<span class="n">data</span> <span class="o">=</span> <span class="n">bytesjoin</span><span class="p">([</span><span class="n">trackDataHeader</span><span class="p">]</span> <span class="o">+</span> <span class="n">entryDataList</span> <span class="o">+</span> <span class="n">sizeDataList</span> <span class="o">+</span> <span class="n">perSizeDataList</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="TrackData.decompile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._t_r_a_k.TrackData.decompile">[docs]</a>	<span class="k">def</span> <span class="nf">decompile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">offset</span><span class="p">):</span>
+		<span class="c1"># initial offset is from the start of trak table to the current TrackData</span>
+		<span class="n">trackDataHeader</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">offset</span><span class="p">:</span><span class="n">offset</span><span class="o">+</span><span class="n">TRACK_DATA_FORMAT_SIZE</span><span class="p">]</span>
+		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">trackDataHeader</span><span class="p">)</span> <span class="o">!=</span> <span class="n">TRACK_DATA_FORMAT_SIZE</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="n">TTLibError</span><span class="p">(</span><span class="s1">&#39;not enough data to decompile TrackData header&#39;</span><span class="p">)</span>
+		<span class="n">sstruct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">TRACK_DATA_FORMAT</span><span class="p">,</span> <span class="n">trackDataHeader</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+		<span class="n">offset</span> <span class="o">+=</span> <span class="n">TRACK_DATA_FORMAT_SIZE</span>
+
+		<span class="n">nSizes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nSizes</span>
+		<span class="n">sizeTableOffset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sizeTableOffset</span>
+		<span class="n">sizeTable</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nSizes</span><span class="p">):</span>
+			<span class="n">sizeValueData</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">sizeTableOffset</span><span class="p">:</span><span class="n">sizeTableOffset</span><span class="o">+</span><span class="n">SIZE_VALUE_FORMAT_SIZE</span><span class="p">]</span>
+			<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sizeValueData</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">SIZE_VALUE_FORMAT_SIZE</span><span class="p">:</span>
+				<span class="k">raise</span> <span class="n">TTLibError</span><span class="p">(</span><span class="s1">&#39;not enough data to decompile TrackData size subtable&#39;</span><span class="p">)</span>
+			<span class="n">sizeValue</span><span class="p">,</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">SIZE_VALUE_FORMAT</span><span class="p">,</span> <span class="n">sizeValueData</span><span class="p">)</span>
+			<span class="n">sizeTable</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fi2fl</span><span class="p">(</span><span class="n">sizeValue</span><span class="p">,</span> <span class="mi">16</span><span class="p">))</span>
+			<span class="n">sizeTableOffset</span> <span class="o">+=</span> <span class="n">SIZE_VALUE_FORMAT_SIZE</span>
+
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nTracks</span><span class="p">):</span>
+			<span class="n">entry</span> <span class="o">=</span> <span class="n">TrackTableEntry</span><span class="p">()</span>
+			<span class="n">entryData</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">offset</span><span class="p">:</span><span class="n">offset</span><span class="o">+</span><span class="n">TRACK_TABLE_ENTRY_FORMAT_SIZE</span><span class="p">]</span>
+			<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">entryData</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">TRACK_TABLE_ENTRY_FORMAT_SIZE</span><span class="p">:</span>
+				<span class="k">raise</span> <span class="n">TTLibError</span><span class="p">(</span><span class="s1">&#39;not enough data to decompile TrackTableEntry record&#39;</span><span class="p">)</span>
+			<span class="n">sstruct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">TRACK_TABLE_ENTRY_FORMAT</span><span class="p">,</span> <span class="n">entryData</span><span class="p">,</span> <span class="n">entry</span><span class="p">)</span>
+			<span class="n">perSizeOffset</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">offset</span>
+			<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nSizes</span><span class="p">):</span>
+				<span class="n">size</span> <span class="o">=</span> <span class="n">sizeTable</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+				<span class="n">perSizeValueData</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">perSizeOffset</span><span class="p">:</span><span class="n">perSizeOffset</span><span class="o">+</span><span class="n">PER_SIZE_VALUE_FORMAT_SIZE</span><span class="p">]</span>
+				<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">perSizeValueData</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">PER_SIZE_VALUE_FORMAT_SIZE</span><span class="p">:</span>
+					<span class="k">raise</span> <span class="n">TTLibError</span><span class="p">(</span><span class="s1">&#39;not enough data to decompile per-size track values&#39;</span><span class="p">)</span>
+				<span class="n">perSizeValue</span><span class="p">,</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">PER_SIZE_VALUE_FORMAT</span><span class="p">,</span> <span class="n">perSizeValueData</span><span class="p">)</span>
+				<span class="n">entry</span><span class="p">[</span><span class="n">size</span><span class="p">]</span> <span class="o">=</span> <span class="n">perSizeValue</span>
+				<span class="n">perSizeOffset</span> <span class="o">+=</span> <span class="n">PER_SIZE_VALUE_FORMAT_SIZE</span>
+			<span class="bp">self</span><span class="p">[</span><span class="n">entry</span><span class="o">.</span><span class="n">track</span><span class="p">]</span> <span class="o">=</span> <span class="n">entry</span>
+			<span class="n">offset</span> <span class="o">+=</span> <span class="n">TRACK_TABLE_ENTRY_FORMAT_SIZE</span></div>
+
+<div class="viewcode-block" id="TrackData.toXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._t_r_a_k.TrackData.toXML">[docs]</a>	<span class="k">def</span> <span class="nf">toXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">nTracks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+		<span class="n">nSizes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sizes</span><span class="p">())</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">comment</span><span class="p">(</span><span class="s2">&quot;nTracks=</span><span class="si">%d</span><span class="s2">, nSizes=</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nTracks</span><span class="p">,</span> <span class="n">nSizes</span><span class="p">))</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">track</span><span class="p">,</span> <span class="n">entry</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+			<span class="k">assert</span> <span class="n">entry</span><span class="o">.</span><span class="n">nameIndex</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+			<span class="n">entry</span><span class="o">.</span><span class="n">track</span> <span class="o">=</span> <span class="n">track</span>
+			<span class="n">entry</span><span class="o">.</span><span class="n">toXML</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TrackData.fromXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._t_r_a_k.TrackData.fromXML">[docs]</a>	<span class="k">def</span> <span class="nf">fromXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">name</span> <span class="o">!=</span> <span class="s1">&#39;trackEntry&#39;</span><span class="p">:</span>
+			<span class="k">return</span>
+		<span class="n">entry</span> <span class="o">=</span> <span class="n">TrackTableEntry</span><span class="p">()</span>
+		<span class="n">entry</span><span class="o">.</span><span class="n">fromXML</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span>
+		<span class="bp">self</span><span class="p">[</span><span class="n">entry</span><span class="o">.</span><span class="n">track</span><span class="p">]</span> <span class="o">=</span> <span class="n">entry</span></div>
+
+<div class="viewcode-block" id="TrackData.sizes"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._t_r_a_k.TrackData.sizes">[docs]</a>	<span class="k">def</span> <span class="nf">sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="p">:</span>
+			<span class="k">return</span> <span class="nb">frozenset</span><span class="p">()</span>
+		<span class="n">tracks</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tracks</span><span class="p">())</span>
+		<span class="n">sizes</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">tracks</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)]</span><span class="o">.</span><span class="n">sizes</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">track</span> <span class="ow">in</span> <span class="n">tracks</span><span class="p">:</span>
+			<span class="n">entrySizes</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">track</span><span class="p">]</span><span class="o">.</span><span class="n">sizes</span><span class="p">()</span>
+			<span class="k">if</span> <span class="n">sizes</span> <span class="o">!=</span> <span class="n">entrySizes</span><span class="p">:</span>
+				<span class="k">raise</span> <span class="n">TTLibError</span><span class="p">(</span>
+					<span class="s2">&quot;&#39;trak&#39; table entries must specify the same sizes: &quot;</span>
+					<span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> != </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">sizes</span><span class="p">),</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">entrySizes</span><span class="p">)))</span>
+		<span class="k">return</span> <span class="nb">frozenset</span><span class="p">(</span><span class="n">sizes</span><span class="p">)</span></div>
+
+	<span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">track</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="p">[</span><span class="n">track</span><span class="p">]</span>
+
+	<span class="k">def</span> <span class="nf">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">track</span><span class="p">):</span>
+		<span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="p">[</span><span class="n">track</span><span class="p">]</span>
+
+	<span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">track</span><span class="p">,</span> <span class="n">entry</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="p">[</span><span class="n">track</span><span class="p">]</span> <span class="o">=</span> <span class="n">entry</span>
+
+	<span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TrackData.keys"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._t_r_a_k.TrackData.keys">[docs]</a>	<span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span></div>
+
+	<span class="n">tracks</span> <span class="o">=</span> <span class="n">keys</span>
+
+	<span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="s2">&quot;TrackData(</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_map</span> <span class="k">if</span> <span class="bp">self</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TrackTableEntry"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._t_r_a_k.TrackTableEntry">[docs]</a><span class="k">class</span> <span class="nc">TrackTableEntry</span><span class="p">(</span><span class="n">MutableMapping</span><span class="p">):</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="p">{},</span> <span class="n">nameIndex</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">nameIndex</span> <span class="o">=</span> <span class="n">nameIndex</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TrackTableEntry.toXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._t_r_a_k.TrackTableEntry.toXML">[docs]</a>	<span class="k">def</span> <span class="nf">toXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">name</span> <span class="o">=</span> <span class="n">ttFont</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">getDebugName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nameIndex</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">begintag</span><span class="p">(</span>
+			<span class="s2">&quot;trackEntry&quot;</span><span class="p">,</span>
+			<span class="p">((</span><span class="s1">&#39;value&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">track</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;nameIndex&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nameIndex</span><span class="p">)))</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="k">if</span> <span class="n">name</span><span class="p">:</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">comment</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">size</span><span class="p">,</span> <span class="n">perSizeValue</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="s2">&quot;track&quot;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">perSizeValue</span><span class="p">)</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">endtag</span><span class="p">(</span><span class="s2">&quot;trackEntry&quot;</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="TrackTableEntry.fromXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._t_r_a_k.TrackTableEntry.fromXML">[docs]</a>	<span class="k">def</span> <span class="nf">fromXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">track</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">])</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">nameIndex</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;nameIndex&#39;</span><span class="p">])</span>
+		<span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+				<span class="k">continue</span>
+			<span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">element</span>
+			<span class="k">if</span> <span class="n">name</span> <span class="o">!=</span> <span class="s1">&#39;track&#39;</span><span class="p">:</span>
+				<span class="k">continue</span>
+			<span class="n">size</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">])</span>
+			<span class="bp">self</span><span class="p">[</span><span class="n">size</span><span class="p">]</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">])</span></div>
+
+	<span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="p">[</span><span class="n">size</span><span class="p">]</span>
+
+	<span class="k">def</span> <span class="nf">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+		<span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="p">[</span><span class="n">size</span><span class="p">]</span>
+
+	<span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="p">[</span><span class="n">size</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+	<span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TrackTableEntry.keys"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables._t_r_a_k.TrackTableEntry.keys">[docs]</a>	<span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span></div>
+
+	<span class="n">sizes</span> <span class="o">=</span> <span class="n">keys</span>
+
+	<span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="s2">&quot;TrackTableEntry(</span><span class="si">{}</span><span class="s2">, nameIndex=</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nameIndex</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">):</span>
+			<span class="k">return</span> <span class="bp">NotImplemented</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nameIndex</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">nameIndex</span> <span class="ow">and</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="nb">dict</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+		<span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">result</span> <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="bp">NotImplemented</span> <span class="k">else</span> <span class="ow">not</span> <span class="n">result</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../ttLib.html" >fontTools.ttLib</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

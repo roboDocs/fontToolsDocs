@@ -1,0 +1,187 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fontTools.ttLib.tables.S_I_N_G_ &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../ttLib.html" accesskey="U">fontTools.ttLib</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fontTools.ttLib.tables.S_I_N_G_</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.py23</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc</span> <span class="k">import</span> <span class="n">sstruct</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.textTools</span> <span class="k">import</span> <span class="n">safeEval</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">DefaultTable</span>
+
+<span class="n">SINGFormat</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">		&gt;	# big endian</span>
+<span class="s2">		tableVersionMajor:	H</span>
+<span class="s2">		tableVersionMinor: 	H</span>
+<span class="s2">		glyphletVersion:	H</span>
+<span class="s2">		permissions:		h</span>
+<span class="s2">		mainGID:			H</span>
+<span class="s2">		unitsPerEm:			H</span>
+<span class="s2">		vertAdvance:		h</span>
+<span class="s2">		vertOrigin:			h</span>
+<span class="s2">		uniqueName:			28s</span>
+<span class="s2">		METAMD5:			16s</span>
+<span class="s2">		nameLength:			1s</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="c1"># baseGlyphName is a byte string which follows the record above.</span>
+
+
+<div class="viewcode-block" id="table_S_I_N_G_"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.S_I_N_G_.table_S_I_N_G_">[docs]</a><span class="k">class</span> <span class="nc">table_S_I_N_G_</span><span class="p">(</span><span class="n">DefaultTable</span><span class="o">.</span><span class="n">DefaultTable</span><span class="p">):</span>
+
+	<span class="n">dependencies</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="table_S_I_N_G_.decompile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.S_I_N_G_.table_S_I_N_G_.decompile">[docs]</a>	<span class="k">def</span> <span class="nf">decompile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">dummy</span><span class="p">,</span> <span class="n">rest</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">unpack2</span><span class="p">(</span><span class="n">SINGFormat</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">uniqueName</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decompileUniqueName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">uniqueName</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">nameLength</span> <span class="o">=</span> <span class="n">byteord</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nameLength</span><span class="p">)</span>
+		<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">rest</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">nameLength</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">baseGlyphName</span> <span class="o">=</span> <span class="n">tostr</span><span class="p">(</span><span class="n">rest</span><span class="p">)</span>
+
+		<span class="n">rawMETAMD5</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">METAMD5</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">METAMD5</span> <span class="o">=</span> <span class="s2">&quot;[&quot;</span> <span class="o">+</span> <span class="nb">hex</span><span class="p">(</span><span class="n">byteord</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">METAMD5</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+		<span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">rawMETAMD5</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">METAMD5</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">METAMD5</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span> <span class="o">+</span> <span class="nb">hex</span><span class="p">(</span><span class="n">byteord</span><span class="p">(</span><span class="n">char</span><span class="p">))</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">METAMD5</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">METAMD5</span> <span class="o">+</span> <span class="s2">&quot;]&quot;</span></div>
+
+<div class="viewcode-block" id="table_S_I_N_G_.decompileUniqueName"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.S_I_N_G_.table_S_I_N_G_.decompileUniqueName">[docs]</a>	<span class="k">def</span> <span class="nf">decompileUniqueName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+		<span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+		<span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+			<span class="n">val</span> <span class="o">=</span> <span class="n">byteord</span><span class="p">(</span><span class="n">char</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">val</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+				<span class="k">break</span>
+			<span class="k">if</span> <span class="p">(</span><span class="n">val</span> <span class="o">&gt;</span> <span class="mi">31</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">val</span> <span class="o">&lt;</span> <span class="mi">128</span><span class="p">):</span>
+				<span class="n">name</span> <span class="o">+=</span> <span class="nb">chr</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">octString</span> <span class="o">=</span> <span class="nb">oct</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+				<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">octString</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+					<span class="n">octString</span> <span class="o">=</span> <span class="n">octString</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="c1"># chop off that leading zero.</span>
+				<span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">octString</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+					<span class="n">octString</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+				<span class="n">name</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">octString</span>
+		<span class="k">return</span> <span class="n">name</span></div>
+
+<div class="viewcode-block" id="table_S_I_N_G_.compile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.S_I_N_G_.table_S_I_N_G_.compile">[docs]</a>	<span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+		<span class="n">d</span><span class="p">[</span><span class="s2">&quot;nameLength&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bytechr</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">baseGlyphName</span><span class="p">))</span>
+		<span class="n">d</span><span class="p">[</span><span class="s2">&quot;uniqueName&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compilecompileUniqueName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">uniqueName</span><span class="p">,</span> <span class="mi">28</span><span class="p">)</span>
+		<span class="n">METAMD5List</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">METAMD5</span><span class="p">)</span>
+		<span class="n">d</span><span class="p">[</span><span class="s2">&quot;METAMD5&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span>
+		<span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">METAMD5List</span><span class="p">:</span>
+			<span class="n">d</span><span class="p">[</span><span class="s2">&quot;METAMD5&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">bytechr</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+		<span class="k">assert</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;METAMD5&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">16</span><span class="p">),</span> <span class="s2">&quot;Failed to pack 16 byte MD5 hash in SING table&quot;</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">SINGFormat</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="n">data</span> <span class="o">+</span> <span class="n">tobytes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">baseGlyphName</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="table_S_I_N_G_.compilecompileUniqueName"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.S_I_N_G_.table_S_I_N_G_.compilecompileUniqueName">[docs]</a>	<span class="k">def</span> <span class="nf">compilecompileUniqueName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">length</span><span class="p">):</span>
+		<span class="n">nameLen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">length</span> <span class="o">&lt;=</span> <span class="n">nameLen</span><span class="p">:</span>
+			<span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="p">[:</span><span class="n">length</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\000</span><span class="s2">&quot;</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">name</span> <span class="o">+=</span> <span class="p">(</span><span class="n">nameLen</span> <span class="o">-</span> <span class="n">length</span><span class="p">)</span> <span class="o">*</span> <span class="s2">&quot;</span><span class="se">\000</span><span class="s2">&quot;</span>
+		<span class="k">return</span> <span class="n">name</span></div>
+
+<div class="viewcode-block" id="table_S_I_N_G_.toXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.S_I_N_G_.table_S_I_N_G_.toXML">[docs]</a>	<span class="k">def</span> <span class="nf">toXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">comment</span><span class="p">(</span><span class="s2">&quot;Most of this table will be recalculated by the compiler&quot;</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">formatstring</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">fixes</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">getformat</span><span class="p">(</span><span class="n">SINGFormat</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+			<span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="s2">&quot;baseGlyphName&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">baseGlyphName</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="table_S_I_N_G_.fromXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.S_I_N_G_.table_S_I_N_G_.fromXML">[docs]</a>	<span class="k">def</span> <span class="nf">fromXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">value</span> <span class="o">=</span> <span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+		<span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;uniqueName&quot;</span><span class="p">,</span> <span class="s2">&quot;METAMD5&quot;</span><span class="p">,</span> <span class="s2">&quot;baseGlyphName&quot;</span><span class="p">]:</span>
+			<span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">value</span><span class="p">))</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../ttLib.html" >fontTools.ttLib</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

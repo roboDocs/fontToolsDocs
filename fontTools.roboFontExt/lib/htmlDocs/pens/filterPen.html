@@ -1,0 +1,237 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>filterPen &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="transformPen" href="transformPen.html" />
+    <link rel="prev" title="pointInsidePen" href="pointInsidePen.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="transformPen.html" title="transformPen"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="pointInsidePen.html" title="pointInsidePen"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">pens</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-fontTools.pens.filterPen">
+<span id="filterpen"></span><h1>filterPen<a class="headerlink" href="#module-fontTools.pens.filterPen" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="fontTools.pens.filterPen.ContourFilterPen">
+<em class="property">class </em><code class="descclassname">fontTools.pens.filterPen.</code><code class="descname">ContourFilterPen</code><span class="sig-paren">(</span><em>outPen</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/filterPen.html#ContourFilterPen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.filterPen.ContourFilterPen" title="Permalink to this definition">¶</a></dt>
+<dd><p>A &#8220;buffered&#8221; filter pen that accumulates contour data, passes
+it through a <code class="docutils literal"><span class="pre">filterContour</span></code> method when the contour is closed or ended,
+and finally draws the result with the output pen.</p>
+<p>Components are passed through unchanged.</p>
+<dl class="method">
+<dt id="fontTools.pens.filterPen.ContourFilterPen.closePath">
+<code class="descname">closePath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/filterPen.html#ContourFilterPen.closePath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.filterPen.ContourFilterPen.closePath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.pens.filterPen.ContourFilterPen.endPath">
+<code class="descname">endPath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/filterPen.html#ContourFilterPen.endPath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.filterPen.ContourFilterPen.endPath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.pens.filterPen.ContourFilterPen.filterContour">
+<code class="descname">filterContour</code><span class="sig-paren">(</span><em>contour</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/filterPen.html#ContourFilterPen.filterContour"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.filterPen.ContourFilterPen.filterContour" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subclasses must override this to perform the filtering.</p>
+<p>The contour is a list of pen (operator, operands) tuples.
+Operators are strings corresponding to the AbstractPen methods:
+&#8220;moveTo&#8221;, &#8220;lineTo&#8221;, &#8220;curveTo&#8221;, &#8220;qCurveTo&#8221;, &#8220;closePath&#8221; and
+&#8220;endPath&#8221;. The operands are the positional arguments that are
+passed to each method.</p>
+<p>If the method doesn&#8217;t return a value (i.e. returns None), it&#8217;s
+assumed that the argument was modified in-place.
+Otherwise, the return value is drawn with the output pen.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.pens.filterPen.FilterPen">
+<em class="property">class </em><code class="descclassname">fontTools.pens.filterPen.</code><code class="descname">FilterPen</code><span class="sig-paren">(</span><em>outPen</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/filterPen.html#FilterPen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.filterPen.FilterPen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for pens that apply some transformation to the coordinates
+they receive and pass them to another pen.</p>
+<p>You can override any of its methods. The default implementation does
+nothing, but passes the commands unmodified to the other pen.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">fontTools.pens.recordingPen</span> <span class="k">import</span> <span class="n">RecordingPen</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rec</span> <span class="o">=</span> <span class="n">RecordingPen</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pen</span> <span class="o">=</span> <span class="n">FilterPen</span><span class="p">(</span><span class="n">rec</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">v</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">rec</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pen</span><span class="o">.</span><span class="n">moveTo</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">next</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+<span class="go">(&#39;moveTo&#39;, ((0, 0),))</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pen</span><span class="o">.</span><span class="n">lineTo</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">next</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+<span class="go">(&#39;lineTo&#39;, ((1, 1),))</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pen</span><span class="o">.</span><span class="n">curveTo</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">next</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+<span class="go">(&#39;curveTo&#39;, ((2, 2), (3, 3), (4, 4)))</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pen</span><span class="o">.</span><span class="n">qCurveTo</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">next</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+<span class="go">(&#39;qCurveTo&#39;, ((5, 5), (6, 6), (7, 7), (8, 8)))</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pen</span><span class="o">.</span><span class="n">closePath</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">next</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+<span class="go">(&#39;closePath&#39;, ())</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pen</span><span class="o">.</span><span class="n">moveTo</span><span class="p">((</span><span class="mi">9</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">next</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+<span class="go">(&#39;moveTo&#39;, ((9, 9),))</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pen</span><span class="o">.</span><span class="n">endPath</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">next</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+<span class="go">(&#39;endPath&#39;, ())</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pen</span><span class="o">.</span><span class="n">addComponent</span><span class="p">(</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">next</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+<span class="go">(&#39;addComponent&#39;, (&#39;foo&#39;, (1, 0, 0, 1, 0, 0)))</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="fontTools.pens.filterPen.FilterPen.closePath">
+<code class="descname">closePath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/filterPen.html#FilterPen.closePath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.filterPen.FilterPen.closePath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.pens.filterPen.FilterPen.curveTo">
+<code class="descname">curveTo</code><span class="sig-paren">(</span><em>*points</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/filterPen.html#FilterPen.curveTo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.filterPen.FilterPen.curveTo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.pens.filterPen.FilterPen.endPath">
+<code class="descname">endPath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/filterPen.html#FilterPen.endPath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.filterPen.FilterPen.endPath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.pens.filterPen.FilterPen.lineTo">
+<code class="descname">lineTo</code><span class="sig-paren">(</span><em>pt</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/filterPen.html#FilterPen.lineTo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.filterPen.FilterPen.lineTo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.pens.filterPen.FilterPen.moveTo">
+<code class="descname">moveTo</code><span class="sig-paren">(</span><em>pt</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/filterPen.html#FilterPen.moveTo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.filterPen.FilterPen.moveTo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.pens.filterPen.FilterPen.qCurveTo">
+<code class="descname">qCurveTo</code><span class="sig-paren">(</span><em>*points</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/filterPen.html#FilterPen.qCurveTo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.filterPen.FilterPen.qCurveTo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="pointInsidePen.html"
+                        title="previous chapter">pointInsidePen</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="transformPen.html"
+                        title="next chapter">transformPen</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/pens/filterPen.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="transformPen.html" title="transformPen"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="pointInsidePen.html" title="pointInsidePen"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >pens</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

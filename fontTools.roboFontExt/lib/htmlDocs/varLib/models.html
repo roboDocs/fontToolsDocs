@@ -1,0 +1,281 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>models &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="mutator" href="mutator.html" />
+    <link rel="prev" title="merger" href="merger.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="mutator.html" title="mutator"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="merger.html" title="merger"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">varLib</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-fontTools.varLib.models">
+<span id="models"></span><h1>models<a class="headerlink" href="#module-fontTools.varLib.models" title="Permalink to this headline">¶</a></h1>
+<p>Variation fonts interpolation models.</p>
+<dl class="function">
+<dt id="fontTools.varLib.models.normalizeValue">
+<code class="descclassname">fontTools.varLib.models.</code><code class="descname">normalizeValue</code><span class="sig-paren">(</span><em>v</em>, <em>triple</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/varLib/models.html#normalizeValue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.varLib.models.normalizeValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normalizes value based on a min/default/max triple.
+&gt;&gt;&gt; normalizeValue(400, (100, 400, 900))
+0.0
+&gt;&gt;&gt; normalizeValue(100, (100, 400, 900))
+-1.0
+&gt;&gt;&gt; normalizeValue(650, (100, 400, 900))
+0.5</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fontTools.varLib.models.normalizeLocation">
+<code class="descclassname">fontTools.varLib.models.</code><code class="descname">normalizeLocation</code><span class="sig-paren">(</span><em>location</em>, <em>axes</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/varLib/models.html#normalizeLocation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.varLib.models.normalizeLocation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normalizes location based on axis min/default/max values from axes.
+&gt;&gt;&gt; axes = {&#8220;wght&#8221;: (100, 400, 900)}
+&gt;&gt;&gt; normalizeLocation({&#8220;wght&#8221;: 400}, axes)
+{&#8216;wght&#8217;: 0.0}
+&gt;&gt;&gt; normalizeLocation({&#8220;wght&#8221;: 100}, axes)
+{&#8216;wght&#8217;: -1.0}
+&gt;&gt;&gt; normalizeLocation({&#8220;wght&#8221;: 900}, axes)
+{&#8216;wght&#8217;: 1.0}
+&gt;&gt;&gt; normalizeLocation({&#8220;wght&#8221;: 650}, axes)
+{&#8216;wght&#8217;: 0.5}
+&gt;&gt;&gt; normalizeLocation({&#8220;wght&#8221;: 1000}, axes)
+{&#8216;wght&#8217;: 1.0}
+&gt;&gt;&gt; normalizeLocation({&#8220;wght&#8221;: 0}, axes)
+{&#8216;wght&#8217;: -1.0}
+&gt;&gt;&gt; axes = {&#8220;wght&#8221;: (0, 0, 1000)}
+&gt;&gt;&gt; normalizeLocation({&#8220;wght&#8221;: 0}, axes)
+{&#8216;wght&#8217;: 0.0}
+&gt;&gt;&gt; normalizeLocation({&#8220;wght&#8221;: -1}, axes)
+{&#8216;wght&#8217;: 0.0}
+&gt;&gt;&gt; normalizeLocation({&#8220;wght&#8221;: 1000}, axes)
+{&#8216;wght&#8217;: 1.0}
+&gt;&gt;&gt; normalizeLocation({&#8220;wght&#8221;: 500}, axes)
+{&#8216;wght&#8217;: 0.5}
+&gt;&gt;&gt; normalizeLocation({&#8220;wght&#8221;: 1001}, axes)
+{&#8216;wght&#8217;: 1.0}
+&gt;&gt;&gt; axes = {&#8220;wght&#8221;: (0, 1000, 1000)}
+&gt;&gt;&gt; normalizeLocation({&#8220;wght&#8221;: 0}, axes)
+{&#8216;wght&#8217;: -1.0}
+&gt;&gt;&gt; normalizeLocation({&#8220;wght&#8221;: -1}, axes)
+{&#8216;wght&#8217;: -1.0}
+&gt;&gt;&gt; normalizeLocation({&#8220;wght&#8221;: 500}, axes)
+{&#8216;wght&#8217;: -0.5}
+&gt;&gt;&gt; normalizeLocation({&#8220;wght&#8221;: 1000}, axes)
+{&#8216;wght&#8217;: 0.0}
+&gt;&gt;&gt; normalizeLocation({&#8220;wght&#8221;: 1001}, axes)
+{&#8216;wght&#8217;: 0.0}</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fontTools.varLib.models.supportScalar">
+<code class="descclassname">fontTools.varLib.models.</code><code class="descname">supportScalar</code><span class="sig-paren">(</span><em>location</em>, <em>support</em>, <em>ot=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/varLib/models.html#supportScalar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.varLib.models.supportScalar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the scalar multiplier at location, for a master
+with support.  If ot is True, then a peak value of zero
+for support of an axis means &#8220;axis does not participate&#8221;.  That
+is how OpenType Variation Font technology works.
+&gt;&gt;&gt; supportScalar({}, {})
+1.0
+&gt;&gt;&gt; supportScalar({&#8216;wght&#8217;:.2}, {})
+1.0
+&gt;&gt;&gt; supportScalar({&#8216;wght&#8217;:.2}, {&#8216;wght&#8217;:(0,2,3)})
+0.1
+&gt;&gt;&gt; supportScalar({&#8216;wght&#8217;:2.5}, {&#8216;wght&#8217;:(0,2,4)})
+0.75
+&gt;&gt;&gt; supportScalar({&#8216;wght&#8217;:2.5, &#8216;wdth&#8217;:0}, {&#8216;wght&#8217;:(0,2,4), &#8216;wdth&#8217;:(-1,0,+1)})
+0.75
+&gt;&gt;&gt; supportScalar({&#8216;wght&#8217;:2.5, &#8216;wdth&#8217;:.5}, {&#8216;wght&#8217;:(0,2,4), &#8216;wdth&#8217;:(-1,0,+1)}, ot=False)
+0.375
+&gt;&gt;&gt; supportScalar({&#8216;wght&#8217;:2.5, &#8216;wdth&#8217;:0}, {&#8216;wght&#8217;:(0,2,4), &#8216;wdth&#8217;:(-1,0,+1)})
+0.75
+&gt;&gt;&gt; supportScalar({&#8216;wght&#8217;:2.5, &#8216;wdth&#8217;:.5}, {&#8216;wght&#8217;:(0,2,4), &#8216;wdth&#8217;:(-1,0,+1)})
+0.75</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.varLib.models.VariationModel">
+<em class="property">class </em><code class="descclassname">fontTools.varLib.models.</code><code class="descname">VariationModel</code><span class="sig-paren">(</span><em>locations</em>, <em>axisOrder=[]</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/varLib/models.html#VariationModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.varLib.models.VariationModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Locations must be in normalized space.  Ie. base master
+is at origin (0).
+&gt;&gt;&gt; from pprint import pprint
+&gt;&gt;&gt; locations = [       {&#8216;wght&#8217;:100},   {&#8216;wght&#8217;:-100},  {&#8216;wght&#8217;:-180},  {&#8216;wdth&#8217;:+.3},   {&#8216;wght&#8217;:+120,&#8217;wdth&#8217;:.3},        {&#8216;wght&#8217;:+120,&#8217;wdth&#8217;:.2},        {},     {&#8216;wght&#8217;:+180,&#8217;wdth&#8217;:.3},        {&#8216;wght&#8217;:+180},  ]
+&gt;&gt;&gt; model = VariationModel(locations, axisOrder=[&#8216;wght&#8217;])
+&gt;&gt;&gt; pprint(model.locations)
+[{},</p>
+<blockquote>
+<div>{&#8216;wght&#8217;: -100},
+{&#8216;wght&#8217;: -180},
+{&#8216;wght&#8217;: 100},
+{&#8216;wght&#8217;: 180},
+{&#8216;wdth&#8217;: 0.3},
+{&#8216;wdth&#8217;: 0.3, &#8216;wght&#8217;: 180},
+{&#8216;wdth&#8217;: 0.3, &#8216;wght&#8217;: 120},
+{&#8216;wdth&#8217;: 0.2, &#8216;wght&#8217;: 120}]</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pprint</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">deltaWeights</span><span class="p">)</span>
+<span class="go">[{},</span>
+<span class="go"> {0: 1.0},</span>
+<span class="go"> {0: 1.0},</span>
+<span class="go"> {0: 1.0},</span>
+<span class="go"> {0: 1.0},</span>
+<span class="go"> {0: 1.0},</span>
+<span class="go"> {0: 1.0, 4: 1.0, 5: 1.0},</span>
+<span class="go"> {0: 1.0, 3: 0.75, 4: 0.25, 5: 1.0, 6: 0.6666666666666666},</span>
+<span class="go"> {0: 1.0,</span>
+<span class="go">  3: 0.75,</span>
+<span class="go">  4: 0.25,</span>
+<span class="go">  5: 0.6666666666666667,</span>
+<span class="go">  6: 0.4444444444444445,</span>
+<span class="go">  7: 0.6666666666666667}]</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="fontTools.varLib.models.VariationModel.getDeltas">
+<code class="descname">getDeltas</code><span class="sig-paren">(</span><em>masterValues</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/varLib/models.html#VariationModel.getDeltas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.varLib.models.VariationModel.getDeltas" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="fontTools.varLib.models.VariationModel.getMasterLocationsSortKeyFunc">
+<em class="property">static </em><code class="descname">getMasterLocationsSortKeyFunc</code><span class="sig-paren">(</span><em>locations</em>, <em>axisOrder=[]</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/varLib/models.html#VariationModel.getMasterLocationsSortKeyFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.varLib.models.VariationModel.getMasterLocationsSortKeyFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.varLib.models.VariationModel.getScalars">
+<code class="descname">getScalars</code><span class="sig-paren">(</span><em>loc</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/varLib/models.html#VariationModel.getScalars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.varLib.models.VariationModel.getScalars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.varLib.models.VariationModel.interpolateFromDeltas">
+<code class="descname">interpolateFromDeltas</code><span class="sig-paren">(</span><em>loc</em>, <em>deltas</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/varLib/models.html#VariationModel.interpolateFromDeltas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.varLib.models.VariationModel.interpolateFromDeltas" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="fontTools.varLib.models.VariationModel.interpolateFromDeltasAndScalars">
+<em class="property">static </em><code class="descname">interpolateFromDeltasAndScalars</code><span class="sig-paren">(</span><em>deltas</em>, <em>scalars</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/varLib/models.html#VariationModel.interpolateFromDeltasAndScalars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.varLib.models.VariationModel.interpolateFromDeltasAndScalars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.varLib.models.VariationModel.interpolateFromMasters">
+<code class="descname">interpolateFromMasters</code><span class="sig-paren">(</span><em>loc</em>, <em>masterValues</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/varLib/models.html#VariationModel.interpolateFromMasters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.varLib.models.VariationModel.interpolateFromMasters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.varLib.models.VariationModel.interpolateFromMastersAndScalars">
+<code class="descname">interpolateFromMastersAndScalars</code><span class="sig-paren">(</span><em>masterValues</em>, <em>scalars</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/varLib/models.html#VariationModel.interpolateFromMastersAndScalars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.varLib.models.VariationModel.interpolateFromMastersAndScalars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="fontTools.varLib.models.VariationModel.lowerBound">
+<em class="property">static </em><code class="descname">lowerBound</code><span class="sig-paren">(</span><em>value</em>, <em>lst</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/varLib/models.html#VariationModel.lowerBound"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.varLib.models.VariationModel.lowerBound" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="fontTools.varLib.models.VariationModel.upperBound">
+<em class="property">static </em><code class="descname">upperBound</code><span class="sig-paren">(</span><em>value</em>, <em>lst</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/varLib/models.html#VariationModel.upperBound"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.varLib.models.VariationModel.upperBound" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="merger.html"
+                        title="previous chapter">merger</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="mutator.html"
+                        title="next chapter">mutator</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/varLib/models.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="mutator.html" title="mutator"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="merger.html" title="merger"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >varLib</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

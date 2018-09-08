@@ -1,0 +1,965 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fontTools.agl &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fontTools.agl</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># The table below is taken from</span>
+<span class="c1"># http://www.adobe.com/devnet/opentype/archives/aglfn.txt</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="p">(</span><span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span><span class="p">,</span>
+                        <span class="n">unicode_literals</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.py23</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+
+<span class="n">_aglText</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2"># -----------------------------------------------------------</span>
+<span class="s2"># Copyright 2003, 2005-2008, 2010 Adobe Systems Incorporated.</span>
+<span class="s2"># All rights reserved.</span>
+<span class="s2">#</span>
+<span class="s2"># Redistribution and use in source and binary forms, with or</span>
+<span class="s2"># without modification, are permitted provided that the</span>
+<span class="s2"># following conditions are met:</span>
+<span class="s2">#</span>
+<span class="s2"># Redistributions of source code must retain the above</span>
+<span class="s2"># copyright notice, this list of conditions and the following</span>
+<span class="s2"># disclaimer.</span>
+<span class="s2">#</span>
+<span class="s2"># Redistributions in binary form must reproduce the above</span>
+<span class="s2"># copyright notice, this list of conditions and the following</span>
+<span class="s2"># disclaimer in the documentation and/or other materials</span>
+<span class="s2"># provided with the distribution.</span>
+<span class="s2">#</span>
+<span class="s2"># Neither the name of Adobe Systems Incorporated nor the names</span>
+<span class="s2"># of its contributors may be used to endorse or promote</span>
+<span class="s2"># products derived from this software without specific prior</span>
+<span class="s2"># written permission.</span>
+<span class="s2">#</span>
+<span class="s2"># THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND</span>
+<span class="s2"># CONTRIBUTORS &quot;AS IS&quot; AND ANY EXPRESS OR IMPLIED WARRANTIES,</span>
+<span class="s2"># INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF</span>
+<span class="s2"># MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE</span>
+<span class="s2"># DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR</span>
+<span class="s2"># CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,</span>
+<span class="s2"># SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT</span>
+<span class="s2"># NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;</span>
+<span class="s2"># LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)</span>
+<span class="s2"># HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN</span>
+<span class="s2"># CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR</span>
+<span class="s2"># OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS</span>
+<span class="s2"># SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</span>
+<span class="s2"># -----------------------------------------------------------</span>
+<span class="s2"># Name:          Adobe Glyph List For New Fonts</span>
+<span class="s2"># Table version: 1.7</span>
+<span class="s2"># Date:          November 6, 2008</span>
+<span class="s2"># URL:           http://sourceforge.net/adobe/aglfn/</span>
+<span class="s2">#</span>
+<span class="s2"># Description:</span>
+<span class="s2">#</span>
+<span class="s2"># AGLFN (Adobe Glyph List For New Fonts) provides a list of base glyph</span>
+<span class="s2"># names that are recommended for new fonts, which are compatible with</span>
+<span class="s2"># the AGL (Adobe Glyph List) Specification, and which should be used</span>
+<span class="s2"># as described in Section 6 of that document. AGLFN comprises the set</span>
+<span class="s2"># of glyph names from AGL that map via the AGL Specification rules to</span>
+<span class="s2"># the semantically correct UV (Unicode Value). For example, &quot;Asmall&quot;</span>
+<span class="s2"># is omitted because AGL maps this glyph name to the PUA (Private Use</span>
+<span class="s2"># Area) value U+F761, rather than to the UV that maps from the glyph</span>
+<span class="s2"># name &quot;A.&quot; Also omitted is &quot;ffi,&quot; because AGL maps this to the</span>
+<span class="s2"># Alphabetic Presentation Forms value U+FB03, rather than decomposing</span>
+<span class="s2"># it into the following sequence of three UVs: U+0066, U+0066, and</span>
+<span class="s2"># U+0069. The name &quot;arrowvertex&quot; has been omitted because this glyph</span>
+<span class="s2"># now has a real UV, and AGL is now incorrect in mapping it to the PUA</span>
+<span class="s2"># value U+F8E6. If you do not find an appropriate name for your glyph</span>
+<span class="s2"># in this list, then please refer to Section 6 of the AGL</span>
+<span class="s2"># Specification.</span>
+<span class="s2">#</span>
+<span class="s2"># Format: three semicolon-delimited fields:</span>
+<span class="s2">#   (1) Standard UV or CUS UV--four uppercase hexadecimal digits</span>
+<span class="s2">#   (2) Glyph name--upper/lowercase letters and digits</span>
+<span class="s2">#   (3) Character names: Unicode character names for standard UVs, and</span>
+<span class="s2">#       descriptive names for CUS UVs--uppercase letters, hyphen, and</span>
+<span class="s2">#       space</span>
+<span class="s2">#</span>
+<span class="s2"># The records are sorted by glyph name in increasing ASCII order,</span>
+<span class="s2"># entries with the same glyph name are sorted in decreasing priority</span>
+<span class="s2"># order, the UVs and Unicode character names are provided for</span>
+<span class="s2"># convenience, lines starting with &quot;#&quot; are comments, and blank lines</span>
+<span class="s2"># should be ignored.</span>
+<span class="s2">#</span>
+<span class="s2"># Revision History:</span>
+<span class="s2">#</span>
+<span class="s2"># 1.7 [6 November 2008]</span>
+<span class="s2"># - Reverted to the original 1.4 and earlier mappings for Delta,</span>
+<span class="s2">#   Omega, and mu.</span>
+<span class="s2"># - Removed mappings for &quot;afii&quot; names. These should now be assigned</span>
+<span class="s2">#   &quot;uni&quot; names.</span>
+<span class="s2"># - Removed mappings for &quot;commaaccent&quot; names. These should now be</span>
+<span class="s2">#   assigned &quot;uni&quot; names.</span>
+<span class="s2">#</span>
+<span class="s2"># 1.6 [30 January 2006]</span>
+<span class="s2"># - Completed work intended in 1.5.</span>
+<span class="s2">#</span>
+<span class="s2"># 1.5 [23 November 2005]</span>
+<span class="s2"># - Removed duplicated block at end of file.</span>
+<span class="s2"># - Changed mappings:</span>
+<span class="s2">#   2206;Delta;INCREMENT changed to 0394;Delta;GREEK CAPITAL LETTER DELTA</span>
+<span class="s2">#   2126;Omega;OHM SIGN changed to 03A9;Omega;GREEK CAPITAL LETTER OMEGA</span>
+<span class="s2">#   03BC;mu;MICRO SIGN changed to 03BC;mu;GREEK SMALL LETTER MU</span>
+<span class="s2"># - Corrected statement above about why &quot;ffi&quot; is omitted.</span>
+<span class="s2">#</span>
+<span class="s2"># 1.4 [24 September 2003]</span>
+<span class="s2"># - Changed version to 1.4, to avoid confusion with the AGL 1.3.</span>
+<span class="s2"># - Fixed spelling errors in the header.</span>
+<span class="s2"># - Fully removed &quot;arrowvertex,&quot; as it is mapped only to a PUA Unicode</span>
+<span class="s2">#   value in some fonts.</span>
+<span class="s2">#</span>
+<span class="s2"># 1.1 [17 April 2003]</span>
+<span class="s2"># - Renamed [Tt]cedilla back to [Tt]commaaccent.</span>
+<span class="s2">#</span>
+<span class="s2"># 1.0 [31 January 2003]</span>
+<span class="s2"># - Original version.</span>
+<span class="s2"># - Derived from the AGLv1.2 by:</span>
+<span class="s2">#   removing the PUA area codes;</span>
+<span class="s2">#   removing duplicate Unicode mappings; and</span>
+<span class="s2">#   renaming &quot;tcommaaccent&quot; to &quot;tcedilla&quot; and &quot;Tcommaaccent&quot; to &quot;Tcedilla&quot;</span>
+<span class="s2">#</span>
+<span class="s2">0041;A;LATIN CAPITAL LETTER A</span>
+<span class="s2">00C6;AE;LATIN CAPITAL LETTER AE</span>
+<span class="s2">01FC;AEacute;LATIN CAPITAL LETTER AE WITH ACUTE</span>
+<span class="s2">00C1;Aacute;LATIN CAPITAL LETTER A WITH ACUTE</span>
+<span class="s2">0102;Abreve;LATIN CAPITAL LETTER A WITH BREVE</span>
+<span class="s2">00C2;Acircumflex;LATIN CAPITAL LETTER A WITH CIRCUMFLEX</span>
+<span class="s2">00C4;Adieresis;LATIN CAPITAL LETTER A WITH DIAERESIS</span>
+<span class="s2">00C0;Agrave;LATIN CAPITAL LETTER A WITH GRAVE</span>
+<span class="s2">0391;Alpha;GREEK CAPITAL LETTER ALPHA</span>
+<span class="s2">0386;Alphatonos;GREEK CAPITAL LETTER ALPHA WITH TONOS</span>
+<span class="s2">0100;Amacron;LATIN CAPITAL LETTER A WITH MACRON</span>
+<span class="s2">0104;Aogonek;LATIN CAPITAL LETTER A WITH OGONEK</span>
+<span class="s2">00C5;Aring;LATIN CAPITAL LETTER A WITH RING ABOVE</span>
+<span class="s2">01FA;Aringacute;LATIN CAPITAL LETTER A WITH RING ABOVE AND ACUTE</span>
+<span class="s2">00C3;Atilde;LATIN CAPITAL LETTER A WITH TILDE</span>
+<span class="s2">0042;B;LATIN CAPITAL LETTER B</span>
+<span class="s2">0392;Beta;GREEK CAPITAL LETTER BETA</span>
+<span class="s2">0043;C;LATIN CAPITAL LETTER C</span>
+<span class="s2">0106;Cacute;LATIN CAPITAL LETTER C WITH ACUTE</span>
+<span class="s2">010C;Ccaron;LATIN CAPITAL LETTER C WITH CARON</span>
+<span class="s2">00C7;Ccedilla;LATIN CAPITAL LETTER C WITH CEDILLA</span>
+<span class="s2">0108;Ccircumflex;LATIN CAPITAL LETTER C WITH CIRCUMFLEX</span>
+<span class="s2">010A;Cdotaccent;LATIN CAPITAL LETTER C WITH DOT ABOVE</span>
+<span class="s2">03A7;Chi;GREEK CAPITAL LETTER CHI</span>
+<span class="s2">0044;D;LATIN CAPITAL LETTER D</span>
+<span class="s2">010E;Dcaron;LATIN CAPITAL LETTER D WITH CARON</span>
+<span class="s2">0110;Dcroat;LATIN CAPITAL LETTER D WITH STROKE</span>
+<span class="s2">2206;Delta;INCREMENT</span>
+<span class="s2">0045;E;LATIN CAPITAL LETTER E</span>
+<span class="s2">00C9;Eacute;LATIN CAPITAL LETTER E WITH ACUTE</span>
+<span class="s2">0114;Ebreve;LATIN CAPITAL LETTER E WITH BREVE</span>
+<span class="s2">011A;Ecaron;LATIN CAPITAL LETTER E WITH CARON</span>
+<span class="s2">00CA;Ecircumflex;LATIN CAPITAL LETTER E WITH CIRCUMFLEX</span>
+<span class="s2">00CB;Edieresis;LATIN CAPITAL LETTER E WITH DIAERESIS</span>
+<span class="s2">0116;Edotaccent;LATIN CAPITAL LETTER E WITH DOT ABOVE</span>
+<span class="s2">00C8;Egrave;LATIN CAPITAL LETTER E WITH GRAVE</span>
+<span class="s2">0112;Emacron;LATIN CAPITAL LETTER E WITH MACRON</span>
+<span class="s2">014A;Eng;LATIN CAPITAL LETTER ENG</span>
+<span class="s2">0118;Eogonek;LATIN CAPITAL LETTER E WITH OGONEK</span>
+<span class="s2">0395;Epsilon;GREEK CAPITAL LETTER EPSILON</span>
+<span class="s2">0388;Epsilontonos;GREEK CAPITAL LETTER EPSILON WITH TONOS</span>
+<span class="s2">0397;Eta;GREEK CAPITAL LETTER ETA</span>
+<span class="s2">0389;Etatonos;GREEK CAPITAL LETTER ETA WITH TONOS</span>
+<span class="s2">00D0;Eth;LATIN CAPITAL LETTER ETH</span>
+<span class="s2">20AC;Euro;EURO SIGN</span>
+<span class="s2">0046;F;LATIN CAPITAL LETTER F</span>
+<span class="s2">0047;G;LATIN CAPITAL LETTER G</span>
+<span class="s2">0393;Gamma;GREEK CAPITAL LETTER GAMMA</span>
+<span class="s2">011E;Gbreve;LATIN CAPITAL LETTER G WITH BREVE</span>
+<span class="s2">01E6;Gcaron;LATIN CAPITAL LETTER G WITH CARON</span>
+<span class="s2">011C;Gcircumflex;LATIN CAPITAL LETTER G WITH CIRCUMFLEX</span>
+<span class="s2">0120;Gdotaccent;LATIN CAPITAL LETTER G WITH DOT ABOVE</span>
+<span class="s2">0048;H;LATIN CAPITAL LETTER H</span>
+<span class="s2">25CF;H18533;BLACK CIRCLE</span>
+<span class="s2">25AA;H18543;BLACK SMALL SQUARE</span>
+<span class="s2">25AB;H18551;WHITE SMALL SQUARE</span>
+<span class="s2">25A1;H22073;WHITE SQUARE</span>
+<span class="s2">0126;Hbar;LATIN CAPITAL LETTER H WITH STROKE</span>
+<span class="s2">0124;Hcircumflex;LATIN CAPITAL LETTER H WITH CIRCUMFLEX</span>
+<span class="s2">0049;I;LATIN CAPITAL LETTER I</span>
+<span class="s2">0132;IJ;LATIN CAPITAL LIGATURE IJ</span>
+<span class="s2">00CD;Iacute;LATIN CAPITAL LETTER I WITH ACUTE</span>
+<span class="s2">012C;Ibreve;LATIN CAPITAL LETTER I WITH BREVE</span>
+<span class="s2">00CE;Icircumflex;LATIN CAPITAL LETTER I WITH CIRCUMFLEX</span>
+<span class="s2">00CF;Idieresis;LATIN CAPITAL LETTER I WITH DIAERESIS</span>
+<span class="s2">0130;Idotaccent;LATIN CAPITAL LETTER I WITH DOT ABOVE</span>
+<span class="s2">2111;Ifraktur;BLACK-LETTER CAPITAL I</span>
+<span class="s2">00CC;Igrave;LATIN CAPITAL LETTER I WITH GRAVE</span>
+<span class="s2">012A;Imacron;LATIN CAPITAL LETTER I WITH MACRON</span>
+<span class="s2">012E;Iogonek;LATIN CAPITAL LETTER I WITH OGONEK</span>
+<span class="s2">0399;Iota;GREEK CAPITAL LETTER IOTA</span>
+<span class="s2">03AA;Iotadieresis;GREEK CAPITAL LETTER IOTA WITH DIALYTIKA</span>
+<span class="s2">038A;Iotatonos;GREEK CAPITAL LETTER IOTA WITH TONOS</span>
+<span class="s2">0128;Itilde;LATIN CAPITAL LETTER I WITH TILDE</span>
+<span class="s2">004A;J;LATIN CAPITAL LETTER J</span>
+<span class="s2">0134;Jcircumflex;LATIN CAPITAL LETTER J WITH CIRCUMFLEX</span>
+<span class="s2">004B;K;LATIN CAPITAL LETTER K</span>
+<span class="s2">039A;Kappa;GREEK CAPITAL LETTER KAPPA</span>
+<span class="s2">004C;L;LATIN CAPITAL LETTER L</span>
+<span class="s2">0139;Lacute;LATIN CAPITAL LETTER L WITH ACUTE</span>
+<span class="s2">039B;Lambda;GREEK CAPITAL LETTER LAMDA</span>
+<span class="s2">013D;Lcaron;LATIN CAPITAL LETTER L WITH CARON</span>
+<span class="s2">013F;Ldot;LATIN CAPITAL LETTER L WITH MIDDLE DOT</span>
+<span class="s2">0141;Lslash;LATIN CAPITAL LETTER L WITH STROKE</span>
+<span class="s2">004D;M;LATIN CAPITAL LETTER M</span>
+<span class="s2">039C;Mu;GREEK CAPITAL LETTER MU</span>
+<span class="s2">004E;N;LATIN CAPITAL LETTER N</span>
+<span class="s2">0143;Nacute;LATIN CAPITAL LETTER N WITH ACUTE</span>
+<span class="s2">0147;Ncaron;LATIN CAPITAL LETTER N WITH CARON</span>
+<span class="s2">00D1;Ntilde;LATIN CAPITAL LETTER N WITH TILDE</span>
+<span class="s2">039D;Nu;GREEK CAPITAL LETTER NU</span>
+<span class="s2">004F;O;LATIN CAPITAL LETTER O</span>
+<span class="s2">0152;OE;LATIN CAPITAL LIGATURE OE</span>
+<span class="s2">00D3;Oacute;LATIN CAPITAL LETTER O WITH ACUTE</span>
+<span class="s2">014E;Obreve;LATIN CAPITAL LETTER O WITH BREVE</span>
+<span class="s2">00D4;Ocircumflex;LATIN CAPITAL LETTER O WITH CIRCUMFLEX</span>
+<span class="s2">00D6;Odieresis;LATIN CAPITAL LETTER O WITH DIAERESIS</span>
+<span class="s2">00D2;Ograve;LATIN CAPITAL LETTER O WITH GRAVE</span>
+<span class="s2">01A0;Ohorn;LATIN CAPITAL LETTER O WITH HORN</span>
+<span class="s2">0150;Ohungarumlaut;LATIN CAPITAL LETTER O WITH DOUBLE ACUTE</span>
+<span class="s2">014C;Omacron;LATIN CAPITAL LETTER O WITH MACRON</span>
+<span class="s2">2126;Omega;OHM SIGN</span>
+<span class="s2">038F;Omegatonos;GREEK CAPITAL LETTER OMEGA WITH TONOS</span>
+<span class="s2">039F;Omicron;GREEK CAPITAL LETTER OMICRON</span>
+<span class="s2">038C;Omicrontonos;GREEK CAPITAL LETTER OMICRON WITH TONOS</span>
+<span class="s2">00D8;Oslash;LATIN CAPITAL LETTER O WITH STROKE</span>
+<span class="s2">01FE;Oslashacute;LATIN CAPITAL LETTER O WITH STROKE AND ACUTE</span>
+<span class="s2">00D5;Otilde;LATIN CAPITAL LETTER O WITH TILDE</span>
+<span class="s2">0050;P;LATIN CAPITAL LETTER P</span>
+<span class="s2">03A6;Phi;GREEK CAPITAL LETTER PHI</span>
+<span class="s2">03A0;Pi;GREEK CAPITAL LETTER PI</span>
+<span class="s2">03A8;Psi;GREEK CAPITAL LETTER PSI</span>
+<span class="s2">0051;Q;LATIN CAPITAL LETTER Q</span>
+<span class="s2">0052;R;LATIN CAPITAL LETTER R</span>
+<span class="s2">0154;Racute;LATIN CAPITAL LETTER R WITH ACUTE</span>
+<span class="s2">0158;Rcaron;LATIN CAPITAL LETTER R WITH CARON</span>
+<span class="s2">211C;Rfraktur;BLACK-LETTER CAPITAL R</span>
+<span class="s2">03A1;Rho;GREEK CAPITAL LETTER RHO</span>
+<span class="s2">0053;S;LATIN CAPITAL LETTER S</span>
+<span class="s2">250C;SF010000;BOX DRAWINGS LIGHT DOWN AND RIGHT</span>
+<span class="s2">2514;SF020000;BOX DRAWINGS LIGHT UP AND RIGHT</span>
+<span class="s2">2510;SF030000;BOX DRAWINGS LIGHT DOWN AND LEFT</span>
+<span class="s2">2518;SF040000;BOX DRAWINGS LIGHT UP AND LEFT</span>
+<span class="s2">253C;SF050000;BOX DRAWINGS LIGHT VERTICAL AND HORIZONTAL</span>
+<span class="s2">252C;SF060000;BOX DRAWINGS LIGHT DOWN AND HORIZONTAL</span>
+<span class="s2">2534;SF070000;BOX DRAWINGS LIGHT UP AND HORIZONTAL</span>
+<span class="s2">251C;SF080000;BOX DRAWINGS LIGHT VERTICAL AND RIGHT</span>
+<span class="s2">2524;SF090000;BOX DRAWINGS LIGHT VERTICAL AND LEFT</span>
+<span class="s2">2500;SF100000;BOX DRAWINGS LIGHT HORIZONTAL</span>
+<span class="s2">2502;SF110000;BOX DRAWINGS LIGHT VERTICAL</span>
+<span class="s2">2561;SF190000;BOX DRAWINGS VERTICAL SINGLE AND LEFT DOUBLE</span>
+<span class="s2">2562;SF200000;BOX DRAWINGS VERTICAL DOUBLE AND LEFT SINGLE</span>
+<span class="s2">2556;SF210000;BOX DRAWINGS DOWN DOUBLE AND LEFT SINGLE</span>
+<span class="s2">2555;SF220000;BOX DRAWINGS DOWN SINGLE AND LEFT DOUBLE</span>
+<span class="s2">2563;SF230000;BOX DRAWINGS DOUBLE VERTICAL AND LEFT</span>
+<span class="s2">2551;SF240000;BOX DRAWINGS DOUBLE VERTICAL</span>
+<span class="s2">2557;SF250000;BOX DRAWINGS DOUBLE DOWN AND LEFT</span>
+<span class="s2">255D;SF260000;BOX DRAWINGS DOUBLE UP AND LEFT</span>
+<span class="s2">255C;SF270000;BOX DRAWINGS UP DOUBLE AND LEFT SINGLE</span>
+<span class="s2">255B;SF280000;BOX DRAWINGS UP SINGLE AND LEFT DOUBLE</span>
+<span class="s2">255E;SF360000;BOX DRAWINGS VERTICAL SINGLE AND RIGHT DOUBLE</span>
+<span class="s2">255F;SF370000;BOX DRAWINGS VERTICAL DOUBLE AND RIGHT SINGLE</span>
+<span class="s2">255A;SF380000;BOX DRAWINGS DOUBLE UP AND RIGHT</span>
+<span class="s2">2554;SF390000;BOX DRAWINGS DOUBLE DOWN AND RIGHT</span>
+<span class="s2">2569;SF400000;BOX DRAWINGS DOUBLE UP AND HORIZONTAL</span>
+<span class="s2">2566;SF410000;BOX DRAWINGS DOUBLE DOWN AND HORIZONTAL</span>
+<span class="s2">2560;SF420000;BOX DRAWINGS DOUBLE VERTICAL AND RIGHT</span>
+<span class="s2">2550;SF430000;BOX DRAWINGS DOUBLE HORIZONTAL</span>
+<span class="s2">256C;SF440000;BOX DRAWINGS DOUBLE VERTICAL AND HORIZONTAL</span>
+<span class="s2">2567;SF450000;BOX DRAWINGS UP SINGLE AND HORIZONTAL DOUBLE</span>
+<span class="s2">2568;SF460000;BOX DRAWINGS UP DOUBLE AND HORIZONTAL SINGLE</span>
+<span class="s2">2564;SF470000;BOX DRAWINGS DOWN SINGLE AND HORIZONTAL DOUBLE</span>
+<span class="s2">2565;SF480000;BOX DRAWINGS DOWN DOUBLE AND HORIZONTAL SINGLE</span>
+<span class="s2">2559;SF490000;BOX DRAWINGS UP DOUBLE AND RIGHT SINGLE</span>
+<span class="s2">2558;SF500000;BOX DRAWINGS UP SINGLE AND RIGHT DOUBLE</span>
+<span class="s2">2552;SF510000;BOX DRAWINGS DOWN SINGLE AND RIGHT DOUBLE</span>
+<span class="s2">2553;SF520000;BOX DRAWINGS DOWN DOUBLE AND RIGHT SINGLE</span>
+<span class="s2">256B;SF530000;BOX DRAWINGS VERTICAL DOUBLE AND HORIZONTAL SINGLE</span>
+<span class="s2">256A;SF540000;BOX DRAWINGS VERTICAL SINGLE AND HORIZONTAL DOUBLE</span>
+<span class="s2">015A;Sacute;LATIN CAPITAL LETTER S WITH ACUTE</span>
+<span class="s2">0160;Scaron;LATIN CAPITAL LETTER S WITH CARON</span>
+<span class="s2">015E;Scedilla;LATIN CAPITAL LETTER S WITH CEDILLA</span>
+<span class="s2">015C;Scircumflex;LATIN CAPITAL LETTER S WITH CIRCUMFLEX</span>
+<span class="s2">03A3;Sigma;GREEK CAPITAL LETTER SIGMA</span>
+<span class="s2">0054;T;LATIN CAPITAL LETTER T</span>
+<span class="s2">03A4;Tau;GREEK CAPITAL LETTER TAU</span>
+<span class="s2">0166;Tbar;LATIN CAPITAL LETTER T WITH STROKE</span>
+<span class="s2">0164;Tcaron;LATIN CAPITAL LETTER T WITH CARON</span>
+<span class="s2">0398;Theta;GREEK CAPITAL LETTER THETA</span>
+<span class="s2">00DE;Thorn;LATIN CAPITAL LETTER THORN</span>
+<span class="s2">0055;U;LATIN CAPITAL LETTER U</span>
+<span class="s2">00DA;Uacute;LATIN CAPITAL LETTER U WITH ACUTE</span>
+<span class="s2">016C;Ubreve;LATIN CAPITAL LETTER U WITH BREVE</span>
+<span class="s2">00DB;Ucircumflex;LATIN CAPITAL LETTER U WITH CIRCUMFLEX</span>
+<span class="s2">00DC;Udieresis;LATIN CAPITAL LETTER U WITH DIAERESIS</span>
+<span class="s2">00D9;Ugrave;LATIN CAPITAL LETTER U WITH GRAVE</span>
+<span class="s2">01AF;Uhorn;LATIN CAPITAL LETTER U WITH HORN</span>
+<span class="s2">0170;Uhungarumlaut;LATIN CAPITAL LETTER U WITH DOUBLE ACUTE</span>
+<span class="s2">016A;Umacron;LATIN CAPITAL LETTER U WITH MACRON</span>
+<span class="s2">0172;Uogonek;LATIN CAPITAL LETTER U WITH OGONEK</span>
+<span class="s2">03A5;Upsilon;GREEK CAPITAL LETTER UPSILON</span>
+<span class="s2">03D2;Upsilon1;GREEK UPSILON WITH HOOK SYMBOL</span>
+<span class="s2">03AB;Upsilondieresis;GREEK CAPITAL LETTER UPSILON WITH DIALYTIKA</span>
+<span class="s2">038E;Upsilontonos;GREEK CAPITAL LETTER UPSILON WITH TONOS</span>
+<span class="s2">016E;Uring;LATIN CAPITAL LETTER U WITH RING ABOVE</span>
+<span class="s2">0168;Utilde;LATIN CAPITAL LETTER U WITH TILDE</span>
+<span class="s2">0056;V;LATIN CAPITAL LETTER V</span>
+<span class="s2">0057;W;LATIN CAPITAL LETTER W</span>
+<span class="s2">1E82;Wacute;LATIN CAPITAL LETTER W WITH ACUTE</span>
+<span class="s2">0174;Wcircumflex;LATIN CAPITAL LETTER W WITH CIRCUMFLEX</span>
+<span class="s2">1E84;Wdieresis;LATIN CAPITAL LETTER W WITH DIAERESIS</span>
+<span class="s2">1E80;Wgrave;LATIN CAPITAL LETTER W WITH GRAVE</span>
+<span class="s2">0058;X;LATIN CAPITAL LETTER X</span>
+<span class="s2">039E;Xi;GREEK CAPITAL LETTER XI</span>
+<span class="s2">0059;Y;LATIN CAPITAL LETTER Y</span>
+<span class="s2">00DD;Yacute;LATIN CAPITAL LETTER Y WITH ACUTE</span>
+<span class="s2">0176;Ycircumflex;LATIN CAPITAL LETTER Y WITH CIRCUMFLEX</span>
+<span class="s2">0178;Ydieresis;LATIN CAPITAL LETTER Y WITH DIAERESIS</span>
+<span class="s2">1EF2;Ygrave;LATIN CAPITAL LETTER Y WITH GRAVE</span>
+<span class="s2">005A;Z;LATIN CAPITAL LETTER Z</span>
+<span class="s2">0179;Zacute;LATIN CAPITAL LETTER Z WITH ACUTE</span>
+<span class="s2">017D;Zcaron;LATIN CAPITAL LETTER Z WITH CARON</span>
+<span class="s2">017B;Zdotaccent;LATIN CAPITAL LETTER Z WITH DOT ABOVE</span>
+<span class="s2">0396;Zeta;GREEK CAPITAL LETTER ZETA</span>
+<span class="s2">0061;a;LATIN SMALL LETTER A</span>
+<span class="s2">00E1;aacute;LATIN SMALL LETTER A WITH ACUTE</span>
+<span class="s2">0103;abreve;LATIN SMALL LETTER A WITH BREVE</span>
+<span class="s2">00E2;acircumflex;LATIN SMALL LETTER A WITH CIRCUMFLEX</span>
+<span class="s2">00B4;acute;ACUTE ACCENT</span>
+<span class="s2">0301;acutecomb;COMBINING ACUTE ACCENT</span>
+<span class="s2">00E4;adieresis;LATIN SMALL LETTER A WITH DIAERESIS</span>
+<span class="s2">00E6;ae;LATIN SMALL LETTER AE</span>
+<span class="s2">01FD;aeacute;LATIN SMALL LETTER AE WITH ACUTE</span>
+<span class="s2">00E0;agrave;LATIN SMALL LETTER A WITH GRAVE</span>
+<span class="s2">2135;aleph;ALEF SYMBOL</span>
+<span class="s2">03B1;alpha;GREEK SMALL LETTER ALPHA</span>
+<span class="s2">03AC;alphatonos;GREEK SMALL LETTER ALPHA WITH TONOS</span>
+<span class="s2">0101;amacron;LATIN SMALL LETTER A WITH MACRON</span>
+<span class="s2">0026;ampersand;AMPERSAND</span>
+<span class="s2">2220;angle;ANGLE</span>
+<span class="s2">2329;angleleft;LEFT-POINTING ANGLE BRACKET</span>
+<span class="s2">232A;angleright;RIGHT-POINTING ANGLE BRACKET</span>
+<span class="s2">0387;anoteleia;GREEK ANO TELEIA</span>
+<span class="s2">0105;aogonek;LATIN SMALL LETTER A WITH OGONEK</span>
+<span class="s2">2248;approxequal;ALMOST EQUAL TO</span>
+<span class="s2">00E5;aring;LATIN SMALL LETTER A WITH RING ABOVE</span>
+<span class="s2">01FB;aringacute;LATIN SMALL LETTER A WITH RING ABOVE AND ACUTE</span>
+<span class="s2">2194;arrowboth;LEFT RIGHT ARROW</span>
+<span class="s2">21D4;arrowdblboth;LEFT RIGHT DOUBLE ARROW</span>
+<span class="s2">21D3;arrowdbldown;DOWNWARDS DOUBLE ARROW</span>
+<span class="s2">21D0;arrowdblleft;LEFTWARDS DOUBLE ARROW</span>
+<span class="s2">21D2;arrowdblright;RIGHTWARDS DOUBLE ARROW</span>
+<span class="s2">21D1;arrowdblup;UPWARDS DOUBLE ARROW</span>
+<span class="s2">2193;arrowdown;DOWNWARDS ARROW</span>
+<span class="s2">2190;arrowleft;LEFTWARDS ARROW</span>
+<span class="s2">2192;arrowright;RIGHTWARDS ARROW</span>
+<span class="s2">2191;arrowup;UPWARDS ARROW</span>
+<span class="s2">2195;arrowupdn;UP DOWN ARROW</span>
+<span class="s2">21A8;arrowupdnbse;UP DOWN ARROW WITH BASE</span>
+<span class="s2">005E;asciicircum;CIRCUMFLEX ACCENT</span>
+<span class="s2">007E;asciitilde;TILDE</span>
+<span class="s2">002A;asterisk;ASTERISK</span>
+<span class="s2">2217;asteriskmath;ASTERISK OPERATOR</span>
+<span class="s2">0040;at;COMMERCIAL AT</span>
+<span class="s2">00E3;atilde;LATIN SMALL LETTER A WITH TILDE</span>
+<span class="s2">0062;b;LATIN SMALL LETTER B</span>
+<span class="s2">005C;backslash;REVERSE SOLIDUS</span>
+<span class="s2">007C;bar;VERTICAL LINE</span>
+<span class="s2">03B2;beta;GREEK SMALL LETTER BETA</span>
+<span class="s2">2588;block;FULL BLOCK</span>
+<span class="s2">007B;braceleft;LEFT CURLY BRACKET</span>
+<span class="s2">007D;braceright;RIGHT CURLY BRACKET</span>
+<span class="s2">005B;bracketleft;LEFT SQUARE BRACKET</span>
+<span class="s2">005D;bracketright;RIGHT SQUARE BRACKET</span>
+<span class="s2">02D8;breve;BREVE</span>
+<span class="s2">00A6;brokenbar;BROKEN BAR</span>
+<span class="s2">2022;bullet;BULLET</span>
+<span class="s2">0063;c;LATIN SMALL LETTER C</span>
+<span class="s2">0107;cacute;LATIN SMALL LETTER C WITH ACUTE</span>
+<span class="s2">02C7;caron;CARON</span>
+<span class="s2">21B5;carriagereturn;DOWNWARDS ARROW WITH CORNER LEFTWARDS</span>
+<span class="s2">010D;ccaron;LATIN SMALL LETTER C WITH CARON</span>
+<span class="s2">00E7;ccedilla;LATIN SMALL LETTER C WITH CEDILLA</span>
+<span class="s2">0109;ccircumflex;LATIN SMALL LETTER C WITH CIRCUMFLEX</span>
+<span class="s2">010B;cdotaccent;LATIN SMALL LETTER C WITH DOT ABOVE</span>
+<span class="s2">00B8;cedilla;CEDILLA</span>
+<span class="s2">00A2;cent;CENT SIGN</span>
+<span class="s2">03C7;chi;GREEK SMALL LETTER CHI</span>
+<span class="s2">25CB;circle;WHITE CIRCLE</span>
+<span class="s2">2297;circlemultiply;CIRCLED TIMES</span>
+<span class="s2">2295;circleplus;CIRCLED PLUS</span>
+<span class="s2">02C6;circumflex;MODIFIER LETTER CIRCUMFLEX ACCENT</span>
+<span class="s2">2663;club;BLACK CLUB SUIT</span>
+<span class="s2">003A;colon;COLON</span>
+<span class="s2">20A1;colonmonetary;COLON SIGN</span>
+<span class="s2">002C;comma;COMMA</span>
+<span class="s2">2245;congruent;APPROXIMATELY EQUAL TO</span>
+<span class="s2">00A9;copyright;COPYRIGHT SIGN</span>
+<span class="s2">00A4;currency;CURRENCY SIGN</span>
+<span class="s2">0064;d;LATIN SMALL LETTER D</span>
+<span class="s2">2020;dagger;DAGGER</span>
+<span class="s2">2021;daggerdbl;DOUBLE DAGGER</span>
+<span class="s2">010F;dcaron;LATIN SMALL LETTER D WITH CARON</span>
+<span class="s2">0111;dcroat;LATIN SMALL LETTER D WITH STROKE</span>
+<span class="s2">00B0;degree;DEGREE SIGN</span>
+<span class="s2">03B4;delta;GREEK SMALL LETTER DELTA</span>
+<span class="s2">2666;diamond;BLACK DIAMOND SUIT</span>
+<span class="s2">00A8;dieresis;DIAERESIS</span>
+<span class="s2">0385;dieresistonos;GREEK DIALYTIKA TONOS</span>
+<span class="s2">00F7;divide;DIVISION SIGN</span>
+<span class="s2">2593;dkshade;DARK SHADE</span>
+<span class="s2">2584;dnblock;LOWER HALF BLOCK</span>
+<span class="s2">0024;dollar;DOLLAR SIGN</span>
+<span class="s2">20AB;dong;DONG SIGN</span>
+<span class="s2">02D9;dotaccent;DOT ABOVE</span>
+<span class="s2">0323;dotbelowcomb;COMBINING DOT BELOW</span>
+<span class="s2">0131;dotlessi;LATIN SMALL LETTER DOTLESS I</span>
+<span class="s2">22C5;dotmath;DOT OPERATOR</span>
+<span class="s2">0065;e;LATIN SMALL LETTER E</span>
+<span class="s2">00E9;eacute;LATIN SMALL LETTER E WITH ACUTE</span>
+<span class="s2">0115;ebreve;LATIN SMALL LETTER E WITH BREVE</span>
+<span class="s2">011B;ecaron;LATIN SMALL LETTER E WITH CARON</span>
+<span class="s2">00EA;ecircumflex;LATIN SMALL LETTER E WITH CIRCUMFLEX</span>
+<span class="s2">00EB;edieresis;LATIN SMALL LETTER E WITH DIAERESIS</span>
+<span class="s2">0117;edotaccent;LATIN SMALL LETTER E WITH DOT ABOVE</span>
+<span class="s2">00E8;egrave;LATIN SMALL LETTER E WITH GRAVE</span>
+<span class="s2">0038;eight;DIGIT EIGHT</span>
+<span class="s2">2208;element;ELEMENT OF</span>
+<span class="s2">2026;ellipsis;HORIZONTAL ELLIPSIS</span>
+<span class="s2">0113;emacron;LATIN SMALL LETTER E WITH MACRON</span>
+<span class="s2">2014;emdash;EM DASH</span>
+<span class="s2">2205;emptyset;EMPTY SET</span>
+<span class="s2">2013;endash;EN DASH</span>
+<span class="s2">014B;eng;LATIN SMALL LETTER ENG</span>
+<span class="s2">0119;eogonek;LATIN SMALL LETTER E WITH OGONEK</span>
+<span class="s2">03B5;epsilon;GREEK SMALL LETTER EPSILON</span>
+<span class="s2">03AD;epsilontonos;GREEK SMALL LETTER EPSILON WITH TONOS</span>
+<span class="s2">003D;equal;EQUALS SIGN</span>
+<span class="s2">2261;equivalence;IDENTICAL TO</span>
+<span class="s2">212E;estimated;ESTIMATED SYMBOL</span>
+<span class="s2">03B7;eta;GREEK SMALL LETTER ETA</span>
+<span class="s2">03AE;etatonos;GREEK SMALL LETTER ETA WITH TONOS</span>
+<span class="s2">00F0;eth;LATIN SMALL LETTER ETH</span>
+<span class="s2">0021;exclam;EXCLAMATION MARK</span>
+<span class="s2">203C;exclamdbl;DOUBLE EXCLAMATION MARK</span>
+<span class="s2">00A1;exclamdown;INVERTED EXCLAMATION MARK</span>
+<span class="s2">2203;existential;THERE EXISTS</span>
+<span class="s2">0066;f;LATIN SMALL LETTER F</span>
+<span class="s2">2640;female;FEMALE SIGN</span>
+<span class="s2">2012;figuredash;FIGURE DASH</span>
+<span class="s2">25A0;filledbox;BLACK SQUARE</span>
+<span class="s2">25AC;filledrect;BLACK RECTANGLE</span>
+<span class="s2">0035;five;DIGIT FIVE</span>
+<span class="s2">215D;fiveeighths;VULGAR FRACTION FIVE EIGHTHS</span>
+<span class="s2">0192;florin;LATIN SMALL LETTER F WITH HOOK</span>
+<span class="s2">0034;four;DIGIT FOUR</span>
+<span class="s2">2044;fraction;FRACTION SLASH</span>
+<span class="s2">20A3;franc;FRENCH FRANC SIGN</span>
+<span class="s2">0067;g;LATIN SMALL LETTER G</span>
+<span class="s2">03B3;gamma;GREEK SMALL LETTER GAMMA</span>
+<span class="s2">011F;gbreve;LATIN SMALL LETTER G WITH BREVE</span>
+<span class="s2">01E7;gcaron;LATIN SMALL LETTER G WITH CARON</span>
+<span class="s2">011D;gcircumflex;LATIN SMALL LETTER G WITH CIRCUMFLEX</span>
+<span class="s2">0121;gdotaccent;LATIN SMALL LETTER G WITH DOT ABOVE</span>
+<span class="s2">00DF;germandbls;LATIN SMALL LETTER SHARP S</span>
+<span class="s2">2207;gradient;NABLA</span>
+<span class="s2">0060;grave;GRAVE ACCENT</span>
+<span class="s2">0300;gravecomb;COMBINING GRAVE ACCENT</span>
+<span class="s2">003E;greater;GREATER-THAN SIGN</span>
+<span class="s2">2265;greaterequal;GREATER-THAN OR EQUAL TO</span>
+<span class="s2">00AB;guillemotleft;LEFT-POINTING DOUBLE ANGLE QUOTATION MARK</span>
+<span class="s2">00BB;guillemotright;RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK</span>
+<span class="s2">2039;guilsinglleft;SINGLE LEFT-POINTING ANGLE QUOTATION MARK</span>
+<span class="s2">203A;guilsinglright;SINGLE RIGHT-POINTING ANGLE QUOTATION MARK</span>
+<span class="s2">0068;h;LATIN SMALL LETTER H</span>
+<span class="s2">0127;hbar;LATIN SMALL LETTER H WITH STROKE</span>
+<span class="s2">0125;hcircumflex;LATIN SMALL LETTER H WITH CIRCUMFLEX</span>
+<span class="s2">2665;heart;BLACK HEART SUIT</span>
+<span class="s2">0309;hookabovecomb;COMBINING HOOK ABOVE</span>
+<span class="s2">2302;house;HOUSE</span>
+<span class="s2">02DD;hungarumlaut;DOUBLE ACUTE ACCENT</span>
+<span class="s2">002D;hyphen;HYPHEN-MINUS</span>
+<span class="s2">0069;i;LATIN SMALL LETTER I</span>
+<span class="s2">00ED;iacute;LATIN SMALL LETTER I WITH ACUTE</span>
+<span class="s2">012D;ibreve;LATIN SMALL LETTER I WITH BREVE</span>
+<span class="s2">00EE;icircumflex;LATIN SMALL LETTER I WITH CIRCUMFLEX</span>
+<span class="s2">00EF;idieresis;LATIN SMALL LETTER I WITH DIAERESIS</span>
+<span class="s2">00EC;igrave;LATIN SMALL LETTER I WITH GRAVE</span>
+<span class="s2">0133;ij;LATIN SMALL LIGATURE IJ</span>
+<span class="s2">012B;imacron;LATIN SMALL LETTER I WITH MACRON</span>
+<span class="s2">221E;infinity;INFINITY</span>
+<span class="s2">222B;integral;INTEGRAL</span>
+<span class="s2">2321;integralbt;BOTTOM HALF INTEGRAL</span>
+<span class="s2">2320;integraltp;TOP HALF INTEGRAL</span>
+<span class="s2">2229;intersection;INTERSECTION</span>
+<span class="s2">25D8;invbullet;INVERSE BULLET</span>
+<span class="s2">25D9;invcircle;INVERSE WHITE CIRCLE</span>
+<span class="s2">263B;invsmileface;BLACK SMILING FACE</span>
+<span class="s2">012F;iogonek;LATIN SMALL LETTER I WITH OGONEK</span>
+<span class="s2">03B9;iota;GREEK SMALL LETTER IOTA</span>
+<span class="s2">03CA;iotadieresis;GREEK SMALL LETTER IOTA WITH DIALYTIKA</span>
+<span class="s2">0390;iotadieresistonos;GREEK SMALL LETTER IOTA WITH DIALYTIKA AND TONOS</span>
+<span class="s2">03AF;iotatonos;GREEK SMALL LETTER IOTA WITH TONOS</span>
+<span class="s2">0129;itilde;LATIN SMALL LETTER I WITH TILDE</span>
+<span class="s2">006A;j;LATIN SMALL LETTER J</span>
+<span class="s2">0135;jcircumflex;LATIN SMALL LETTER J WITH CIRCUMFLEX</span>
+<span class="s2">006B;k;LATIN SMALL LETTER K</span>
+<span class="s2">03BA;kappa;GREEK SMALL LETTER KAPPA</span>
+<span class="s2">0138;kgreenlandic;LATIN SMALL LETTER KRA</span>
+<span class="s2">006C;l;LATIN SMALL LETTER L</span>
+<span class="s2">013A;lacute;LATIN SMALL LETTER L WITH ACUTE</span>
+<span class="s2">03BB;lambda;GREEK SMALL LETTER LAMDA</span>
+<span class="s2">013E;lcaron;LATIN SMALL LETTER L WITH CARON</span>
+<span class="s2">0140;ldot;LATIN SMALL LETTER L WITH MIDDLE DOT</span>
+<span class="s2">003C;less;LESS-THAN SIGN</span>
+<span class="s2">2264;lessequal;LESS-THAN OR EQUAL TO</span>
+<span class="s2">258C;lfblock;LEFT HALF BLOCK</span>
+<span class="s2">20A4;lira;LIRA SIGN</span>
+<span class="s2">2227;logicaland;LOGICAL AND</span>
+<span class="s2">00AC;logicalnot;NOT SIGN</span>
+<span class="s2">2228;logicalor;LOGICAL OR</span>
+<span class="s2">017F;longs;LATIN SMALL LETTER LONG S</span>
+<span class="s2">25CA;lozenge;LOZENGE</span>
+<span class="s2">0142;lslash;LATIN SMALL LETTER L WITH STROKE</span>
+<span class="s2">2591;ltshade;LIGHT SHADE</span>
+<span class="s2">006D;m;LATIN SMALL LETTER M</span>
+<span class="s2">00AF;macron;MACRON</span>
+<span class="s2">2642;male;MALE SIGN</span>
+<span class="s2">2212;minus;MINUS SIGN</span>
+<span class="s2">2032;minute;PRIME</span>
+<span class="s2">00B5;mu;MICRO SIGN</span>
+<span class="s2">00D7;multiply;MULTIPLICATION SIGN</span>
+<span class="s2">266A;musicalnote;EIGHTH NOTE</span>
+<span class="s2">266B;musicalnotedbl;BEAMED EIGHTH NOTES</span>
+<span class="s2">006E;n;LATIN SMALL LETTER N</span>
+<span class="s2">0144;nacute;LATIN SMALL LETTER N WITH ACUTE</span>
+<span class="s2">0149;napostrophe;LATIN SMALL LETTER N PRECEDED BY APOSTROPHE</span>
+<span class="s2">0148;ncaron;LATIN SMALL LETTER N WITH CARON</span>
+<span class="s2">0039;nine;DIGIT NINE</span>
+<span class="s2">2209;notelement;NOT AN ELEMENT OF</span>
+<span class="s2">2260;notequal;NOT EQUAL TO</span>
+<span class="s2">2284;notsubset;NOT A SUBSET OF</span>
+<span class="s2">00F1;ntilde;LATIN SMALL LETTER N WITH TILDE</span>
+<span class="s2">03BD;nu;GREEK SMALL LETTER NU</span>
+<span class="s2">0023;numbersign;NUMBER SIGN</span>
+<span class="s2">006F;o;LATIN SMALL LETTER O</span>
+<span class="s2">00F3;oacute;LATIN SMALL LETTER O WITH ACUTE</span>
+<span class="s2">014F;obreve;LATIN SMALL LETTER O WITH BREVE</span>
+<span class="s2">00F4;ocircumflex;LATIN SMALL LETTER O WITH CIRCUMFLEX</span>
+<span class="s2">00F6;odieresis;LATIN SMALL LETTER O WITH DIAERESIS</span>
+<span class="s2">0153;oe;LATIN SMALL LIGATURE OE</span>
+<span class="s2">02DB;ogonek;OGONEK</span>
+<span class="s2">00F2;ograve;LATIN SMALL LETTER O WITH GRAVE</span>
+<span class="s2">01A1;ohorn;LATIN SMALL LETTER O WITH HORN</span>
+<span class="s2">0151;ohungarumlaut;LATIN SMALL LETTER O WITH DOUBLE ACUTE</span>
+<span class="s2">014D;omacron;LATIN SMALL LETTER O WITH MACRON</span>
+<span class="s2">03C9;omega;GREEK SMALL LETTER OMEGA</span>
+<span class="s2">03D6;omega1;GREEK PI SYMBOL</span>
+<span class="s2">03CE;omegatonos;GREEK SMALL LETTER OMEGA WITH TONOS</span>
+<span class="s2">03BF;omicron;GREEK SMALL LETTER OMICRON</span>
+<span class="s2">03CC;omicrontonos;GREEK SMALL LETTER OMICRON WITH TONOS</span>
+<span class="s2">0031;one;DIGIT ONE</span>
+<span class="s2">2024;onedotenleader;ONE DOT LEADER</span>
+<span class="s2">215B;oneeighth;VULGAR FRACTION ONE EIGHTH</span>
+<span class="s2">00BD;onehalf;VULGAR FRACTION ONE HALF</span>
+<span class="s2">00BC;onequarter;VULGAR FRACTION ONE QUARTER</span>
+<span class="s2">2153;onethird;VULGAR FRACTION ONE THIRD</span>
+<span class="s2">25E6;openbullet;WHITE BULLET</span>
+<span class="s2">00AA;ordfeminine;FEMININE ORDINAL INDICATOR</span>
+<span class="s2">00BA;ordmasculine;MASCULINE ORDINAL INDICATOR</span>
+<span class="s2">221F;orthogonal;RIGHT ANGLE</span>
+<span class="s2">00F8;oslash;LATIN SMALL LETTER O WITH STROKE</span>
+<span class="s2">01FF;oslashacute;LATIN SMALL LETTER O WITH STROKE AND ACUTE</span>
+<span class="s2">00F5;otilde;LATIN SMALL LETTER O WITH TILDE</span>
+<span class="s2">0070;p;LATIN SMALL LETTER P</span>
+<span class="s2">00B6;paragraph;PILCROW SIGN</span>
+<span class="s2">0028;parenleft;LEFT PARENTHESIS</span>
+<span class="s2">0029;parenright;RIGHT PARENTHESIS</span>
+<span class="s2">2202;partialdiff;PARTIAL DIFFERENTIAL</span>
+<span class="s2">0025;percent;PERCENT SIGN</span>
+<span class="s2">002E;period;FULL STOP</span>
+<span class="s2">00B7;periodcentered;MIDDLE DOT</span>
+<span class="s2">22A5;perpendicular;UP TACK</span>
+<span class="s2">2030;perthousand;PER MILLE SIGN</span>
+<span class="s2">20A7;peseta;PESETA SIGN</span>
+<span class="s2">03C6;phi;GREEK SMALL LETTER PHI</span>
+<span class="s2">03D5;phi1;GREEK PHI SYMBOL</span>
+<span class="s2">03C0;pi;GREEK SMALL LETTER PI</span>
+<span class="s2">002B;plus;PLUS SIGN</span>
+<span class="s2">00B1;plusminus;PLUS-MINUS SIGN</span>
+<span class="s2">211E;prescription;PRESCRIPTION TAKE</span>
+<span class="s2">220F;product;N-ARY PRODUCT</span>
+<span class="s2">2282;propersubset;SUBSET OF</span>
+<span class="s2">2283;propersuperset;SUPERSET OF</span>
+<span class="s2">221D;proportional;PROPORTIONAL TO</span>
+<span class="s2">03C8;psi;GREEK SMALL LETTER PSI</span>
+<span class="s2">0071;q;LATIN SMALL LETTER Q</span>
+<span class="s2">003F;question;QUESTION MARK</span>
+<span class="s2">00BF;questiondown;INVERTED QUESTION MARK</span>
+<span class="s2">0022;quotedbl;QUOTATION MARK</span>
+<span class="s2">201E;quotedblbase;DOUBLE LOW-9 QUOTATION MARK</span>
+<span class="s2">201C;quotedblleft;LEFT DOUBLE QUOTATION MARK</span>
+<span class="s2">201D;quotedblright;RIGHT DOUBLE QUOTATION MARK</span>
+<span class="s2">2018;quoteleft;LEFT SINGLE QUOTATION MARK</span>
+<span class="s2">201B;quotereversed;SINGLE HIGH-REVERSED-9 QUOTATION MARK</span>
+<span class="s2">2019;quoteright;RIGHT SINGLE QUOTATION MARK</span>
+<span class="s2">201A;quotesinglbase;SINGLE LOW-9 QUOTATION MARK</span>
+<span class="s2">0027;quotesingle;APOSTROPHE</span>
+<span class="s2">0072;r;LATIN SMALL LETTER R</span>
+<span class="s2">0155;racute;LATIN SMALL LETTER R WITH ACUTE</span>
+<span class="s2">221A;radical;SQUARE ROOT</span>
+<span class="s2">0159;rcaron;LATIN SMALL LETTER R WITH CARON</span>
+<span class="s2">2286;reflexsubset;SUBSET OF OR EQUAL TO</span>
+<span class="s2">2287;reflexsuperset;SUPERSET OF OR EQUAL TO</span>
+<span class="s2">00AE;registered;REGISTERED SIGN</span>
+<span class="s2">2310;revlogicalnot;REVERSED NOT SIGN</span>
+<span class="s2">03C1;rho;GREEK SMALL LETTER RHO</span>
+<span class="s2">02DA;ring;RING ABOVE</span>
+<span class="s2">2590;rtblock;RIGHT HALF BLOCK</span>
+<span class="s2">0073;s;LATIN SMALL LETTER S</span>
+<span class="s2">015B;sacute;LATIN SMALL LETTER S WITH ACUTE</span>
+<span class="s2">0161;scaron;LATIN SMALL LETTER S WITH CARON</span>
+<span class="s2">015F;scedilla;LATIN SMALL LETTER S WITH CEDILLA</span>
+<span class="s2">015D;scircumflex;LATIN SMALL LETTER S WITH CIRCUMFLEX</span>
+<span class="s2">2033;second;DOUBLE PRIME</span>
+<span class="s2">00A7;section;SECTION SIGN</span>
+<span class="s2">003B;semicolon;SEMICOLON</span>
+<span class="s2">0037;seven;DIGIT SEVEN</span>
+<span class="s2">215E;seveneighths;VULGAR FRACTION SEVEN EIGHTHS</span>
+<span class="s2">2592;shade;MEDIUM SHADE</span>
+<span class="s2">03C3;sigma;GREEK SMALL LETTER SIGMA</span>
+<span class="s2">03C2;sigma1;GREEK SMALL LETTER FINAL SIGMA</span>
+<span class="s2">223C;similar;TILDE OPERATOR</span>
+<span class="s2">0036;six;DIGIT SIX</span>
+<span class="s2">002F;slash;SOLIDUS</span>
+<span class="s2">263A;smileface;WHITE SMILING FACE</span>
+<span class="s2">0020;space;SPACE</span>
+<span class="s2">2660;spade;BLACK SPADE SUIT</span>
+<span class="s2">00A3;sterling;POUND SIGN</span>
+<span class="s2">220B;suchthat;CONTAINS AS MEMBER</span>
+<span class="s2">2211;summation;N-ARY SUMMATION</span>
+<span class="s2">263C;sun;WHITE SUN WITH RAYS</span>
+<span class="s2">0074;t;LATIN SMALL LETTER T</span>
+<span class="s2">03C4;tau;GREEK SMALL LETTER TAU</span>
+<span class="s2">0167;tbar;LATIN SMALL LETTER T WITH STROKE</span>
+<span class="s2">0165;tcaron;LATIN SMALL LETTER T WITH CARON</span>
+<span class="s2">2234;therefore;THEREFORE</span>
+<span class="s2">03B8;theta;GREEK SMALL LETTER THETA</span>
+<span class="s2">03D1;theta1;GREEK THETA SYMBOL</span>
+<span class="s2">00FE;thorn;LATIN SMALL LETTER THORN</span>
+<span class="s2">0033;three;DIGIT THREE</span>
+<span class="s2">215C;threeeighths;VULGAR FRACTION THREE EIGHTHS</span>
+<span class="s2">00BE;threequarters;VULGAR FRACTION THREE QUARTERS</span>
+<span class="s2">02DC;tilde;SMALL TILDE</span>
+<span class="s2">0303;tildecomb;COMBINING TILDE</span>
+<span class="s2">0384;tonos;GREEK TONOS</span>
+<span class="s2">2122;trademark;TRADE MARK SIGN</span>
+<span class="s2">25BC;triagdn;BLACK DOWN-POINTING TRIANGLE</span>
+<span class="s2">25C4;triaglf;BLACK LEFT-POINTING POINTER</span>
+<span class="s2">25BA;triagrt;BLACK RIGHT-POINTING POINTER</span>
+<span class="s2">25B2;triagup;BLACK UP-POINTING TRIANGLE</span>
+<span class="s2">0032;two;DIGIT TWO</span>
+<span class="s2">2025;twodotenleader;TWO DOT LEADER</span>
+<span class="s2">2154;twothirds;VULGAR FRACTION TWO THIRDS</span>
+<span class="s2">0075;u;LATIN SMALL LETTER U</span>
+<span class="s2">00FA;uacute;LATIN SMALL LETTER U WITH ACUTE</span>
+<span class="s2">016D;ubreve;LATIN SMALL LETTER U WITH BREVE</span>
+<span class="s2">00FB;ucircumflex;LATIN SMALL LETTER U WITH CIRCUMFLEX</span>
+<span class="s2">00FC;udieresis;LATIN SMALL LETTER U WITH DIAERESIS</span>
+<span class="s2">00F9;ugrave;LATIN SMALL LETTER U WITH GRAVE</span>
+<span class="s2">01B0;uhorn;LATIN SMALL LETTER U WITH HORN</span>
+<span class="s2">0171;uhungarumlaut;LATIN SMALL LETTER U WITH DOUBLE ACUTE</span>
+<span class="s2">016B;umacron;LATIN SMALL LETTER U WITH MACRON</span>
+<span class="s2">005F;underscore;LOW LINE</span>
+<span class="s2">2017;underscoredbl;DOUBLE LOW LINE</span>
+<span class="s2">222A;union;UNION</span>
+<span class="s2">2200;universal;FOR ALL</span>
+<span class="s2">0173;uogonek;LATIN SMALL LETTER U WITH OGONEK</span>
+<span class="s2">2580;upblock;UPPER HALF BLOCK</span>
+<span class="s2">03C5;upsilon;GREEK SMALL LETTER UPSILON</span>
+<span class="s2">03CB;upsilondieresis;GREEK SMALL LETTER UPSILON WITH DIALYTIKA</span>
+<span class="s2">03B0;upsilondieresistonos;GREEK SMALL LETTER UPSILON WITH DIALYTIKA AND TONOS</span>
+<span class="s2">03CD;upsilontonos;GREEK SMALL LETTER UPSILON WITH TONOS</span>
+<span class="s2">016F;uring;LATIN SMALL LETTER U WITH RING ABOVE</span>
+<span class="s2">0169;utilde;LATIN SMALL LETTER U WITH TILDE</span>
+<span class="s2">0076;v;LATIN SMALL LETTER V</span>
+<span class="s2">0077;w;LATIN SMALL LETTER W</span>
+<span class="s2">1E83;wacute;LATIN SMALL LETTER W WITH ACUTE</span>
+<span class="s2">0175;wcircumflex;LATIN SMALL LETTER W WITH CIRCUMFLEX</span>
+<span class="s2">1E85;wdieresis;LATIN SMALL LETTER W WITH DIAERESIS</span>
+<span class="s2">2118;weierstrass;SCRIPT CAPITAL P</span>
+<span class="s2">1E81;wgrave;LATIN SMALL LETTER W WITH GRAVE</span>
+<span class="s2">0078;x;LATIN SMALL LETTER X</span>
+<span class="s2">03BE;xi;GREEK SMALL LETTER XI</span>
+<span class="s2">0079;y;LATIN SMALL LETTER Y</span>
+<span class="s2">00FD;yacute;LATIN SMALL LETTER Y WITH ACUTE</span>
+<span class="s2">0177;ycircumflex;LATIN SMALL LETTER Y WITH CIRCUMFLEX</span>
+<span class="s2">00FF;ydieresis;LATIN SMALL LETTER Y WITH DIAERESIS</span>
+<span class="s2">00A5;yen;YEN SIGN</span>
+<span class="s2">1EF3;ygrave;LATIN SMALL LETTER Y WITH GRAVE</span>
+<span class="s2">007A;z;LATIN SMALL LETTER Z</span>
+<span class="s2">017A;zacute;LATIN SMALL LETTER Z WITH ACUTE</span>
+<span class="s2">017E;zcaron;LATIN SMALL LETTER Z WITH CARON</span>
+<span class="s2">017C;zdotaccent;LATIN SMALL LETTER Z WITH DOT ABOVE</span>
+<span class="s2">0030;zero;DIGIT ZERO</span>
+<span class="s2">03B6;zeta;GREEK SMALL LETTER ZETA</span>
+<span class="s2">#END</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="AGLError"><a class="viewcode-back" href="../../agl.html#fontTools.agl.AGLError">[docs]</a><span class="k">class</span> <span class="nc">AGLError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+<span class="n">AGL2UV</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">UV2AGL</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="k">def</span> <span class="nf">_builddicts</span><span class="p">():</span>
+	<span class="kn">import</span> <span class="nn">re</span>
+
+	<span class="n">lines</span> <span class="o">=</span> <span class="n">_aglText</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+
+	<span class="n">parseAGL_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;([0-9A-F]</span><span class="si">{4}</span><span class="s2">);([A-Za-z_0-9.]+);.*?$&quot;</span><span class="p">)</span>
+
+	<span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">line</span> <span class="ow">or</span> <span class="n">line</span><span class="p">[:</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;#&#39;</span><span class="p">:</span>
+			<span class="k">continue</span>
+		<span class="n">m</span> <span class="o">=</span> <span class="n">parseAGL_RE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">m</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="n">AGLError</span><span class="p">(</span><span class="s2">&quot;syntax error in glyphlist.txt: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">line</span><span class="p">[:</span><span class="mi">20</span><span class="p">]))</span>
+		<span class="n">unicode</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+		<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">unicode</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span>
+		<span class="n">unicode</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">unicode</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+		<span class="n">glyphName</span> <span class="o">=</span> <span class="n">tostr</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+		<span class="k">if</span> <span class="n">glyphName</span> <span class="ow">in</span> <span class="n">AGL2UV</span><span class="p">:</span>
+			<span class="c1"># the above table contains identical duplicates</span>
+			<span class="k">assert</span> <span class="n">AGL2UV</span><span class="p">[</span><span class="n">glyphName</span><span class="p">]</span> <span class="o">==</span> <span class="n">unicode</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">AGL2UV</span><span class="p">[</span><span class="n">glyphName</span><span class="p">]</span> <span class="o">=</span> <span class="n">unicode</span>
+		<span class="n">UV2AGL</span><span class="p">[</span><span class="n">unicode</span><span class="p">]</span> <span class="o">=</span> <span class="n">glyphName</span>
+
+<span class="n">_builddicts</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="toUnicode"><a class="viewcode-back" href="../../agl.html#fontTools.agl.toUnicode">[docs]</a><span class="k">def</span> <span class="nf">toUnicode</span><span class="p">(</span><span class="n">glyph</span><span class="p">,</span> <span class="n">isZapfDingbats</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Convert glyph names to Unicode, such as &#39;longs_t.oldstyle&#39; --&gt; u&#39;ſt&#39;</span>
+
+<span class="sd">	If isZapfDingbats is True, the implementation recognizes additional</span>
+<span class="sd">	glyph names (as required by the AGL specification).</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="c1"># https://github.com/adobe-type-tools/agl-specification#2-the-mapping</span>
+	<span class="c1">#</span>
+	<span class="c1"># 1. Drop all the characters from the glyph name starting with</span>
+	<span class="c1">#    the first occurrence of a period (U+002E; FULL STOP), if any.</span>
+	<span class="n">glyph</span> <span class="o">=</span> <span class="n">glyph</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+	<span class="c1"># 2. Split the remaining string into a sequence of components,</span>
+	<span class="c1">#    using underscore (U+005F; LOW LINE) as the delimiter.</span>
+	<span class="n">components</span> <span class="o">=</span> <span class="n">glyph</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)</span>
+
+	<span class="c1"># 3. Map each component to a character string according to the</span>
+	<span class="c1">#    procedure below, and concatenate those strings; the result</span>
+	<span class="c1">#     is the character string to which the glyph name is mapped.</span>
+	<span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="n">_glyphComponentToUnicode</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">isZapfDingbats</span><span class="p">)</span>
+                  <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">components</span><span class="p">]</span>
+	<span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_glyphComponentToUnicode</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="n">isZapfDingbats</span><span class="p">):</span>
+	<span class="c1"># If the font is Zapf Dingbats (PostScript FontName: ZapfDingbats),</span>
+	<span class="c1"># and the component is in the ITC Zapf Dingbats Glyph List, then</span>
+	<span class="c1"># map it to the corresponding character in that list.</span>
+	<span class="n">dingbat</span> <span class="o">=</span> <span class="n">_zapfDingbatsToUnicode</span><span class="p">(</span><span class="n">component</span><span class="p">)</span> <span class="k">if</span> <span class="n">isZapfDingbats</span> <span class="k">else</span> <span class="kc">None</span>
+	<span class="k">if</span> <span class="n">dingbat</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">dingbat</span>
+
+	<span class="c1"># Otherwise, if the component is in AGL, then map it</span>
+	<span class="c1"># to the corresponding character in that list.</span>
+	<span class="c1">#</span>
+	<span class="c1"># TODO: We currently use the AGLFN (Adobe glyph list for new fonts),</span>
+	<span class="c1"># although the spec actually mandates the legacy AGL which is</span>
+	<span class="c1"># a superset of the AGLFN.</span>
+	<span class="c1"># https://github.com/fonttools/fonttools/issues/775</span>
+	<span class="n">uchar</span> <span class="o">=</span> <span class="n">AGL2UV</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">uchar</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">unichr</span><span class="p">(</span><span class="n">uchar</span><span class="p">)</span>
+
+	<span class="c1"># Otherwise, if the component is of the form &quot;uni&quot; (U+0075,</span>
+	<span class="c1"># U+006E, and U+0069) followed by a sequence of uppercase</span>
+	<span class="c1"># hexadecimal digits (0–9 and A–F, meaning U+0030 through</span>
+	<span class="c1"># U+0039 and U+0041 through U+0046), if the length of that</span>
+	<span class="c1"># sequence is a multiple of four, and if each group of four</span>
+	<span class="c1"># digits represents a value in the ranges 0000 through D7FF</span>
+	<span class="c1"># or E000 through FFFF, then interpret each as a Unicode scalar</span>
+	<span class="c1"># value and map the component to the string made of those</span>
+	<span class="c1"># scalar values. Note that the range and digit-length</span>
+	<span class="c1"># restrictions mean that the &quot;uni&quot; glyph name prefix can be</span>
+	<span class="c1"># used only with UVs in the Basic Multilingual Plane (BMP).</span>
+	<span class="n">uni</span> <span class="o">=</span> <span class="n">_uniToUnicode</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">uni</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">uni</span>
+
+	<span class="c1"># Otherwise, if the component is of the form &quot;u&quot; (U+0075)</span>
+	<span class="c1"># followed by a sequence of four to six uppercase hexadecimal</span>
+	<span class="c1"># digits (0–9 and A–F, meaning U+0030 through U+0039 and</span>
+	<span class="c1"># U+0041 through U+0046), and those digits represents a value</span>
+	<span class="c1"># in the ranges 0000 through D7FF or E000 through 10FFFF, then</span>
+	<span class="c1"># interpret it as a Unicode scalar value and map the component</span>
+	<span class="c1"># to the string made of this scalar value.</span>
+	<span class="n">uni</span> <span class="o">=</span> <span class="n">_uToUnicode</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">uni</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">uni</span>
+
+	<span class="c1"># Otherwise, map the component to an empty string.</span>
+	<span class="k">return</span> <span class="s1">&#39;&#39;</span>
+
+
+<span class="c1"># https://github.com/adobe-type-tools/agl-aglfn/blob/master/zapfdingbats.txt</span>
+<span class="n">_AGL_ZAPF_DINGBATS</span> <span class="o">=</span> <span class="p">(</span>
+	<span class="s2">&quot; ✁✂✄☎✆✝✞✟✠✡☛☞✌✍✎✏✑✒✓✔✕✖✗✘✙✚✛✜✢✣✤✥✦✧★✩✪✫✬✭✮✯✰✱✲✳✴✵✶✷✸✹✺✻✼✽✾✿❀&quot;</span>
+	<span class="s2">&quot;❁❂❃❄❅❆❇❈❉❊❋●❍■❏❑▲▼◆❖ ◗❘❙❚❯❱❲❳❨❩❬❭❪❫❴❵❛❜❝❞❡❢❣❤✐❥❦❧♠♥♦♣    ✉✈✇&quot;</span>
+	<span class="s2">&quot;①②③④⑤⑥⑦⑧⑨⑩❶❷❸❹❺❻❼❽❾❿➀➁➂➃➄➅➆➇➈➉➊➋➌➍➎➏➐➑➒➓➔→➣↔&quot;</span>
+	<span class="s2">&quot;↕➙➛➜➝➞➟➠➡➢➤➥➦➧➨➩➫➭➯➲➳➵➸➺➻➼➽➾➚➪➶➹➘➴➷➬➮➱✃❐❒❮❰&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_zapfDingbatsToUnicode</span><span class="p">(</span><span class="n">glyph</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Helper for toUnicode().&quot;&quot;&quot;</span>
+	<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">glyph</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">glyph</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;a&#39;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="kc">None</span>
+	<span class="k">try</span><span class="p">:</span>
+		<span class="n">gid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">glyph</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+	<span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+		<span class="k">return</span> <span class="kc">None</span>
+	<span class="k">if</span> <span class="n">gid</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">gid</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">_AGL_ZAPF_DINGBATS</span><span class="p">):</span>
+		<span class="k">return</span> <span class="kc">None</span>
+	<span class="n">uchar</span> <span class="o">=</span> <span class="n">_AGL_ZAPF_DINGBATS</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span>
+	<span class="k">return</span> <span class="n">uchar</span> <span class="k">if</span> <span class="n">uchar</span> <span class="o">!=</span> <span class="s1">&#39; &#39;</span> <span class="k">else</span> <span class="kc">None</span>
+
+
+<span class="n">_re_uni</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;^uni([0-9A-F]+)$&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_uniToUnicode</span><span class="p">(</span><span class="n">component</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Helper for toUnicode() to handle &quot;uniABCD&quot; components.&quot;&quot;&quot;</span>
+	<span class="n">match</span> <span class="o">=</span> <span class="n">_re_uni</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">match</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="k">return</span> <span class="kc">None</span>
+	<span class="n">digits</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">digits</span><span class="p">)</span> <span class="o">%</span> <span class="mi">4</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+		<span class="k">return</span> <span class="kc">None</span>
+	<span class="n">chars</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">digits</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">4</span><span class="p">],</span> <span class="mi">16</span><span class="p">)</span>
+                 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">digits</span><span class="p">),</span> <span class="mi">4</span><span class="p">)]</span>
+	<span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">c</span> <span class="o">&gt;=</span> <span class="mh">0xD800</span> <span class="ow">and</span> <span class="n">c</span> <span class="o">&lt;=</span> <span class="mh">0xDFFF</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">chars</span><span class="p">):</span>
+		<span class="c1"># The AGL specification explicitly excluded surrogate pairs.</span>
+		<span class="k">return</span> <span class="kc">None</span>
+	<span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">unichr</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">chars</span><span class="p">])</span>
+
+
+<span class="n">_re_u</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;^u([0-9A-F]{4,6})$&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_uToUnicode</span><span class="p">(</span><span class="n">component</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Helper for toUnicode() to handle &quot;u1ABCD&quot; components.&quot;&quot;&quot;</span>
+	<span class="n">match</span> <span class="o">=</span> <span class="n">_re_u</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">match</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="k">return</span> <span class="kc">None</span>
+	<span class="n">digits</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+	<span class="k">try</span><span class="p">:</span>
+		<span class="n">value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">digits</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+	<span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+		<span class="k">return</span> <span class="kc">None</span>
+	<span class="k">if</span> <span class="p">((</span><span class="n">value</span> <span class="o">&gt;=</span> <span class="mh">0x0000</span> <span class="ow">and</span> <span class="n">value</span> <span class="o">&lt;=</span> <span class="mh">0xD7FF</span><span class="p">)</span> <span class="ow">or</span>
+	    <span class="p">(</span><span class="n">value</span> <span class="o">&gt;=</span> <span class="mh">0xE000</span> <span class="ow">and</span> <span class="n">value</span> <span class="o">&lt;=</span> <span class="mh">0x10FFFF</span><span class="p">)):</span>
+		<span class="k">return</span> <span class="n">unichr</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+	<span class="k">return</span> <span class="kc">None</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

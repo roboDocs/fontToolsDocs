@@ -1,0 +1,424 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>loggingTools &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="sstruct" href="sstruct.html" />
+    <link rel="prev" title="fixedTools" href="fixedTools.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="sstruct.html" title="sstruct"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="fixedTools.html" title="fixedTools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">misc</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-fontTools.misc.loggingTools">
+<span id="loggingtools"></span><h1>loggingTools<a class="headerlink" href="#module-fontTools.misc.loggingTools" title="Permalink to this headline">¶</a></h1>
+<p>fontTools.misc.loggingTools.py &#8211; tools for interfacing with the Python
+logging package.</p>
+<dl class="class">
+<dt id="fontTools.misc.loggingTools.CapturingLogHandler">
+<em class="property">class </em><code class="descclassname">fontTools.misc.loggingTools.</code><code class="descname">CapturingLogHandler</code><span class="sig-paren">(</span><em>logger</em>, <em>level</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/loggingTools.html#CapturingLogHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.loggingTools.CapturingLogHandler" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="fontTools.misc.loggingTools.CapturingLogHandler.assertRegex">
+<code class="descname">assertRegex</code><span class="sig-paren">(</span><em>regexp</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/loggingTools.html#CapturingLogHandler.assertRegex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.loggingTools.CapturingLogHandler.assertRegex" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.loggingTools.CapturingLogHandler.emit">
+<code class="descname">emit</code><span class="sig-paren">(</span><em>record</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/loggingTools.html#CapturingLogHandler.emit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.loggingTools.CapturingLogHandler.emit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.misc.loggingTools.ChannelsFilter">
+<em class="property">class </em><code class="descclassname">fontTools.misc.loggingTools.</code><code class="descname">ChannelsFilter</code><span class="sig-paren">(</span><em>*names</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/loggingTools.html#ChannelsFilter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.loggingTools.ChannelsFilter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter out records emitted from a list of enabled channel names,
+including their children. It works the same as the logging.Filter class,
+but allows to specify multiple channel names.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">filter</span> <span class="o">=</span> <span class="n">ChannelsFilter</span><span class="p">(</span><span class="s2">&quot;A.B&quot;</span><span class="p">,</span> <span class="s2">&quot;C.D&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">handler</span><span class="o">.</span><span class="n">addFilter</span><span class="p">(</span><span class="nb">filter</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">root</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;A.B&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;this record passes through&#39;</span><span class="p">)</span>
+<span class="go">this record passes through</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;A.B.C&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;records from children also pass&#39;</span><span class="p">)</span>
+<span class="go">records from children also pass</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;C.D&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;this one as well&#39;</span><span class="p">)</span>
+<span class="go">this one as well</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;A.B.&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;also this one&#39;</span><span class="p">)</span>
+<span class="go">also this one</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;A.F&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;but this one does not!&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;C.DE&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;neither this one!&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="fontTools.misc.loggingTools.ChannelsFilter.filter">
+<code class="descname">filter</code><span class="sig-paren">(</span><em>record</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/loggingTools.html#ChannelsFilter.filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.loggingTools.ChannelsFilter.filter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.misc.loggingTools.LastResortLogger">
+<em class="property">class </em><code class="descclassname">fontTools.misc.loggingTools.</code><code class="descname">LastResortLogger</code><span class="sig-paren">(</span><em>name</em>, <em>level=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/loggingTools.html#LastResortLogger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.loggingTools.LastResortLogger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds support for &#8216;lastResort&#8217; handler introduced in Python 3.2.
+It allows to print messages to sys.stderr even when no explicit handler
+was configured.
+To enable it, you can do:</p>
+<blockquote>
+<div>import logging
+logging.lastResort = StderrHandler(logging.WARNING)
+logging.setLoggerClass(LastResortLogger)</div></blockquote>
+<dl class="method">
+<dt id="fontTools.misc.loggingTools.LastResortLogger.callHandlers">
+<code class="descname">callHandlers</code><span class="sig-paren">(</span><em>record</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/loggingTools.html#LastResortLogger.callHandlers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.loggingTools.LastResortLogger.callHandlers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.misc.loggingTools.LevelFormatter">
+<em class="property">class </em><code class="descclassname">fontTools.misc.loggingTools.</code><code class="descname">LevelFormatter</code><span class="sig-paren">(</span><em>fmt=None</em>, <em>datefmt=None</em>, <em>style='%'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/loggingTools.html#LevelFormatter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.loggingTools.LevelFormatter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Formatter class which optionally takes a dict of logging levels to
+format strings, allowing to customise the log records appearance for
+specific levels.
+The &#8216;*&#8217; key identifies the default format string.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">formatter</span> <span class="o">=</span> <span class="n">LevelFormatter</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">fmt</span><span class="o">=</span><span class="p">{</span>
+<span class="gp">... </span>        <span class="s1">&#39;*&#39;</span><span class="p">:</span>     <span class="s1">&#39;[</span><span class="si">%(levelname)s</span><span class="s1">] </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s1">&#39;DEBUG&#39;</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">%(name)s</span><span class="s1"> [</span><span class="si">%(levelname)s</span><span class="s1">] </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s1">&#39;INFO&#39;</span><span class="p">:</span>  <span class="s1">&#39;</span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">log</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">log</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;this uses a custom format string&#39;</span><span class="p">)</span>
+<span class="go">test [DEBUG] this uses a custom format string</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;this also uses a custom format string&#39;</span><span class="p">)</span>
+<span class="go">this also uses a custom format string</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;this one uses the default format string&quot;</span><span class="p">)</span>
+<span class="go">[WARNING] this one uses the default format string</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="fontTools.misc.loggingTools.LevelFormatter.format">
+<code class="descname">format</code><span class="sig-paren">(</span><em>record</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/loggingTools.html#LevelFormatter.format"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.loggingTools.LevelFormatter.format" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.misc.loggingTools.LogMixin">
+<em class="property">class </em><code class="descclassname">fontTools.misc.loggingTools.</code><code class="descname">LogMixin</code><a class="reference internal" href="../_modules/fontTools/misc/loggingTools.html#LogMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.loggingTools.LogMixin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mixin class that adds logging functionality to another class.
+You can define a new class that subclasses from LogMixin as well as
+other base classes through multiple inheritance.
+All instances of that class will have a &#8216;log&#8217; property that returns
+a logging.Logger named after their respective &lt;module&gt;.&lt;class&gt;.
+For example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">BaseClass</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">pass</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">MyClass</span><span class="p">(</span><span class="n">LogMixin</span><span class="p">,</span> <span class="n">BaseClass</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">pass</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">MyClass</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">log</span><span class="p">,</span> <span class="n">logging</span><span class="o">.</span><span class="n">Logger</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+<span class="go">fontTools.misc.loggingTools.MyClass</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">AnotherClass</span><span class="p">(</span><span class="n">MyClass</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">pass</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">AnotherClass</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">isinstance</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">log</span><span class="p">,</span> <span class="n">logging</span><span class="o">.</span><span class="n">Logger</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+<span class="go">fontTools.misc.loggingTools.AnotherClass</span>
+</pre></div>
+</div>
+<dl class="attribute">
+<dt id="fontTools.misc.loggingTools.LogMixin.log">
+<code class="descname">log</code><a class="headerlink" href="#fontTools.misc.loggingTools.LogMixin.log" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.misc.loggingTools.StderrHandler">
+<em class="property">class </em><code class="descclassname">fontTools.misc.loggingTools.</code><code class="descname">StderrHandler</code><span class="sig-paren">(</span><em>level=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/loggingTools.html#StderrHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.loggingTools.StderrHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class is like a StreamHandler using sys.stderr, but always uses
+whateve sys.stderr is currently set to rather than the value of
+sys.stderr at handler construction time.</p>
+<dl class="attribute">
+<dt id="fontTools.misc.loggingTools.StderrHandler.stream">
+<code class="descname">stream</code><a class="headerlink" href="#fontTools.misc.loggingTools.StderrHandler.stream" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.misc.loggingTools.Timer">
+<em class="property">class </em><code class="descclassname">fontTools.misc.loggingTools.</code><code class="descname">Timer</code><span class="sig-paren">(</span><em>logger=None</em>, <em>msg=None</em>, <em>level=None</em>, <em>start=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/loggingTools.html#Timer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.loggingTools.Timer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Keeps track of overall time and split/lap times.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">time</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">timer</span> <span class="o">=</span> <span class="n">Timer</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;First lap:&quot;</span><span class="p">,</span> <span class="n">timer</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
+<span class="go">First lap: ...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.02</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Second lap:&quot;</span><span class="p">,</span> <span class="n">timer</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
+<span class="go">Second lap: ...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Overall time:&quot;</span><span class="p">,</span> <span class="n">timer</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
+<span class="go">Overall time: ...</span>
+</pre></div>
+</div>
+<p>Can be used as a context manager inside with-statements.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">Timer</span><span class="p">()</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%0.3f</span><span class="s2"> seconds&quot;</span> <span class="o">%</span> <span class="n">t</span><span class="o">.</span><span class="n">elapsed</span><span class="p">)</span>
+<span class="go">0... seconds</span>
+</pre></div>
+</div>
+<p>If initialised with a logger, it can log the elapsed time automatically
+upon exiting the with-statement.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">logging</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;fontTools&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">configLogger</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">Timer</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="s1">&#39;do something&#39;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
+<span class="go">Took ... to do something</span>
+</pre></div>
+</div>
+<p>The same Timer instance, holding a reference to a logger, can be reused
+in multiple with-statements, optionally with different messages or levels.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">timer</span> <span class="o">=</span> <span class="n">Timer</span><span class="p">(</span><span class="n">log</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">timer</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
+<span class="go">elapsed time: ...s</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">timer</span><span class="p">(</span><span class="s1">&#39;redo it&#39;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.02</span><span class="p">)</span>
+<span class="go">Took ... to redo it</span>
+</pre></div>
+</div>
+<p>It can also be used as a function decorator to log the time elapsed to run
+the decorated function.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nd">@timer</span><span class="p">()</span>
+<span class="gp">... </span><span class="k">def</span> <span class="nf">test1</span><span class="p">():</span>
+<span class="gp">... </span>   <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nd">@timer</span><span class="p">(</span><span class="s1">&#39;run test 2&#39;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+<span class="gp">... </span><span class="k">def</span> <span class="nf">test2</span><span class="p">():</span>
+<span class="gp">... </span>   <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.02</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test1</span><span class="p">()</span>
+<span class="go">Took ... to run &#39;test1&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test2</span><span class="p">()</span>
+<span class="go">Took ... to run test 2</span>
+</pre></div>
+</div>
+<dl class="attribute">
+<dt id="fontTools.misc.loggingTools.Timer.default_format">
+<code class="descname">default_format</code><em class="property"> = 'Took %(time).3fs to %(msg)s'</em><a class="headerlink" href="#fontTools.misc.loggingTools.Timer.default_format" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fontTools.misc.loggingTools.Timer.default_msg">
+<code class="descname">default_msg</code><em class="property"> = 'elapsed time: %(time).3fs'</em><a class="headerlink" href="#fontTools.misc.loggingTools.Timer.default_msg" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.loggingTools.Timer.formatTime">
+<code class="descname">formatTime</code><span class="sig-paren">(</span><em>msg</em>, <em>time</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/loggingTools.html#Timer.formatTime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.loggingTools.Timer.formatTime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format &#8216;time&#8217; value in &#8216;msg&#8217; and return formatted string.
+If &#8216;msg&#8217; contains a &#8216;%(time)&#8217; format string, try to use that.
+Otherwise, use the predefined &#8216;default_format&#8217;.
+If &#8216;msg&#8217; is empty or None, fall back to &#8216;default_msg&#8217;.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.loggingTools.Timer.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><em>start=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/loggingTools.html#Timer.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.loggingTools.Timer.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset timer to &#8216;start_time&#8217; or the current time.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.loggingTools.Timer.split">
+<code class="descname">split</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/loggingTools.html#Timer.split"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.loggingTools.Timer.split" title="Permalink to this definition">¶</a></dt>
+<dd><p>Split and return the lap time (in seconds) in between splits.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fontTools.misc.loggingTools.Timer.time">
+<code class="descname">time</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/loggingTools.html#Timer.time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.loggingTools.Timer.time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the overall time (in seconds) since the timer started.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.loggingTools.configLogger">
+<code class="descclassname">fontTools.misc.loggingTools.</code><code class="descname">configLogger</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/loggingTools.html#configLogger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.loggingTools.configLogger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Do basic configuration for the logging system. This is more or less
+the same as logging.basicConfig with some additional options and defaults.</p>
+<p>The default behaviour is to create a StreamHandler which writes to
+sys.stderr, set a formatter using the DEFAULT_FORMATS strings, and add
+the handler to the top-level library logger (&#8220;fontTools&#8221;).</p>
+<p>A number of optional keyword arguments may be specified, which can alter
+the default behaviour.</p>
+<dl class="docutils">
+<dt>logger    Specifies the logger name or a Logger instance to be configured.</dt>
+<dd>(it defaults to &#8220;fontTools&#8221; logger). Unlike basicConfig, this
+function can be called multiple times to reconfigure a logger.
+If the logger or any of its children already exists before the
+call is made, they will be reset before the new configuration
+is applied.</dd>
+<dt>filename  Specifies that a FileHandler be created, using the specified</dt>
+<dd>filename, rather than a StreamHandler.</dd>
+<dt>filemode  Specifies the mode to open the file, if filename is specified</dt>
+<dd>(if filemode is unspecified, it defaults to &#8216;a&#8217;).</dd>
+<dt>format    Use the specified format string for the handler. This argument</dt>
+<dd>also accepts a dictionary of format strings keyed by level name,
+to allow customising the records appearance for specific levels.
+The special &#8216;*&#8217; key is for &#8216;any other&#8217; level.</dd>
+</dl>
+<p>datefmt   Use the specified date/time format.
+level     Set the logger level to the specified level.
+stream    Use the specified stream to initialize the StreamHandler. Note</p>
+<blockquote>
+<div>that this argument is incompatible with &#8216;filename&#8217; - if both
+are present, &#8216;stream&#8217; is ignored.</div></blockquote>
+<dl class="docutils">
+<dt>handlers  If specified, this should be an iterable of already created</dt>
+<dd>handlers, which will be added to the logger. Any handler
+in the list which does not have a formatter assigned will be
+assigned the formatter created in this function.</dd>
+<dt>filters   If specified, this should be an iterable of already created</dt>
+<dd>filters, which will be added to the handler(s), if the latter
+do(es) not already have filters assigned.</dd>
+<dt>propagate All loggers have a &#8220;propagate&#8221; attribute initially set to True,</dt>
+<dd>which determines whether to continue searching for handlers up
+the logging hierarchy. By default, this arguments sets the
+&#8220;propagate&#8221; attribute to False.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.loggingTools.deprecateArgument">
+<code class="descclassname">fontTools.misc.loggingTools.</code><code class="descname">deprecateArgument</code><span class="sig-paren">(</span><em>name</em>, <em>msg</em>, <em>category=&lt;type 'exceptions.UserWarning'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/loggingTools.html#deprecateArgument"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.loggingTools.deprecateArgument" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raise a warning about deprecated function argument &#8216;name&#8217;.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fontTools.misc.loggingTools.deprecateFunction">
+<code class="descclassname">fontTools.misc.loggingTools.</code><code class="descname">deprecateFunction</code><span class="sig-paren">(</span><em>msg</em>, <em>category=&lt;type 'exceptions.UserWarning'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/misc/loggingTools.html#deprecateFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.misc.loggingTools.deprecateFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator to raise a warning when a deprecated function is called.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="fixedTools.html"
+                        title="previous chapter">fixedTools</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="sstruct.html"
+                        title="next chapter">sstruct</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/misc/loggingTools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="sstruct.html" title="sstruct"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="fixedTools.html" title="fixedTools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >misc</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

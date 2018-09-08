@@ -1,0 +1,507 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fontTools.ttx &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fontTools.ttx</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;\</span>
+<span class="sd">usage: ttx [options] inputfile1 [... inputfileN]</span>
+
+<span class="sd">    TTX -- From OpenType To XML And Back</span>
+
+<span class="sd">    If an input file is a TrueType or OpenType font file, it will be</span>
+<span class="sd">       decompiled to a TTX file (an XML-based text format).</span>
+<span class="sd">    If an input file is a TTX file, it will be compiled to whatever </span>
+<span class="sd">       format the data is in, a TrueType or OpenType/CFF font file.</span>
+
+<span class="sd">    Output files are created so they are unique: an existing file is</span>
+<span class="sd">       never overwritten.</span>
+
+<span class="sd">    General options:</span>
+<span class="sd">    -h Help: print this message.</span>
+<span class="sd">    --version: show version and exit.</span>
+<span class="sd">    -d &lt;outputfolder&gt; Specify a directory where the output files are</span>
+<span class="sd">       to be created.</span>
+<span class="sd">    -o &lt;outputfile&gt; Specify a file to write the output to. A special</span>
+<span class="sd">       value of - would use the standard output.</span>
+<span class="sd">    -f Overwrite existing output file(s), ie. don&#39;t append numbers.</span>
+<span class="sd">    -v Verbose: more messages will be written to stdout about what</span>
+<span class="sd">       is being done.</span>
+<span class="sd">    -q Quiet: No messages will be written to stdout about what</span>
+<span class="sd">       is being done.</span>
+<span class="sd">    -a allow virtual glyphs ID&#39;s on compile or decompile.</span>
+
+<span class="sd">    Dump options:</span>
+<span class="sd">    -l List table info: instead of dumping to a TTX file, list some</span>
+<span class="sd">       minimal info about each table.</span>
+<span class="sd">    -t &lt;table&gt; Specify a table to dump. Multiple -t options</span>
+<span class="sd">       are allowed. When no -t option is specified, all tables</span>
+<span class="sd">       will be dumped.</span>
+<span class="sd">    -x &lt;table&gt; Specify a table to exclude from the dump. Multiple</span>
+<span class="sd">       -x options are allowed. -t and -x are mutually exclusive.</span>
+<span class="sd">    -s Split tables: save the TTX data into separate TTX files per</span>
+<span class="sd">       table and write one small TTX file that contains references</span>
+<span class="sd">       to the individual table dumps. This file can be used as</span>
+<span class="sd">       input to ttx, as long as the table files are in the</span>
+<span class="sd">       same directory.</span>
+<span class="sd">    -g Split glyf table: Save the glyf data into separate TTX files</span>
+<span class="sd">       per glyph and write a small TTX for the glyf table which</span>
+<span class="sd">       contains references to the individual TTGlyph elements.</span>
+<span class="sd">       NOTE: specifying -g implies -s (no need for -s together with -g)</span>
+<span class="sd">    -i Do NOT disassemble TT instructions: when this option is given,</span>
+<span class="sd">       all TrueType programs (glyph programs, the font program and the</span>
+<span class="sd">       pre-program) will be written to the TTX file as hex data</span>
+<span class="sd">       instead of assembly. This saves some time and makes the TTX</span>
+<span class="sd">       file smaller.</span>
+<span class="sd">    -z &lt;format&gt; Specify a bitmap data export option for EBDT:</span>
+<span class="sd">       {&#39;raw&#39;, &#39;row&#39;, &#39;bitwise&#39;, &#39;extfile&#39;} or for the CBDT:</span>
+<span class="sd">       {&#39;raw&#39;, &#39;extfile&#39;} Each option does one of the following:</span>
+<span class="sd">         -z raw</span>
+<span class="sd">            * export the bitmap data as a hex dump</span>
+<span class="sd">         -z row</span>
+<span class="sd">            * export each row as hex data</span>
+<span class="sd">         -z bitwise</span>
+<span class="sd">            * export each row as binary in an ASCII art style</span>
+<span class="sd">         -z extfile</span>
+<span class="sd">            * export the data as external files with XML references</span>
+<span class="sd">       If no export format is specified &#39;raw&#39; format is used.</span>
+<span class="sd">    -e Don&#39;t ignore decompilation errors, but show a full traceback</span>
+<span class="sd">       and abort.</span>
+<span class="sd">    -y &lt;number&gt; Select font number for TrueType Collection (.ttc/.otc),</span>
+<span class="sd">       starting from 0.</span>
+<span class="sd">    --unicodedata &lt;UnicodeData.txt&gt; Use custom database file to write</span>
+<span class="sd">       character names in the comments of the cmap TTX output.</span>
+<span class="sd">    --newline &lt;value&gt; Control how line endings are written in the XML</span>
+<span class="sd">       file. It can be &#39;LF&#39;, &#39;CR&#39;, or &#39;CRLF&#39;. If not specified, the</span>
+<span class="sd">       default platform-specific line endings are used.</span>
+
+<span class="sd">    Compile options:</span>
+<span class="sd">    -m Merge with TrueType-input-file: specify a TrueType or OpenType</span>
+<span class="sd">       font file to be merged with the TTX file. This option is only</span>
+<span class="sd">       valid when at most one TTX file is specified.</span>
+<span class="sd">    -b Don&#39;t recalc glyph bounding boxes: use the values in the TTX</span>
+<span class="sd">       file as-is.</span>
+<span class="sd">    --recalc-timestamp Set font &#39;modified&#39; timestamp to current time.</span>
+<span class="sd">       By default, the modification time of the TTX file will be used.</span>
+<span class="sd">    --flavor &lt;type&gt; Specify flavor of output font file. May be &#39;woff&#39;</span>
+<span class="sd">      or &#39;woff2&#39;. Note that WOFF2 requires the Brotli Python extension,</span>
+<span class="sd">      available at https://github.com/google/brotli</span>
+<span class="sd">    --with-zopfli Use Zopfli instead of Zlib to compress WOFF. The Python</span>
+<span class="sd">      extension is available at https://pypi.python.org/pypi/zopfli</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.py23</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">fontTools.ttLib</span> <span class="k">import</span> <span class="n">TTFont</span><span class="p">,</span> <span class="n">TTLibError</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.macCreatorType</span> <span class="k">import</span> <span class="n">getMacCreatorAndType</span>
+<span class="kn">from</span> <span class="nn">fontTools.unicode</span> <span class="k">import</span> <span class="n">setUnicodeData</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.timeTools</span> <span class="k">import</span> <span class="n">timestampSinceEpoch</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.loggingTools</span> <span class="k">import</span> <span class="n">Timer</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.cliTools</span> <span class="k">import</span> <span class="n">makeOutputFileName</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">getopt</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;fontTools.ttx&quot;</span><span class="p">)</span>
+
+<span class="n">opentypeheaderRE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;sfntVersion=[&#39;&quot;]OTTO[&quot;&#39;]&#39;&#39;&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Options"><a class="viewcode-back" href="../../ttx.html#fontTools.ttx.Options">[docs]</a><span class="k">class</span> <span class="nc">Options</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+	<span class="n">listTables</span> <span class="o">=</span> <span class="kc">False</span>
+	<span class="n">outputDir</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="n">outputFile</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="n">overWrite</span> <span class="o">=</span> <span class="kc">False</span>
+	<span class="n">verbose</span> <span class="o">=</span> <span class="kc">False</span>
+	<span class="n">quiet</span> <span class="o">=</span> <span class="kc">False</span>
+	<span class="n">splitTables</span> <span class="o">=</span> <span class="kc">False</span>
+	<span class="n">splitGlyphs</span> <span class="o">=</span> <span class="kc">False</span>
+	<span class="n">disassembleInstructions</span> <span class="o">=</span> <span class="kc">True</span>
+	<span class="n">mergeFile</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="n">recalcBBoxes</span> <span class="o">=</span> <span class="kc">True</span>
+	<span class="n">allowVID</span> <span class="o">=</span> <span class="kc">False</span>
+	<span class="n">ignoreDecompileErrors</span> <span class="o">=</span> <span class="kc">True</span>
+	<span class="n">bitmapGlyphDataFormat</span> <span class="o">=</span> <span class="s1">&#39;raw&#39;</span>
+	<span class="n">unicodedata</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="n">newlinestr</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="n">recalcTimestamp</span> <span class="o">=</span> <span class="kc">False</span>
+	<span class="n">flavor</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="n">useZopfli</span> <span class="o">=</span> <span class="kc">False</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rawOptions</span><span class="p">,</span> <span class="n">numFiles</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">onlyTables</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">skipTables</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">fontNumber</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+		<span class="k">for</span> <span class="n">option</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">rawOptions</span><span class="p">:</span>
+			<span class="c1"># general options</span>
+			<span class="k">if</span> <span class="n">option</span> <span class="o">==</span> <span class="s2">&quot;-h&quot;</span><span class="p">:</span>
+				<span class="nb">print</span><span class="p">(</span><span class="vm">__doc__</span><span class="p">)</span>
+				<span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+			<span class="k">elif</span> <span class="n">option</span> <span class="o">==</span> <span class="s2">&quot;--version&quot;</span><span class="p">:</span>
+				<span class="kn">from</span> <span class="nn">fontTools</span> <span class="k">import</span> <span class="n">version</span>
+				<span class="nb">print</span><span class="p">(</span><span class="n">version</span><span class="p">)</span>
+				<span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+			<span class="k">elif</span> <span class="n">option</span> <span class="o">==</span> <span class="s2">&quot;-d&quot;</span><span class="p">:</span>
+				<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+					<span class="k">raise</span> <span class="n">getopt</span><span class="o">.</span><span class="n">GetoptError</span><span class="p">(</span><span class="s2">&quot;The -d option value must be an existing directory&quot;</span><span class="p">)</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">outputDir</span> <span class="o">=</span> <span class="n">value</span>
+			<span class="k">elif</span> <span class="n">option</span> <span class="o">==</span> <span class="s2">&quot;-o&quot;</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">outputFile</span> <span class="o">=</span> <span class="n">value</span>
+			<span class="k">elif</span> <span class="n">option</span> <span class="o">==</span> <span class="s2">&quot;-f&quot;</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">overWrite</span> <span class="o">=</span> <span class="kc">True</span>
+			<span class="k">elif</span> <span class="n">option</span> <span class="o">==</span> <span class="s2">&quot;-v&quot;</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="kc">True</span>
+			<span class="k">elif</span> <span class="n">option</span> <span class="o">==</span> <span class="s2">&quot;-q&quot;</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">quiet</span> <span class="o">=</span> <span class="kc">True</span>
+			<span class="c1"># dump options</span>
+			<span class="k">elif</span> <span class="n">option</span> <span class="o">==</span> <span class="s2">&quot;-l&quot;</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">listTables</span> <span class="o">=</span> <span class="kc">True</span>
+			<span class="k">elif</span> <span class="n">option</span> <span class="o">==</span> <span class="s2">&quot;-t&quot;</span><span class="p">:</span>
+				<span class="c1"># pad with space if table tag length is less than 4</span>
+				<span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">onlyTables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+			<span class="k">elif</span> <span class="n">option</span> <span class="o">==</span> <span class="s2">&quot;-x&quot;</span><span class="p">:</span>
+				<span class="c1"># pad with space if table tag length is less than 4</span>
+				<span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">skipTables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+			<span class="k">elif</span> <span class="n">option</span> <span class="o">==</span> <span class="s2">&quot;-s&quot;</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">splitTables</span> <span class="o">=</span> <span class="kc">True</span>
+			<span class="k">elif</span> <span class="n">option</span> <span class="o">==</span> <span class="s2">&quot;-g&quot;</span><span class="p">:</span>
+				<span class="c1"># -g implies (and forces) splitTables</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">splitGlyphs</span> <span class="o">=</span> <span class="kc">True</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">splitTables</span> <span class="o">=</span> <span class="kc">True</span>
+			<span class="k">elif</span> <span class="n">option</span> <span class="o">==</span> <span class="s2">&quot;-i&quot;</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">disassembleInstructions</span> <span class="o">=</span> <span class="kc">False</span>
+			<span class="k">elif</span> <span class="n">option</span> <span class="o">==</span> <span class="s2">&quot;-z&quot;</span><span class="p">:</span>
+				<span class="n">validOptions</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;raw&#39;</span><span class="p">,</span> <span class="s1">&#39;row&#39;</span><span class="p">,</span> <span class="s1">&#39;bitwise&#39;</span><span class="p">,</span> <span class="s1">&#39;extfile&#39;</span><span class="p">)</span>
+				<span class="k">if</span> <span class="n">value</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">validOptions</span><span class="p">:</span>
+					<span class="k">raise</span> <span class="n">getopt</span><span class="o">.</span><span class="n">GetoptError</span><span class="p">(</span>
+						<span class="s2">&quot;-z does not allow </span><span class="si">%s</span><span class="s2"> as a format. Use </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">option</span><span class="p">,</span> <span class="n">validOptions</span><span class="p">))</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">bitmapGlyphDataFormat</span> <span class="o">=</span> <span class="n">value</span>
+			<span class="k">elif</span> <span class="n">option</span> <span class="o">==</span> <span class="s2">&quot;-y&quot;</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">fontNumber</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+			<span class="c1"># compile options</span>
+			<span class="k">elif</span> <span class="n">option</span> <span class="o">==</span> <span class="s2">&quot;-m&quot;</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">mergeFile</span> <span class="o">=</span> <span class="n">value</span>
+			<span class="k">elif</span> <span class="n">option</span> <span class="o">==</span> <span class="s2">&quot;-b&quot;</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">recalcBBoxes</span> <span class="o">=</span> <span class="kc">False</span>
+			<span class="k">elif</span> <span class="n">option</span> <span class="o">==</span> <span class="s2">&quot;-a&quot;</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">allowVID</span> <span class="o">=</span> <span class="kc">True</span>
+			<span class="k">elif</span> <span class="n">option</span> <span class="o">==</span> <span class="s2">&quot;-e&quot;</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">ignoreDecompileErrors</span> <span class="o">=</span> <span class="kc">False</span>
+			<span class="k">elif</span> <span class="n">option</span> <span class="o">==</span> <span class="s2">&quot;--unicodedata&quot;</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">unicodedata</span> <span class="o">=</span> <span class="n">value</span>
+			<span class="k">elif</span> <span class="n">option</span> <span class="o">==</span> <span class="s2">&quot;--newline&quot;</span><span class="p">:</span>
+				<span class="n">validOptions</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;LF&#39;</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">,</span> <span class="s1">&#39;CRLF&#39;</span><span class="p">)</span>
+				<span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s2">&quot;LF&quot;</span><span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">newlinestr</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+				<span class="k">elif</span> <span class="n">value</span> <span class="o">==</span> <span class="s2">&quot;CR&quot;</span><span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">newlinestr</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\r</span><span class="s2">&quot;</span>
+				<span class="k">elif</span> <span class="n">value</span> <span class="o">==</span> <span class="s2">&quot;CRLF&quot;</span><span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">newlinestr</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="k">raise</span> <span class="n">getopt</span><span class="o">.</span><span class="n">GetoptError</span><span class="p">(</span>
+						<span class="s2">&quot;Invalid choice for --newline: </span><span class="si">%r</span><span class="s2"> (choose from </span><span class="si">%s</span><span class="s2">)&quot;</span>
+						<span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">repr</span><span class="p">,</span> <span class="n">validOptions</span><span class="p">))))</span>
+			<span class="k">elif</span> <span class="n">option</span> <span class="o">==</span> <span class="s2">&quot;--recalc-timestamp&quot;</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">recalcTimestamp</span> <span class="o">=</span> <span class="kc">True</span>
+			<span class="k">elif</span> <span class="n">option</span> <span class="o">==</span> <span class="s2">&quot;--flavor&quot;</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">flavor</span> <span class="o">=</span> <span class="n">value</span>
+			<span class="k">elif</span> <span class="n">option</span> <span class="o">==</span> <span class="s2">&quot;--with-zopfli&quot;</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">useZopfli</span> <span class="o">=</span> <span class="kc">True</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">quiet</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="n">getopt</span><span class="o">.</span><span class="n">GetoptError</span><span class="p">(</span><span class="s2">&quot;-q and -v options are mutually exclusive&quot;</span><span class="p">)</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">logLevel</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span>
+		<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">quiet</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">logLevel</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">logLevel</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mergeFile</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">flavor</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="n">getopt</span><span class="o">.</span><span class="n">GetoptError</span><span class="p">(</span><span class="s2">&quot;-m and --flavor options are mutually exclusive&quot;</span><span class="p">)</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">onlyTables</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">skipTables</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="n">getopt</span><span class="o">.</span><span class="n">GetoptError</span><span class="p">(</span><span class="s2">&quot;-t and -x options are mutually exclusive&quot;</span><span class="p">)</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mergeFile</span> <span class="ow">and</span> <span class="n">numFiles</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="n">getopt</span><span class="o">.</span><span class="n">GetoptError</span><span class="p">(</span><span class="s2">&quot;Must specify exactly one TTX source file when using -m&quot;</span><span class="p">)</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">flavor</span> <span class="o">!=</span> <span class="s1">&#39;woff&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">useZopfli</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="n">getopt</span><span class="o">.</span><span class="n">GetoptError</span><span class="p">(</span><span class="s2">&quot;--with-zopfli option requires --flavor &#39;woff&#39;&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ttList"><a class="viewcode-back" href="../../ttx.html#fontTools.ttx.ttList">[docs]</a><span class="k">def</span> <span class="nf">ttList</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+	<span class="n">ttf</span> <span class="o">=</span> <span class="n">TTFont</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">fontNumber</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">fontNumber</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+	<span class="n">reader</span> <span class="o">=</span> <span class="n">ttf</span><span class="o">.</span><span class="n">reader</span>
+	<span class="n">tags</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">reader</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+	<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Listing table info for &quot;</span><span class="si">%s</span><span class="s1">&quot;:&#39;</span> <span class="o">%</span> <span class="nb">input</span><span class="p">)</span>
+	<span class="nb">format</span> <span class="o">=</span> <span class="s2">&quot;    </span><span class="si">%4s</span><span class="s2">  </span><span class="si">%10s</span><span class="s2">  </span><span class="si">%8s</span><span class="s2">  </span><span class="si">%8s</span><span class="s2">&quot;</span>
+	<span class="nb">print</span><span class="p">(</span><span class="nb">format</span> <span class="o">%</span> <span class="p">(</span><span class="s2">&quot;tag &quot;</span><span class="p">,</span> <span class="s2">&quot;  checksum&quot;</span><span class="p">,</span> <span class="s2">&quot;  length&quot;</span><span class="p">,</span> <span class="s2">&quot;  offset&quot;</span><span class="p">))</span>
+	<span class="nb">print</span><span class="p">(</span><span class="nb">format</span> <span class="o">%</span> <span class="p">(</span><span class="s2">&quot;----&quot;</span><span class="p">,</span> <span class="s2">&quot;----------&quot;</span><span class="p">,</span> <span class="s2">&quot;--------&quot;</span><span class="p">,</span> <span class="s2">&quot;--------&quot;</span><span class="p">))</span>
+	<span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
+		<span class="n">entry</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">tables</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span>
+		<span class="k">if</span> <span class="n">ttf</span><span class="o">.</span><span class="n">flavor</span> <span class="o">==</span> <span class="s2">&quot;woff2&quot;</span><span class="p">:</span>
+			<span class="c1"># WOFF2 doesn&#39;t store table checksums, so they must be calculated</span>
+			<span class="kn">from</span> <span class="nn">fontTools.ttLib.sfnt</span> <span class="k">import</span> <span class="n">calcChecksum</span>
+			<span class="n">data</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">loadData</span><span class="p">(</span><span class="n">reader</span><span class="o">.</span><span class="n">transformBuffer</span><span class="p">)</span>
+			<span class="n">checkSum</span> <span class="o">=</span> <span class="n">calcChecksum</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">checkSum</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">checkSum</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">checkSum</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+			<span class="n">checkSum</span> <span class="o">=</span> <span class="n">checkSum</span> <span class="o">+</span> <span class="mh">0x100000000</span>
+		<span class="n">checksum</span> <span class="o">=</span> <span class="s2">&quot;0x</span><span class="si">%08X</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">checkSum</span>
+		<span class="nb">print</span><span class="p">(</span><span class="nb">format</span> <span class="o">%</span> <span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">checksum</span><span class="p">,</span> <span class="n">entry</span><span class="o">.</span><span class="n">length</span><span class="p">,</span> <span class="n">entry</span><span class="o">.</span><span class="n">offset</span><span class="p">))</span>
+	<span class="nb">print</span><span class="p">()</span>
+	<span class="n">ttf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<span class="nd">@Timer</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="s1">&#39;Done dumping TTX in </span><span class="si">%(time).3f</span><span class="s1"> seconds&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="ttDump"><a class="viewcode-back" href="../../ttx.html#fontTools.ttx.ttDump">[docs]</a><span class="k">def</span> <span class="nf">ttDump</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+	<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Dumping &quot;</span><span class="si">%s</span><span class="s1">&quot; to &quot;</span><span class="si">%s</span><span class="s1">&quot;...&#39;</span><span class="p">,</span> <span class="nb">input</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">unicodedata</span><span class="p">:</span>
+		<span class="n">setUnicodeData</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">unicodedata</span><span class="p">)</span>
+	<span class="n">ttf</span> <span class="o">=</span> <span class="n">TTFont</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">allowVID</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">allowVID</span><span class="p">,</span>
+			<span class="n">ignoreDecompileErrors</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">ignoreDecompileErrors</span><span class="p">,</span>
+			<span class="n">fontNumber</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">fontNumber</span><span class="p">)</span>
+	<span class="n">ttf</span><span class="o">.</span><span class="n">saveXML</span><span class="p">(</span><span class="n">output</span><span class="p">,</span>
+			<span class="n">tables</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">onlyTables</span><span class="p">,</span>
+			<span class="n">skipTables</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">skipTables</span><span class="p">,</span>
+			<span class="n">splitTables</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">splitTables</span><span class="p">,</span>
+			<span class="n">splitGlyphs</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">splitGlyphs</span><span class="p">,</span>
+			<span class="n">disassembleInstructions</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">disassembleInstructions</span><span class="p">,</span>
+			<span class="n">bitmapGlyphDataFormat</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">bitmapGlyphDataFormat</span><span class="p">,</span>
+			<span class="n">newlinestr</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">newlinestr</span><span class="p">)</span>
+	<span class="n">ttf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<span class="nd">@Timer</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="s1">&#39;Done compiling TTX in </span><span class="si">%(time).3f</span><span class="s1"> seconds&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="ttCompile"><a class="viewcode-back" href="../../ttx.html#fontTools.ttx.ttCompile">[docs]</a><span class="k">def</span> <span class="nf">ttCompile</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+	<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Compiling &quot;</span><span class="si">%s</span><span class="s1">&quot; to &quot;</span><span class="si">%s</span><span class="s1">&quot;...&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">output</span><span class="p">))</span>
+	<span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">useZopfli</span><span class="p">:</span>
+		<span class="kn">from</span> <span class="nn">fontTools.ttLib</span> <span class="k">import</span> <span class="n">sfnt</span>
+		<span class="n">sfnt</span><span class="o">.</span><span class="n">USE_ZOPFLI</span> <span class="o">=</span> <span class="kc">True</span>
+	<span class="n">ttf</span> <span class="o">=</span> <span class="n">TTFont</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">mergeFile</span><span class="p">,</span> <span class="n">flavor</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">flavor</span><span class="p">,</span>
+			<span class="n">recalcBBoxes</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">recalcBBoxes</span><span class="p">,</span>
+			<span class="n">recalcTimestamp</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">recalcTimestamp</span><span class="p">,</span>
+			<span class="n">allowVID</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">allowVID</span><span class="p">)</span>
+	<span class="n">ttf</span><span class="o">.</span><span class="n">importXML</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">recalcTimestamp</span> <span class="ow">and</span> <span class="s1">&#39;head&#39;</span> <span class="ow">in</span> <span class="n">ttf</span><span class="p">:</span>
+		<span class="c1"># use TTX file modification time for head &quot;modified&quot; timestamp</span>
+		<span class="n">mtime</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getmtime</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+		<span class="n">ttf</span><span class="p">[</span><span class="s1">&#39;head&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">modified</span> <span class="o">=</span> <span class="n">timestampSinceEpoch</span><span class="p">(</span><span class="n">mtime</span><span class="p">)</span>
+
+	<span class="n">ttf</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">output</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="guessFileType"><a class="viewcode-back" href="../../ttx.html#fontTools.ttx.guessFileType">[docs]</a><span class="k">def</span> <span class="nf">guessFileType</span><span class="p">(</span><span class="n">fileName</span><span class="p">):</span>
+	<span class="n">base</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">fileName</span><span class="p">)</span>
+	<span class="k">try</span><span class="p">:</span>
+		<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fileName</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span>
+	<span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+		<span class="k">return</span> <span class="kc">None</span>
+	<span class="n">header</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">256</span><span class="p">)</span>
+	<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+	<span class="k">if</span> <span class="n">header</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;</span><span class="se">\xef\xbb\xbf</span><span class="s1">&lt;?xml&#39;</span><span class="p">):</span>
+		<span class="n">header</span> <span class="o">=</span> <span class="n">header</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;</span><span class="se">\xef\xbb\xbf</span><span class="s1">&#39;</span><span class="p">)</span>
+	<span class="n">cr</span><span class="p">,</span> <span class="n">tp</span> <span class="o">=</span> <span class="n">getMacCreatorAndType</span><span class="p">(</span><span class="n">fileName</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">tp</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;sfnt&quot;</span><span class="p">,</span> <span class="s2">&quot;FFIL&quot;</span><span class="p">):</span>
+		<span class="k">return</span> <span class="s2">&quot;TTF&quot;</span>
+	<span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s2">&quot;.dfont&quot;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="s2">&quot;TTF&quot;</span>
+	<span class="n">head</span> <span class="o">=</span> <span class="n">Tag</span><span class="p">(</span><span class="n">header</span><span class="p">[:</span><span class="mi">4</span><span class="p">])</span>
+	<span class="k">if</span> <span class="n">head</span> <span class="o">==</span> <span class="s2">&quot;OTTO&quot;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="s2">&quot;OTF&quot;</span>
+	<span class="k">elif</span> <span class="n">head</span> <span class="o">==</span> <span class="s2">&quot;ttcf&quot;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="s2">&quot;TTC&quot;</span>
+	<span class="k">elif</span> <span class="n">head</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;</span><span class="se">\0\1\0\0</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;true&quot;</span><span class="p">):</span>
+		<span class="k">return</span> <span class="s2">&quot;TTF&quot;</span>
+	<span class="k">elif</span> <span class="n">head</span> <span class="o">==</span> <span class="s2">&quot;wOFF&quot;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="s2">&quot;WOFF&quot;</span>
+	<span class="k">elif</span> <span class="n">head</span> <span class="o">==</span> <span class="s2">&quot;wOF2&quot;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="s2">&quot;WOFF2&quot;</span>
+	<span class="k">elif</span> <span class="n">head</span> <span class="o">==</span> <span class="s2">&quot;&lt;?xm&quot;</span><span class="p">:</span>
+		<span class="c1"># Use &#39;latin1&#39; because that can&#39;t fail.</span>
+		<span class="n">header</span> <span class="o">=</span> <span class="n">tostr</span><span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="s1">&#39;latin1&#39;</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">opentypeheaderRE</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">header</span><span class="p">):</span>
+			<span class="k">return</span> <span class="s2">&quot;OTX&quot;</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">return</span> <span class="s2">&quot;TTX&quot;</span>
+	<span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="parseOptions"><a class="viewcode-back" href="../../ttx.html#fontTools.ttx.parseOptions">[docs]</a><span class="k">def</span> <span class="nf">parseOptions</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+	<span class="n">rawOptions</span><span class="p">,</span> <span class="n">files</span> <span class="o">=</span> <span class="n">getopt</span><span class="o">.</span><span class="n">getopt</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;ld:o:fvqht:x:sgim:z:baey:&quot;</span><span class="p">,</span>
+			<span class="p">[</span><span class="s1">&#39;unicodedata=&#39;</span><span class="p">,</span> <span class="s2">&quot;recalc-timestamp&quot;</span><span class="p">,</span> <span class="s1">&#39;flavor=&#39;</span><span class="p">,</span> <span class="s1">&#39;version&#39;</span><span class="p">,</span>
+			 <span class="s1">&#39;with-zopfli&#39;</span><span class="p">,</span> <span class="s1">&#39;newline=&#39;</span><span class="p">])</span>
+
+	<span class="n">options</span> <span class="o">=</span> <span class="n">Options</span><span class="p">(</span><span class="n">rawOptions</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">))</span>
+	<span class="n">jobs</span> <span class="o">=</span> <span class="p">[]</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">files</span><span class="p">:</span>
+		<span class="k">raise</span> <span class="n">getopt</span><span class="o">.</span><span class="n">GetoptError</span><span class="p">(</span><span class="s1">&#39;Must specify at least one input file&#39;</span><span class="p">)</span>
+
+	<span class="k">for</span> <span class="nb">input</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="nb">input</span><span class="p">):</span>
+			<span class="k">raise</span> <span class="n">getopt</span><span class="o">.</span><span class="n">GetoptError</span><span class="p">(</span><span class="s1">&#39;File not found: &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="nb">input</span><span class="p">)</span>
+		<span class="n">tp</span> <span class="o">=</span> <span class="n">guessFileType</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">tp</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;OTF&quot;</span><span class="p">,</span> <span class="s2">&quot;TTF&quot;</span><span class="p">,</span> <span class="s2">&quot;TTC&quot;</span><span class="p">,</span> <span class="s2">&quot;WOFF&quot;</span><span class="p">,</span> <span class="s2">&quot;WOFF2&quot;</span><span class="p">):</span>
+			<span class="n">extension</span> <span class="o">=</span> <span class="s2">&quot;.ttx&quot;</span>
+			<span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">listTables</span><span class="p">:</span>
+				<span class="n">action</span> <span class="o">=</span> <span class="n">ttList</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">action</span> <span class="o">=</span> <span class="n">ttDump</span>
+		<span class="k">elif</span> <span class="n">tp</span> <span class="o">==</span> <span class="s2">&quot;TTX&quot;</span><span class="p">:</span>
+			<span class="n">extension</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="o">+</span><span class="n">options</span><span class="o">.</span><span class="n">flavor</span> <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">flavor</span> <span class="k">else</span> <span class="s2">&quot;.ttf&quot;</span>
+			<span class="n">action</span> <span class="o">=</span> <span class="n">ttCompile</span>
+		<span class="k">elif</span> <span class="n">tp</span> <span class="o">==</span> <span class="s2">&quot;OTX&quot;</span><span class="p">:</span>
+			<span class="n">extension</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="o">+</span><span class="n">options</span><span class="o">.</span><span class="n">flavor</span> <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">flavor</span> <span class="k">else</span> <span class="s2">&quot;.otf&quot;</span>
+			<span class="n">action</span> <span class="o">=</span> <span class="n">ttCompile</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="n">getopt</span><span class="o">.</span><span class="n">GetoptError</span><span class="p">(</span><span class="s1">&#39;Unknown file type: &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="nb">input</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">outputFile</span><span class="p">:</span>
+			<span class="n">output</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">outputFile</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">output</span> <span class="o">=</span> <span class="n">makeOutputFileName</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">options</span><span class="o">.</span><span class="n">outputDir</span><span class="p">,</span> <span class="n">extension</span><span class="p">,</span> <span class="n">options</span><span class="o">.</span><span class="n">overWrite</span><span class="p">)</span>
+			<span class="c1"># &#39;touch&#39; output file to avoid race condition in choosing file names</span>
+			<span class="k">if</span> <span class="n">action</span> <span class="o">!=</span> <span class="n">ttList</span><span class="p">:</span>
+				<span class="nb">open</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+		<span class="n">jobs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">action</span><span class="p">,</span> <span class="nb">input</span><span class="p">,</span> <span class="n">output</span><span class="p">))</span>
+	<span class="k">return</span> <span class="n">jobs</span><span class="p">,</span> <span class="n">options</span></div>
+
+
+<div class="viewcode-block" id="process"><a class="viewcode-back" href="../../ttx.html#fontTools.ttx.process">[docs]</a><span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="n">jobs</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+	<span class="k">for</span> <span class="n">action</span><span class="p">,</span> <span class="nb">input</span><span class="p">,</span> <span class="n">output</span> <span class="ow">in</span> <span class="n">jobs</span><span class="p">:</span>
+		<span class="n">action</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="waitForKeyPress"><a class="viewcode-back" href="../../ttx.html#fontTools.ttx.waitForKeyPress">[docs]</a><span class="k">def</span> <span class="nf">waitForKeyPress</span><span class="p">():</span>
+	<span class="sd">&quot;&quot;&quot;Force the DOS Prompt window to stay open so the user gets</span>
+<span class="sd">	a chance to see what&#39;s wrong.&quot;&quot;&quot;</span>
+	<span class="kn">import</span> <span class="nn">msvcrt</span>
+	<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;(Hit any key to exit)&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+	<span class="k">while</span> <span class="ow">not</span> <span class="n">msvcrt</span><span class="o">.</span><span class="n">kbhit</span><span class="p">():</span>
+		<span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../ttx.html#fontTools.ttx.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+	<span class="kn">from</span> <span class="nn">fontTools</span> <span class="k">import</span> <span class="n">configLogger</span>
+
+	<span class="k">if</span> <span class="n">args</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">args</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+	<span class="k">try</span><span class="p">:</span>
+		<span class="n">jobs</span><span class="p">,</span> <span class="n">options</span> <span class="o">=</span> <span class="n">parseOptions</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+	<span class="k">except</span> <span class="n">getopt</span><span class="o">.</span><span class="n">GetoptError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+		<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="se">\n</span><span class="s2">ERROR: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="vm">__doc__</span><span class="p">,</span> <span class="n">e</span><span class="p">),</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+		<span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+	<span class="n">configLogger</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">logLevel</span><span class="p">)</span>
+
+	<span class="k">try</span><span class="p">:</span>
+		<span class="n">process</span><span class="p">(</span><span class="n">jobs</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+	<span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+		<span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;(Cancelled.)&quot;</span><span class="p">)</span>
+		<span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+	<span class="k">except</span> <span class="ne">SystemExit</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span>
+			<span class="n">waitForKeyPress</span><span class="p">()</span>
+		<span class="k">raise</span>
+	<span class="k">except</span> <span class="n">TTLibError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+		<span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+		<span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+	<span class="k">except</span><span class="p">:</span>
+		<span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s1">&#39;Unhandled exception has occurred&#39;</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span>
+			<span class="n">waitForKeyPress</span><span class="p">()</span>
+		<span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+	<span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

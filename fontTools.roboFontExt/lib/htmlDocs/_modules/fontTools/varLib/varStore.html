@@ -1,0 +1,612 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fontTools.varLib.varStore &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../varLib.html" accesskey="U">fontTools.varLib</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fontTools.varLib.varStore</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.py23</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.fixedTools</span> <span class="k">import</span> <span class="n">otRound</span>
+<span class="kn">from</span> <span class="nn">fontTools.ttLib.tables</span> <span class="k">import</span> <span class="n">otTables</span> <span class="k">as</span> <span class="n">ot</span>
+<span class="kn">from</span> <span class="nn">fontTools.varLib.models</span> <span class="k">import</span> <span class="n">supportScalar</span>
+<span class="kn">from</span> <span class="nn">fontTools.varLib.builder</span> <span class="k">import</span> <span class="p">(</span><span class="n">buildVarRegionList</span><span class="p">,</span> <span class="n">buildVarStore</span><span class="p">,</span>
+				      <span class="n">buildVarRegion</span><span class="p">,</span> <span class="n">buildVarData</span><span class="p">,</span>
+				      <span class="n">VarData_CalculateNumShorts</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">array</span> <span class="k">import</span> <span class="n">array</span>
+
+
+<span class="k">def</span> <span class="nf">_getLocationKey</span><span class="p">(</span><span class="n">loc</span><span class="p">):</span>
+	<span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">loc</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">kv</span><span class="p">:</span> <span class="n">kv</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+
+<span class="k">class</span> <span class="nc">OnlineVarStoreBuilder</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axisTags</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_axisTags</span> <span class="o">=</span> <span class="n">axisTags</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_regionMap</span> <span class="o">=</span> <span class="p">{}</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_regionList</span> <span class="o">=</span> <span class="n">buildVarRegionList</span><span class="p">([],</span> <span class="n">axisTags</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_store</span> <span class="o">=</span> <span class="n">buildVarStore</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_regionList</span><span class="p">,</span> <span class="p">[])</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="kc">None</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="kc">None</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_cache</span> <span class="o">=</span> <span class="p">{}</span>
+
+	<span class="k">def</span> <span class="nf">setModel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="n">model</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_cache</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># Empty cached items</span>
+
+	<span class="k">def</span> <span class="nf">finish</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">optimize</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_regionList</span><span class="o">.</span><span class="n">RegionCount</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_regionList</span><span class="o">.</span><span class="n">Region</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="o">.</span><span class="n">VarDataCount</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="o">.</span><span class="n">VarData</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="o">.</span><span class="n">VarData</span><span class="p">:</span>
+			<span class="n">data</span><span class="o">.</span><span class="n">ItemCount</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">Item</span><span class="p">)</span>
+			<span class="n">VarData_CalculateNumShorts</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">optimize</span><span class="p">)</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_store</span>
+
+	<span class="k">def</span> <span class="nf">_add_VarData</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="n">regionMap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_regionMap</span>
+		<span class="n">regionList</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_regionList</span>
+
+		<span class="n">regions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">supports</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+		<span class="n">regionIndices</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">region</span> <span class="ow">in</span> <span class="n">regions</span><span class="p">:</span>
+			<span class="n">key</span> <span class="o">=</span> <span class="n">_getLocationKey</span><span class="p">(</span><span class="n">region</span><span class="p">)</span>
+			<span class="n">idx</span> <span class="o">=</span> <span class="n">regionMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">idx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">varRegion</span> <span class="o">=</span> <span class="n">buildVarRegion</span><span class="p">(</span><span class="n">region</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_axisTags</span><span class="p">)</span>
+				<span class="n">idx</span> <span class="o">=</span> <span class="n">regionMap</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">regionList</span><span class="o">.</span><span class="n">Region</span><span class="p">)</span>
+				<span class="n">regionList</span><span class="o">.</span><span class="n">Region</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">varRegion</span><span class="p">)</span>
+			<span class="n">regionIndices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+
+		<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">buildVarData</span><span class="p">(</span><span class="n">regionIndices</span><span class="p">,</span> <span class="p">[],</span> <span class="n">optimize</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_outer</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="o">.</span><span class="n">VarData</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="o">.</span><span class="n">VarData</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">storeMasters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">master_values</span><span class="p">):</span>
+		<span class="n">deltas</span> <span class="o">=</span> <span class="p">[</span><span class="n">otRound</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">getDeltas</span><span class="p">(</span><span class="n">master_values</span><span class="p">)]</span>
+		<span class="n">base</span> <span class="o">=</span> <span class="n">deltas</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+		<span class="n">deltas</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">deltas</span><span class="p">)</span>
+		<span class="n">varIdx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">deltas</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">varIdx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">base</span><span class="p">,</span> <span class="n">varIdx</span>
+
+		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_add_VarData</span><span class="p">()</span>
+		<span class="n">inner</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">Item</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">inner</span> <span class="o">==</span> <span class="mh">0xFFFF</span><span class="p">:</span>
+			<span class="c1"># Full array. Start new one.</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_add_VarData</span><span class="p">()</span>
+			<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">storeMasters</span><span class="p">(</span><span class="n">master_values</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">Item</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">deltas</span><span class="p">)</span>
+
+		<span class="n">varIdx</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_outer</span> <span class="o">&lt;&lt;</span> <span class="mi">16</span><span class="p">)</span> <span class="o">+</span> <span class="n">inner</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="n">deltas</span><span class="p">]</span> <span class="o">=</span> <span class="n">varIdx</span>
+		<span class="k">return</span> <span class="n">base</span><span class="p">,</span> <span class="n">varIdx</span>
+
+
+<span class="k">def</span> <span class="nf">VarRegion_get_support</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fvar_axes</span><span class="p">):</span>
+	<span class="k">return</span> <span class="p">{</span><span class="n">fvar_axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">axisTag</span><span class="p">:</span> <span class="p">(</span><span class="n">reg</span><span class="o">.</span><span class="n">StartCoord</span><span class="p">,</span><span class="n">reg</span><span class="o">.</span><span class="n">PeakCoord</span><span class="p">,</span><span class="n">reg</span><span class="o">.</span><span class="n">EndCoord</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">reg</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">VarRegionAxis</span><span class="p">)}</span>
+
+<span class="k">class</span> <span class="nc">VarStoreInstancer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">varstore</span><span class="p">,</span> <span class="n">fvar_axes</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="p">{}):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">fvar_axes</span> <span class="o">=</span> <span class="n">fvar_axes</span>
+		<span class="k">assert</span> <span class="n">varstore</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">varstore</span><span class="o">.</span><span class="n">Format</span> <span class="o">==</span> <span class="mi">1</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_varData</span> <span class="o">=</span> <span class="n">varstore</span><span class="o">.</span><span class="n">VarData</span> <span class="k">if</span> <span class="n">varstore</span> <span class="k">else</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_regions</span> <span class="o">=</span> <span class="n">varstore</span><span class="o">.</span><span class="n">VarRegionList</span><span class="o">.</span><span class="n">Region</span> <span class="k">if</span> <span class="n">varstore</span> <span class="k">else</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">setLocation</span><span class="p">(</span><span class="n">location</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">setLocation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">location</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_clearCaches</span><span class="p">()</span>
+
+	<span class="k">def</span> <span class="nf">_clearCaches</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_scalars</span> <span class="o">=</span> <span class="p">{}</span>
+
+	<span class="k">def</span> <span class="nf">_getScalar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">regionIdx</span><span class="p">):</span>
+		<span class="n">scalar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scalars</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">regionIdx</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">scalar</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">support</span> <span class="o">=</span> <span class="n">VarRegion_get_support</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_regions</span><span class="p">[</span><span class="n">regionIdx</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">fvar_axes</span><span class="p">)</span>
+			<span class="n">scalar</span> <span class="o">=</span> <span class="n">supportScalar</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">location</span><span class="p">,</span> <span class="n">support</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_scalars</span><span class="p">[</span><span class="n">regionIdx</span><span class="p">]</span> <span class="o">=</span> <span class="n">scalar</span>
+		<span class="k">return</span> <span class="n">scalar</span>
+
+	<span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">varidx</span><span class="p">):</span>
+
+		<span class="n">major</span><span class="p">,</span> <span class="n">minor</span> <span class="o">=</span> <span class="n">varidx</span> <span class="o">&gt;&gt;</span> <span class="mi">16</span><span class="p">,</span> <span class="n">varidx</span> <span class="o">&amp;</span> <span class="mh">0xFFFF</span>
+
+		<span class="n">varData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_varData</span>
+		<span class="n">scalars</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_getScalar</span><span class="p">(</span><span class="n">ri</span><span class="p">)</span> <span class="k">for</span> <span class="n">ri</span> <span class="ow">in</span> <span class="n">varData</span><span class="p">[</span><span class="n">major</span><span class="p">]</span><span class="o">.</span><span class="n">VarRegionIndex</span><span class="p">]</span>
+
+		<span class="n">deltas</span> <span class="o">=</span> <span class="n">varData</span><span class="p">[</span><span class="n">major</span><span class="p">]</span><span class="o">.</span><span class="n">Item</span><span class="p">[</span><span class="n">minor</span><span class="p">]</span>
+		<span class="n">delta</span> <span class="o">=</span> <span class="mf">0.</span>
+		<span class="k">for</span> <span class="n">d</span><span class="p">,</span><span class="n">s</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">deltas</span><span class="p">,</span> <span class="n">scalars</span><span class="p">):</span>
+			<span class="n">delta</span> <span class="o">+=</span> <span class="n">d</span> <span class="o">*</span> <span class="n">s</span>
+		<span class="k">return</span> <span class="n">delta</span>
+
+
+<span class="c1">#</span>
+<span class="c1"># Optimizations</span>
+<span class="c1">#</span>
+
+<span class="k">def</span> <span class="nf">VarStore_subset_varidxes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">varIdxes</span><span class="p">,</span> <span class="n">optimize</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+	<span class="c1"># Sort out used varIdxes by major/minor.</span>
+	<span class="n">used</span> <span class="o">=</span> <span class="p">{}</span>
+	<span class="k">for</span> <span class="n">varIdx</span> <span class="ow">in</span> <span class="n">varIdxes</span><span class="p">:</span>
+		<span class="n">major</span> <span class="o">=</span> <span class="n">varIdx</span> <span class="o">&gt;&gt;</span> <span class="mi">16</span>
+		<span class="n">minor</span> <span class="o">=</span> <span class="n">varIdx</span> <span class="o">&amp;</span> <span class="mh">0xFFFF</span>
+		<span class="n">d</span> <span class="o">=</span> <span class="n">used</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">major</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">d</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">d</span> <span class="o">=</span> <span class="n">used</span><span class="p">[</span><span class="n">major</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+		<span class="n">d</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">minor</span><span class="p">)</span>
+	<span class="k">del</span> <span class="n">varIdxes</span>
+
+	<span class="c1">#</span>
+	<span class="c1"># Subset VarData</span>
+	<span class="c1">#</span>
+
+	<span class="n">varData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">VarData</span>
+	<span class="n">newVarData</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="n">varDataMap</span> <span class="o">=</span> <span class="p">{}</span>
+	<span class="k">for</span> <span class="n">major</span><span class="p">,</span><span class="n">data</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">varData</span><span class="p">):</span>
+		<span class="n">usedMinors</span> <span class="o">=</span> <span class="n">used</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">major</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">usedMinors</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">continue</span>
+		<span class="n">newMajor</span> <span class="o">=</span> <span class="n">varDataMap</span><span class="p">[</span><span class="n">major</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">newVarData</span><span class="p">)</span>
+		<span class="n">newVarData</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+		<span class="n">items</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">Item</span>
+		<span class="n">newItems</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">minor</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">usedMinors</span><span class="p">):</span>
+			<span class="n">newMinor</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">newItems</span><span class="p">)</span>
+			<span class="n">newItems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">items</span><span class="p">[</span><span class="n">minor</span><span class="p">])</span>
+			<span class="n">varDataMap</span><span class="p">[(</span><span class="n">major</span><span class="o">&lt;&lt;</span><span class="mi">16</span><span class="p">)</span><span class="o">+</span><span class="n">minor</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">newMajor</span><span class="o">&lt;&lt;</span><span class="mi">16</span><span class="p">)</span><span class="o">+</span><span class="n">newMinor</span>
+
+		<span class="n">data</span><span class="o">.</span><span class="n">Item</span> <span class="o">=</span> <span class="n">newItems</span>
+		<span class="n">data</span><span class="o">.</span><span class="n">ItemCount</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">Item</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="n">optimize</span><span class="p">:</span>
+			<span class="n">VarData_CalculateNumShorts</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+	<span class="bp">self</span><span class="o">.</span><span class="n">VarData</span> <span class="o">=</span> <span class="n">newVarData</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">VarDataCount</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">VarData</span><span class="p">)</span>
+
+	<span class="bp">self</span><span class="o">.</span><span class="n">prune_regions</span><span class="p">()</span>
+
+	<span class="k">return</span> <span class="n">varDataMap</span>
+
+<span class="n">ot</span><span class="o">.</span><span class="n">VarStore</span><span class="o">.</span><span class="n">subset_varidxes</span> <span class="o">=</span> <span class="n">VarStore_subset_varidxes</span>
+
+<span class="k">def</span> <span class="nf">VarStore_prune_regions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Remove unused VarRegions.&quot;&quot;&quot;</span>
+	<span class="c1">#</span>
+	<span class="c1"># Subset VarRegionList</span>
+	<span class="c1">#</span>
+
+	<span class="c1"># Collect.</span>
+	<span class="n">usedRegions</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+	<span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">VarData</span><span class="p">:</span>
+		<span class="n">usedRegions</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">VarRegionIndex</span><span class="p">)</span>
+	<span class="c1"># Subset.</span>
+	<span class="n">regionList</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">VarRegionList</span>
+	<span class="n">regions</span> <span class="o">=</span> <span class="n">regionList</span><span class="o">.</span><span class="n">Region</span>
+	<span class="n">newRegions</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="n">regionMap</span> <span class="o">=</span> <span class="p">{}</span>
+	<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">usedRegions</span><span class="p">):</span>
+		<span class="n">regionMap</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">newRegions</span><span class="p">)</span>
+		<span class="n">newRegions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">regions</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+	<span class="n">regionList</span><span class="o">.</span><span class="n">Region</span> <span class="o">=</span> <span class="n">newRegions</span>
+	<span class="n">regionList</span><span class="o">.</span><span class="n">RegionCount</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">regionList</span><span class="o">.</span><span class="n">Region</span><span class="p">)</span>
+	<span class="c1"># Map.</span>
+	<span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">VarData</span><span class="p">:</span>
+		<span class="n">data</span><span class="o">.</span><span class="n">VarRegionIndex</span> <span class="o">=</span> <span class="p">[</span><span class="n">regionMap</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">VarRegionIndex</span><span class="p">]</span>
+
+<span class="n">ot</span><span class="o">.</span><span class="n">VarStore</span><span class="o">.</span><span class="n">prune_regions</span> <span class="o">=</span> <span class="n">VarStore_prune_regions</span>
+
+
+<span class="k">def</span> <span class="nf">_visit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objType</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Recurse down from self, if type of an object is objType,</span>
+<span class="sd">	call func() on it.  Only works for otData-style classes.&quot;&quot;&quot;</span>
+
+	<span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="n">objType</span><span class="p">:</span>
+		<span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+		<span class="k">return</span> <span class="c1"># We don&#39;t recurse down; don&#39;t need to.</span>
+
+	<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+		<span class="k">for</span> <span class="n">that</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+			<span class="n">_visit</span><span class="p">(</span><span class="n">that</span><span class="p">,</span> <span class="n">objType</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;getConverters&#39;</span><span class="p">):</span>
+		<span class="k">for</span> <span class="n">conv</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">getConverters</span><span class="p">():</span>
+			<span class="n">that</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conv</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">that</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">_visit</span><span class="p">(</span><span class="n">that</span><span class="p">,</span> <span class="n">objType</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ot</span><span class="o">.</span><span class="n">ValueRecord</span><span class="p">):</span>
+		<span class="k">for</span> <span class="n">that</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+			<span class="n">_visit</span><span class="p">(</span><span class="n">that</span><span class="p">,</span> <span class="n">objType</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_Device_recordVarIdx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Add VarIdx in this Device table (if any) to the set s.&quot;&quot;&quot;</span>
+	<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">DeltaFormat</span> <span class="o">==</span> <span class="mh">0x8000</span><span class="p">:</span>
+		<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">StartSize</span><span class="o">&lt;&lt;</span><span class="mi">16</span><span class="p">)</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">EndSize</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">Object_collect_device_varidxes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">varidxes</span><span class="p">):</span>
+	<span class="n">adder</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">_Device_recordVarIdx</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="n">varidxes</span><span class="p">)</span>
+	<span class="n">_visit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ot</span><span class="o">.</span><span class="n">Device</span><span class="p">,</span> <span class="n">adder</span><span class="p">)</span>
+
+<span class="n">ot</span><span class="o">.</span><span class="n">GDEF</span><span class="o">.</span><span class="n">collect_device_varidxes</span> <span class="o">=</span> <span class="n">Object_collect_device_varidxes</span>
+<span class="n">ot</span><span class="o">.</span><span class="n">GPOS</span><span class="o">.</span><span class="n">collect_device_varidxes</span> <span class="o">=</span> <span class="n">Object_collect_device_varidxes</span>
+
+<span class="k">def</span> <span class="nf">_Device_mapVarIdx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mapping</span><span class="p">,</span> <span class="n">done</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Add VarIdx in this Device table (if any) to the set s.&quot;&quot;&quot;</span>
+	<span class="k">if</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="ow">in</span> <span class="n">done</span><span class="p">:</span>
+		<span class="k">return</span>
+	<span class="n">done</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+	<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">DeltaFormat</span> <span class="o">==</span> <span class="mh">0x8000</span><span class="p">:</span>
+		<span class="n">varIdx</span> <span class="o">=</span> <span class="n">mapping</span><span class="p">[(</span><span class="bp">self</span><span class="o">.</span><span class="n">StartSize</span><span class="o">&lt;&lt;</span><span class="mi">16</span><span class="p">)</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">EndSize</span><span class="p">]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">StartSize</span> <span class="o">=</span> <span class="n">varIdx</span> <span class="o">&gt;&gt;</span> <span class="mi">16</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">EndSize</span> <span class="o">=</span> <span class="n">varIdx</span> <span class="o">&amp;</span> <span class="mh">0xFFFF</span>
+
+<span class="k">def</span> <span class="nf">Object_remap_device_varidxes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">varidxes_map</span><span class="p">):</span>
+	<span class="n">mapper</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">_Device_mapVarIdx</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">varidxes_map</span><span class="p">,</span> <span class="n">done</span><span class="o">=</span><span class="nb">set</span><span class="p">())</span>
+	<span class="n">_visit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ot</span><span class="o">.</span><span class="n">Device</span><span class="p">,</span> <span class="n">mapper</span><span class="p">)</span>
+
+<span class="n">ot</span><span class="o">.</span><span class="n">GDEF</span><span class="o">.</span><span class="n">remap_device_varidxes</span> <span class="o">=</span> <span class="n">Object_remap_device_varidxes</span>
+<span class="n">ot</span><span class="o">.</span><span class="n">GPOS</span><span class="o">.</span><span class="n">remap_device_varidxes</span> <span class="o">=</span> <span class="n">Object_remap_device_varidxes</span>
+
+
+<span class="k">class</span> <span class="nc">_Encoding</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chars</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">chars</span> <span class="o">=</span> <span class="n">chars</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_popcount</span><span class="p">(</span><span class="n">chars</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">overhead</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_characteristic_overhead</span><span class="p">(</span><span class="n">chars</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">items</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+	<span class="k">def</span> <span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">extend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lst</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">get_room</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Maximum number of bytes that can be added to characteristic</span>
+<span class="sd">		while still being beneficial to merge it into another one.&quot;&quot;&quot;</span>
+		<span class="n">count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">)</span>
+		<span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">overhead</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">count</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">)</span>
+	<span class="n">room</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">get_room</span><span class="p">)</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">gain</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Maximum possible byte gain from merging this into another</span>
+<span class="sd">		characteristic.&quot;&quot;&quot;</span>
+		<span class="n">count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">)</span>
+		<span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">overhead</span> <span class="o">-</span> <span class="n">count</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+
+	<span class="k">def</span> <span class="nf">sort_key</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">chars</span>
+
+	<span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">can_encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chars</span><span class="p">):</span>
+		<span class="k">return</span> <span class="ow">not</span> <span class="p">(</span><span class="n">chars</span> <span class="o">&amp;</span> <span class="o">~</span><span class="bp">self</span><span class="o">.</span><span class="n">chars</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_popcount</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chars</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">other</span><span class="o">.</span><span class="n">chars</span><span class="p">)</span>
+
+	<span class="nd">@staticmethod</span>
+	<span class="k">def</span> <span class="nf">_popcount</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+		<span class="c1"># Apparently this is the fastest native way to do it...</span>
+		<span class="c1"># https://stackoverflow.com/a/9831671</span>
+		<span class="k">return</span> <span class="nb">bin</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;1&#39;</span><span class="p">)</span>
+
+	<span class="nd">@staticmethod</span>
+	<span class="k">def</span> <span class="nf">_characteristic_overhead</span><span class="p">(</span><span class="n">chars</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Returns overhead in bytes of encoding this characteristic</span>
+<span class="sd">		as a VarData.&quot;&quot;&quot;</span>
+		<span class="n">c</span> <span class="o">=</span> <span class="mi">6</span>
+		<span class="k">while</span> <span class="n">chars</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">chars</span> <span class="o">&amp;</span> <span class="mi">3</span><span class="p">:</span>
+				<span class="n">c</span> <span class="o">+=</span> <span class="mi">2</span>
+			<span class="n">chars</span> <span class="o">&gt;&gt;=</span> <span class="mi">2</span>
+		<span class="k">return</span> <span class="n">c</span>
+
+
+	<span class="k">def</span> <span class="nf">_find_yourself_best_new_encoding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">done_by_width</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">best_new_encoding</span> <span class="o">=</span> <span class="kc">None</span>
+		<span class="k">for</span> <span class="n">new_width</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">room</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+			<span class="k">for</span> <span class="n">new_encoding</span> <span class="ow">in</span> <span class="n">done_by_width</span><span class="p">[</span><span class="n">new_width</span><span class="p">]:</span>
+				<span class="k">if</span> <span class="n">new_encoding</span><span class="o">.</span><span class="n">can_encode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chars</span><span class="p">):</span>
+					<span class="k">break</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">new_encoding</span> <span class="o">=</span> <span class="kc">None</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">best_new_encoding</span> <span class="o">=</span> <span class="n">new_encoding</span>
+
+
+<span class="k">class</span> <span class="nc">_EncodingDict</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+
+	<span class="k">def</span> <span class="nf">__missing__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chars</span><span class="p">):</span>
+		<span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">chars</span><span class="p">]</span> <span class="o">=</span> <span class="n">_Encoding</span><span class="p">(</span><span class="n">chars</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">r</span>
+
+	<span class="k">def</span> <span class="nf">add_row</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+		<span class="n">chars</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_row_characteristics</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+		<span class="bp">self</span><span class="p">[</span><span class="n">chars</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+
+	<span class="nd">@staticmethod</span>
+	<span class="k">def</span> <span class="nf">_row_characteristics</span><span class="p">(</span><span class="n">row</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Returns encoding characteristics for a row.&quot;&quot;&quot;</span>
+		<span class="n">chars</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="n">i</span> <span class="o">=</span> <span class="mi">1</span>
+		<span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">row</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">v</span><span class="p">:</span>
+				<span class="n">chars</span> <span class="o">+=</span> <span class="n">i</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="o">-</span><span class="mi">128</span> <span class="o">&lt;=</span> <span class="n">v</span> <span class="o">&lt;=</span> <span class="mi">127</span><span class="p">):</span>
+				<span class="n">chars</span> <span class="o">+=</span> <span class="n">i</span> <span class="o">*</span> <span class="mi">2</span>
+			<span class="n">i</span> <span class="o">&lt;&lt;=</span> <span class="mi">2</span>
+		<span class="k">return</span> <span class="n">chars</span>
+
+
+<span class="k">def</span> <span class="nf">VarStore_optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Optimize storage. Returns mapping from old VarIdxes to new ones.&quot;&quot;&quot;</span>
+
+	<span class="c1"># TODO</span>
+	<span class="c1"># Check that no two VarRegions are the same; if they are, fold them.</span>
+
+	<span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">VarRegionList</span><span class="o">.</span><span class="n">Region</span><span class="p">)</span> <span class="c1"># Number of columns</span>
+	<span class="n">zeroes</span> <span class="o">=</span> <span class="n">array</span><span class="p">(</span><span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">n</span><span class="p">)</span>
+
+	<span class="n">front_mapping</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># Map from old VarIdxes to full row tuples</span>
+
+	<span class="n">encodings</span> <span class="o">=</span> <span class="n">_EncodingDict</span><span class="p">()</span>
+
+	<span class="c1"># Collect all items into a set of full rows (with lots of zeroes.)</span>
+	<span class="k">for</span> <span class="n">major</span><span class="p">,</span><span class="n">data</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">VarData</span><span class="p">):</span>
+		<span class="n">regionIndices</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">VarRegionIndex</span>
+
+		<span class="k">for</span> <span class="n">minor</span><span class="p">,</span><span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">Item</span><span class="p">):</span>
+
+			<span class="n">row</span> <span class="o">=</span> <span class="n">array</span><span class="p">(</span><span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="n">zeroes</span><span class="p">)</span>
+			<span class="k">for</span> <span class="n">regionIdx</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">regionIndices</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+				<span class="n">row</span><span class="p">[</span><span class="n">regionIdx</span><span class="p">]</span> <span class="o">+=</span> <span class="n">v</span>
+			<span class="n">row</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+
+			<span class="n">encodings</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+			<span class="n">front_mapping</span><span class="p">[(</span><span class="n">major</span><span class="o">&lt;&lt;</span><span class="mi">16</span><span class="p">)</span><span class="o">+</span><span class="n">minor</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span>
+
+	<span class="c1"># Separate encodings that have no gain (are decided) and those having</span>
+	<span class="c1"># possible gain (possibly to be merged into others.)</span>
+	<span class="n">encodings</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">encodings</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="n">_Encoding</span><span class="o">.</span><span class="fm">__len__</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+	<span class="n">done_by_width</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+	<span class="n">todo</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="k">for</span> <span class="n">encoding</span> <span class="ow">in</span> <span class="n">encodings</span><span class="p">:</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">encoding</span><span class="o">.</span><span class="n">gain</span><span class="p">:</span>
+			<span class="n">done_by_width</span><span class="p">[</span><span class="n">encoding</span><span class="o">.</span><span class="n">width</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">encoding</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">todo</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">encoding</span><span class="p">)</span>
+
+	<span class="c1"># For each encoding that is possibly to be merged, find the best match</span>
+	<span class="c1"># in the decided encodings, and record that.</span>
+	<span class="n">todo</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">_Encoding</span><span class="o">.</span><span class="n">get_room</span><span class="p">)</span>
+	<span class="k">for</span> <span class="n">encoding</span> <span class="ow">in</span> <span class="n">todo</span><span class="p">:</span>
+		<span class="n">encoding</span><span class="o">.</span><span class="n">_find_yourself_best_new_encoding</span><span class="p">(</span><span class="n">done_by_width</span><span class="p">)</span>
+
+	<span class="c1"># Walk through todo encodings, for each, see if merging it with</span>
+	<span class="c1"># another todo encoding gains more than each of them merging with</span>
+	<span class="c1"># their best decided encoding. If yes, merge them and add resulting</span>
+	<span class="c1"># encoding back to todo queue.  If not, move the enconding to decided</span>
+	<span class="c1"># list.  Repeat till done.</span>
+	<span class="k">while</span> <span class="n">todo</span><span class="p">:</span>
+		<span class="n">encoding</span> <span class="o">=</span> <span class="n">todo</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+		<span class="n">best_idx</span> <span class="o">=</span> <span class="kc">None</span>
+		<span class="n">best_gain</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">other_encoding</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">todo</span><span class="p">):</span>
+			<span class="n">combined_chars</span> <span class="o">=</span> <span class="n">other_encoding</span><span class="o">.</span><span class="n">chars</span> <span class="o">|</span> <span class="n">encoding</span><span class="o">.</span><span class="n">chars</span>
+			<span class="n">combined_width</span> <span class="o">=</span> <span class="n">_Encoding</span><span class="o">.</span><span class="n">_popcount</span><span class="p">(</span><span class="n">combined_chars</span><span class="p">)</span>
+			<span class="n">combined_overhead</span> <span class="o">=</span> <span class="n">_Encoding</span><span class="o">.</span><span class="n">_characteristic_overhead</span><span class="p">(</span><span class="n">combined_chars</span><span class="p">)</span>
+			<span class="n">combined_gain</span> <span class="o">=</span> <span class="p">(</span>
+					<span class="o">+</span> <span class="n">encoding</span><span class="o">.</span><span class="n">overhead</span>
+					<span class="o">+</span> <span class="n">other_encoding</span><span class="o">.</span><span class="n">overhead</span>
+					<span class="o">-</span> <span class="n">combined_overhead</span>
+					<span class="o">-</span> <span class="p">(</span><span class="n">combined_width</span> <span class="o">-</span> <span class="n">encoding</span><span class="o">.</span><span class="n">width</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">encoding</span><span class="p">)</span>
+					<span class="o">-</span> <span class="p">(</span><span class="n">combined_width</span> <span class="o">-</span> <span class="n">other_encoding</span><span class="o">.</span><span class="n">width</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">other_encoding</span><span class="p">)</span>
+					<span class="p">)</span>
+			<span class="n">this_gain</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">encoding</span><span class="o">.</span><span class="n">best_new_encoding</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">(</span>
+						<span class="o">+</span> <span class="n">encoding</span><span class="o">.</span><span class="n">overhead</span>
+						<span class="o">-</span> <span class="p">(</span><span class="n">encoding</span><span class="o">.</span><span class="n">best_new_encoding</span><span class="o">.</span><span class="n">width</span> <span class="o">-</span> <span class="n">encoding</span><span class="o">.</span><span class="n">width</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">encoding</span><span class="p">)</span>
+					<span class="p">)</span>
+			<span class="n">other_gain</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">other_encoding</span><span class="o">.</span><span class="n">best_new_encoding</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">(</span>
+						<span class="o">+</span> <span class="n">other_encoding</span><span class="o">.</span><span class="n">overhead</span>
+						<span class="o">-</span> <span class="p">(</span><span class="n">other_encoding</span><span class="o">.</span><span class="n">best_new_encoding</span><span class="o">.</span><span class="n">width</span> <span class="o">-</span> <span class="n">other_encoding</span><span class="o">.</span><span class="n">width</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">other_encoding</span><span class="p">)</span>
+					<span class="p">)</span>
+			<span class="n">separate_gain</span> <span class="o">=</span> <span class="n">this_gain</span> <span class="o">+</span> <span class="n">other_gain</span>
+
+			<span class="k">if</span> <span class="n">combined_gain</span> <span class="o">&gt;</span> <span class="n">separate_gain</span><span class="p">:</span>
+				<span class="n">best_idx</span> <span class="o">=</span> <span class="n">i</span>
+				<span class="n">best_gain</span> <span class="o">=</span> <span class="n">combined_gain</span> <span class="o">-</span> <span class="n">separate_gain</span>
+
+		<span class="k">if</span> <span class="n">best_idx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="c1"># Encoding is decided as is</span>
+			<span class="n">done_by_width</span><span class="p">[</span><span class="n">encoding</span><span class="o">.</span><span class="n">width</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">encoding</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">other_encoding</span> <span class="o">=</span> <span class="n">todo</span><span class="p">[</span><span class="n">best_idx</span><span class="p">]</span>
+			<span class="n">combined_chars</span> <span class="o">=</span> <span class="n">other_encoding</span><span class="o">.</span><span class="n">chars</span> <span class="o">|</span> <span class="n">encoding</span><span class="o">.</span><span class="n">chars</span>
+			<span class="n">combined_encoding</span> <span class="o">=</span> <span class="n">_Encoding</span><span class="p">(</span><span class="n">combined_chars</span><span class="p">)</span>
+			<span class="n">combined_encoding</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">encoding</span><span class="o">.</span><span class="n">items</span><span class="p">)</span>
+			<span class="n">combined_encoding</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">other_encoding</span><span class="o">.</span><span class="n">items</span><span class="p">)</span>
+			<span class="n">combined_encoding</span><span class="o">.</span><span class="n">_find_yourself_best_new_encoding</span><span class="p">(</span><span class="n">done_by_width</span><span class="p">)</span>
+			<span class="k">del</span> <span class="n">todo</span><span class="p">[</span><span class="n">best_idx</span><span class="p">]</span>
+			<span class="n">todo</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">combined_encoding</span><span class="p">)</span>
+
+	<span class="c1"># Assemble final store.</span>
+	<span class="n">back_mapping</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># Mapping from full rows to new VarIdxes</span>
+	<span class="n">encodings</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">done_by_width</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="p">[])</span>
+	<span class="n">encodings</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">_Encoding</span><span class="o">.</span><span class="n">sort_key</span><span class="p">)</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">VarData</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="k">for</span> <span class="n">major</span><span class="p">,</span><span class="n">encoding</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">encodings</span><span class="p">):</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="n">ot</span><span class="o">.</span><span class="n">VarData</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">VarData</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+		<span class="n">data</span><span class="o">.</span><span class="n">VarRegionIndex</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+		<span class="n">data</span><span class="o">.</span><span class="n">VarRegionCount</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">VarRegionIndex</span><span class="p">)</span>
+		<span class="n">data</span><span class="o">.</span><span class="n">Item</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">encoding</span><span class="o">.</span><span class="n">items</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">minor</span><span class="p">,</span><span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">Item</span><span class="p">):</span>
+			<span class="n">back_mapping</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">major</span><span class="o">&lt;&lt;</span><span class="mi">16</span><span class="p">)</span><span class="o">+</span><span class="n">minor</span>
+
+	<span class="c1"># Compile final mapping.</span>
+	<span class="n">varidx_map</span> <span class="o">=</span> <span class="p">{}</span>
+	<span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">front_mapping</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+		<span class="n">varidx_map</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">back_mapping</span><span class="p">[</span><span class="n">v</span><span class="p">]</span>
+
+	<span class="c1"># Remove unused regions.</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">prune_regions</span><span class="p">()</span>
+
+	<span class="c1"># Recalculate things and go home.</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">VarRegionList</span><span class="o">.</span><span class="n">RegionCount</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">VarRegionList</span><span class="o">.</span><span class="n">Region</span><span class="p">)</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">VarDataCount</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">VarData</span><span class="p">)</span>
+	<span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">VarData</span><span class="p">:</span>
+		<span class="n">data</span><span class="o">.</span><span class="n">ItemCount</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">Item</span><span class="p">)</span>
+		<span class="n">VarData_CalculateNumShorts</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+	<span class="k">return</span> <span class="n">varidx_map</span>
+
+<span class="n">ot</span><span class="o">.</span><span class="n">VarStore</span><span class="o">.</span><span class="n">optimize</span> <span class="o">=</span> <span class="n">VarStore_optimize</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+	<span class="kn">from</span> <span class="nn">argparse</span> <span class="k">import</span> <span class="n">ArgumentParser</span>
+	<span class="kn">from</span> <span class="nn">fontTools</span> <span class="k">import</span> <span class="n">configLogger</span>
+	<span class="kn">from</span> <span class="nn">fontTools.ttLib</span> <span class="k">import</span> <span class="n">TTFont</span>
+	<span class="kn">from</span> <span class="nn">fontTools.ttLib.tables.otBase</span> <span class="k">import</span> <span class="n">OTTableWriter</span>
+
+	<span class="n">parser</span> <span class="o">=</span> <span class="n">ArgumentParser</span><span class="p">(</span><span class="n">prog</span><span class="o">=</span><span class="s1">&#39;varLib.varStore&#39;</span><span class="p">)</span>
+	<span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;fontfile&#39;</span><span class="p">)</span>
+	<span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;outfile&#39;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;?&#39;</span><span class="p">)</span>
+	<span class="n">options</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+	<span class="c1"># TODO: allow user to configure logging via command-line options</span>
+	<span class="n">configLogger</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s2">&quot;INFO&quot;</span><span class="p">)</span>
+
+	<span class="n">fontfile</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">fontfile</span>
+	<span class="n">outfile</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">outfile</span>
+
+	<span class="n">font</span> <span class="o">=</span> <span class="n">TTFont</span><span class="p">(</span><span class="n">fontfile</span><span class="p">)</span>
+	<span class="n">gdef</span> <span class="o">=</span> <span class="n">font</span><span class="p">[</span><span class="s1">&#39;GDEF&#39;</span><span class="p">]</span>
+	<span class="n">store</span> <span class="o">=</span> <span class="n">gdef</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">VarStore</span>
+
+	<span class="n">writer</span> <span class="o">=</span> <span class="n">OTTableWriter</span><span class="p">()</span>
+	<span class="n">store</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="n">font</span><span class="p">)</span>
+	<span class="n">size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">writer</span><span class="o">.</span><span class="n">getAllData</span><span class="p">())</span>
+	<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Before: </span><span class="si">%7d</span><span class="s2"> bytes&quot;</span> <span class="o">%</span> <span class="n">size</span><span class="p">)</span>
+
+	<span class="n">varidx_map</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">optimize</span><span class="p">()</span>
+
+	<span class="n">gdef</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">remap_device_varidxes</span><span class="p">(</span><span class="n">varidx_map</span><span class="p">)</span>
+	<span class="k">if</span> <span class="s1">&#39;GPOS&#39;</span> <span class="ow">in</span> <span class="n">font</span><span class="p">:</span>
+		<span class="n">font</span><span class="p">[</span><span class="s1">&#39;GPOS&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">remap_device_varidxes</span><span class="p">(</span><span class="n">varidx_map</span><span class="p">)</span>
+
+	<span class="n">writer</span> <span class="o">=</span> <span class="n">OTTableWriter</span><span class="p">()</span>
+	<span class="n">store</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="n">font</span><span class="p">)</span>
+	<span class="n">size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">writer</span><span class="o">.</span><span class="n">getAllData</span><span class="p">())</span>
+	<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;After:  </span><span class="si">%7d</span><span class="s2"> bytes&quot;</span> <span class="o">%</span> <span class="n">size</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="n">outfile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">font</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">outfile</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+	<span class="kn">import</span> <span class="nn">sys</span>
+	<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+		<span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+	<span class="kn">import</span> <span class="nn">doctest</span>
+	<span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">doctest</span><span class="o">.</span><span class="n">testmod</span><span class="p">()</span><span class="o">.</span><span class="n">failed</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../varLib.html" >fontTools.varLib</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

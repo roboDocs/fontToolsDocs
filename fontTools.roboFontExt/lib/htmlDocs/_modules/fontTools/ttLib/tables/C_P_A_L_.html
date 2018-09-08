@@ -1,0 +1,350 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fontTools.ttLib.tables.C_P_A_L_ &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../ttLib.html" accesskey="U">fontTools.ttLib</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fontTools.ttLib.tables.C_P_A_L_</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright 2013 Google, Inc. All Rights Reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># Google Author(s): Behdad Esfahbod</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.py23</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.textTools</span> <span class="k">import</span> <span class="n">safeEval</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">DefaultTable</span>
+<span class="kn">import</span> <span class="nn">array</span>
+<span class="kn">import</span> <span class="nn">struct</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+
+<div class="viewcode-block" id="table_C_P_A_L_"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.C_P_A_L_.table_C_P_A_L_">[docs]</a><span class="k">class</span> <span class="nc">table_C_P_A_L_</span><span class="p">(</span><span class="n">DefaultTable</span><span class="o">.</span><span class="n">DefaultTable</span><span class="p">):</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+		<span class="n">DefaultTable</span><span class="o">.</span><span class="n">DefaultTable</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">palettes</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">paletteTypes</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">paletteLabels</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">paletteEntryLabels</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="table_C_P_A_L_.decompile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.C_P_A_L_.table_C_P_A_L_.decompile">[docs]</a>	<span class="k">def</span> <span class="nf">decompile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">numPaletteEntries</span><span class="p">,</span> <span class="n">numPalettes</span><span class="p">,</span> <span class="n">numColorRecords</span><span class="p">,</span> <span class="n">goffsetFirstColorRecord</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;&gt;HHHHL&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">[:</span><span class="mi">12</span><span class="p">])</span>
+		<span class="k">assert</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">),</span> <span class="s2">&quot;Version of CPAL table is higher than I know how to handle&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">palettes</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="n">pos</span> <span class="o">=</span> <span class="mi">12</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numPalettes</span><span class="p">):</span>
+			<span class="n">startIndex</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;&gt;H&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">pos</span><span class="p">:</span><span class="n">pos</span><span class="o">+</span><span class="mi">2</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+			<span class="k">assert</span> <span class="p">(</span><span class="n">startIndex</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">numPaletteEntries</span> <span class="o">&lt;=</span> <span class="n">numColorRecords</span><span class="p">)</span>
+			<span class="n">pos</span> <span class="o">+=</span> <span class="mi">2</span>
+			<span class="n">palette</span> <span class="o">=</span> <span class="p">[]</span>
+			<span class="n">ppos</span> <span class="o">=</span> <span class="n">goffsetFirstColorRecord</span> <span class="o">+</span> <span class="n">startIndex</span> <span class="o">*</span> <span class="mi">4</span>
+			<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numPaletteEntries</span><span class="p">):</span>
+				<span class="n">palette</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">Color</span><span class="p">(</span><span class="o">*</span><span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;&gt;BBBB&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">ppos</span><span class="p">:</span><span class="n">ppos</span><span class="o">+</span><span class="mi">4</span><span class="p">]))</span> <span class="p">)</span>
+				<span class="n">ppos</span> <span class="o">+=</span> <span class="mi">4</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">palettes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">palette</span><span class="p">)</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+			<span class="n">offsetToPaletteTypeArray</span> <span class="o">=</span> <span class="mi">0</span>
+			<span class="n">offsetToPaletteLabelArray</span> <span class="o">=</span> <span class="mi">0</span>
+			<span class="n">offsetToPaletteEntryLabelArray</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">pos</span> <span class="o">=</span> <span class="mi">12</span> <span class="o">+</span> <span class="n">numPalettes</span> <span class="o">*</span> <span class="mi">2</span>
+			<span class="p">(</span><span class="n">offsetToPaletteTypeArray</span><span class="p">,</span> <span class="n">offsetToPaletteLabelArray</span><span class="p">,</span>
+			<span class="n">offsetToPaletteEntryLabelArray</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span>
+				<span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;&gt;LLL&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">pos</span><span class="p">:</span><span class="n">pos</span><span class="o">+</span><span class="mi">12</span><span class="p">]))</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">paletteTypes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decompileUInt32Array</span><span class="p">(</span>
+			<span class="n">data</span><span class="p">,</span> <span class="n">offsetToPaletteTypeArray</span><span class="p">,</span> <span class="n">numPalettes</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">paletteLabels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decompileUInt16Array</span><span class="p">(</span>
+			<span class="n">data</span><span class="p">,</span> <span class="n">offsetToPaletteLabelArray</span><span class="p">,</span> <span class="n">numPalettes</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">paletteEntryLabels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decompileUInt16Array</span><span class="p">(</span>
+			<span class="n">data</span><span class="p">,</span> <span class="n">offsetToPaletteEntryLabelArray</span><span class="p">,</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">numPaletteEntries</span><span class="p">)</span></div>
+
+	<span class="k">def</span> <span class="nf">_decompileUInt16Array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">numElements</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">offset</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+			<span class="k">return</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">numElements</span>
+		<span class="n">result</span> <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="s2">&quot;H&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">offset</span> <span class="p">:</span> <span class="n">offset</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">numElements</span><span class="p">])</span>
+		<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">byteorder</span> <span class="o">!=</span> <span class="s2">&quot;big&quot;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">byteswap</span><span class="p">()</span>
+		<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">==</span> <span class="n">numElements</span><span class="p">,</span> <span class="n">result</span>
+		<span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+	<span class="k">def</span> <span class="nf">_decompileUInt32Array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">numElements</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">offset</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+			<span class="k">return</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">numElements</span>
+		<span class="n">result</span> <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="s2">&quot;I&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">offset</span> <span class="p">:</span> <span class="n">offset</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">numElements</span><span class="p">])</span>
+		<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">byteorder</span> <span class="o">!=</span> <span class="s2">&quot;big&quot;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">byteswap</span><span class="p">()</span>
+		<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">==</span> <span class="n">numElements</span><span class="p">,</span> <span class="n">result</span>
+		<span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+<div class="viewcode-block" id="table_C_P_A_L_.compile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.C_P_A_L_.table_C_P_A_L_.compile">[docs]</a>	<span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">colorRecordIndices</span><span class="p">,</span> <span class="n">colorRecords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compileColorRecords</span><span class="p">()</span>
+		<span class="n">paletteTypes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compilePaletteTypes</span><span class="p">()</span>
+		<span class="n">paletteLabels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compilePaletteLabels</span><span class="p">()</span>
+		<span class="n">paletteEntryLabels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compilePaletteEntryLabels</span><span class="p">()</span>
+		<span class="n">numColorRecords</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">colorRecords</span><span class="p">)</span> <span class="o">//</span> <span class="mi">4</span>
+		<span class="n">offsetToFirstColorRecord</span> <span class="o">=</span> <span class="mi">12</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">colorRecordIndices</span><span class="p">)</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+			<span class="n">offsetToFirstColorRecord</span> <span class="o">+=</span> <span class="mi">12</span>
+		<span class="n">header</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">&quot;&gt;HHHHL&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
+                                     <span class="bp">self</span><span class="o">.</span><span class="n">numPaletteEntries</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">palettes</span><span class="p">),</span>
+                                     <span class="n">numColorRecords</span><span class="p">,</span> <span class="n">offsetToFirstColorRecord</span><span class="p">)</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+			<span class="n">dataList</span> <span class="o">=</span> <span class="p">[</span><span class="n">header</span><span class="p">,</span> <span class="n">colorRecordIndices</span><span class="p">,</span> <span class="n">colorRecords</span><span class="p">]</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">pos</span> <span class="o">=</span> <span class="n">offsetToFirstColorRecord</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">colorRecords</span><span class="p">)</span>
+			<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">paletteTypes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+				<span class="n">offsetToPaletteTypeArray</span> <span class="o">=</span> <span class="mi">0</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">offsetToPaletteTypeArray</span> <span class="o">=</span> <span class="n">pos</span>
+				<span class="n">pos</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">paletteTypes</span><span class="p">)</span>
+			<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">paletteLabels</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+				<span class="n">offsetToPaletteLabelArray</span> <span class="o">=</span> <span class="mi">0</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">offsetToPaletteLabelArray</span> <span class="o">=</span> <span class="n">pos</span>
+				<span class="n">pos</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">paletteLabels</span><span class="p">)</span>
+			<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">paletteEntryLabels</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+				<span class="n">offsetToPaletteEntryLabelArray</span> <span class="o">=</span> <span class="mi">0</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">offsetToPaletteEntryLabelArray</span> <span class="o">=</span> <span class="n">pos</span>
+				<span class="n">pos</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">paletteLabels</span><span class="p">)</span>
+			<span class="n">header1</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">&quot;&gt;LLL&quot;</span><span class="p">,</span>
+				<span class="n">offsetToPaletteTypeArray</span><span class="p">,</span>
+				<span class="n">offsetToPaletteLabelArray</span><span class="p">,</span>
+				<span class="n">offsetToPaletteEntryLabelArray</span><span class="p">)</span>
+			<span class="n">dataList</span> <span class="o">=</span> <span class="p">[</span><span class="n">header</span><span class="p">,</span> <span class="n">colorRecordIndices</span><span class="p">,</span> <span class="n">header1</span><span class="p">,</span>
+				    <span class="n">colorRecords</span><span class="p">,</span> <span class="n">paletteTypes</span><span class="p">,</span> <span class="n">paletteLabels</span><span class="p">,</span>
+                                    <span class="n">paletteEntryLabels</span><span class="p">]</span>
+		<span class="k">return</span> <span class="n">bytesjoin</span><span class="p">(</span><span class="n">dataList</span><span class="p">)</span></div>
+
+	<span class="k">def</span> <span class="nf">_compilePalette</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">palette</span><span class="p">):</span>
+		<span class="k">assert</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">palette</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">numPaletteEntries</span><span class="p">)</span>
+		<span class="n">pack</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">&quot;&gt;BBBB&quot;</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">blue</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">green</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">red</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">alpha</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">bytesjoin</span><span class="p">([</span><span class="n">pack</span><span class="p">(</span><span class="n">color</span><span class="p">)</span> <span class="k">for</span> <span class="n">color</span> <span class="ow">in</span> <span class="n">palette</span><span class="p">])</span>
+
+	<span class="k">def</span> <span class="nf">_compileColorRecords</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="n">colorRecords</span><span class="p">,</span> <span class="n">colorRecordIndices</span><span class="p">,</span> <span class="n">pool</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">{}</span>
+		<span class="k">for</span> <span class="n">palette</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">palettes</span><span class="p">:</span>
+			<span class="n">packedPalette</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compilePalette</span><span class="p">(</span><span class="n">palette</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">packedPalette</span> <span class="ow">in</span> <span class="n">pool</span><span class="p">:</span>
+				<span class="n">index</span> <span class="o">=</span> <span class="n">pool</span><span class="p">[</span><span class="n">packedPalette</span><span class="p">]</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">index</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">colorRecords</span><span class="p">)</span>
+				<span class="n">colorRecords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">packedPalette</span><span class="p">)</span>
+				<span class="n">pool</span><span class="p">[</span><span class="n">packedPalette</span><span class="p">]</span> <span class="o">=</span> <span class="n">index</span>
+			<span class="n">colorRecordIndices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">&quot;&gt;H&quot;</span><span class="p">,</span> <span class="n">index</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">numPaletteEntries</span><span class="p">))</span>
+		<span class="k">return</span> <span class="n">bytesjoin</span><span class="p">(</span><span class="n">colorRecordIndices</span><span class="p">),</span> <span class="n">bytesjoin</span><span class="p">(</span><span class="n">colorRecords</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">_compilePaletteTypes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">paletteTypes</span><span class="p">):</span>
+			<span class="k">return</span> <span class="sa">b</span><span class="s1">&#39;&#39;</span>
+		<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">paletteTypes</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">palettes</span><span class="p">)</span>
+		<span class="n">result</span> <span class="o">=</span> <span class="n">bytesjoin</span><span class="p">([</span><span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">&quot;&gt;I&quot;</span><span class="p">,</span> <span class="n">ptype</span><span class="p">)</span>
+                                    <span class="k">for</span> <span class="n">ptype</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">paletteTypes</span><span class="p">])</span>
+		<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">palettes</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">result</span>
+
+	<span class="k">def</span> <span class="nf">_compilePaletteLabels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">paletteLabels</span><span class="p">):</span>
+			<span class="k">return</span> <span class="sa">b</span><span class="s1">&#39;&#39;</span>
+		<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">paletteLabels</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">palettes</span><span class="p">)</span>
+		<span class="n">result</span> <span class="o">=</span> <span class="n">bytesjoin</span><span class="p">([</span><span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">&quot;&gt;H&quot;</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+                                    <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">paletteLabels</span><span class="p">])</span>
+		<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">palettes</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">result</span>
+
+	<span class="k">def</span> <span class="nf">_compilePaletteEntryLabels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">paletteEntryLabels</span><span class="p">):</span>
+			<span class="k">return</span> <span class="sa">b</span><span class="s1">&#39;&#39;</span>
+		<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">paletteEntryLabels</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">numPaletteEntries</span>
+		<span class="n">result</span> <span class="o">=</span> <span class="n">bytesjoin</span><span class="p">([</span><span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">&quot;&gt;H&quot;</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+                                    <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">paletteEntryLabels</span><span class="p">])</span>
+		<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">numPaletteEntries</span>
+		<span class="k">return</span> <span class="n">result</span>
+
+<div class="viewcode-block" id="table_C_P_A_L_.toXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.C_P_A_L_.table_C_P_A_L_.toXML">[docs]</a>	<span class="k">def</span> <span class="nf">toXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">numPalettes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">palettes</span><span class="p">)</span>
+		<span class="n">paletteLabels</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">nameID</span>
+				<span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">nameID</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">paletteLabels</span><span class="p">)}</span>
+		<span class="n">paletteTypes</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">typ</span> <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">typ</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">paletteTypes</span><span class="p">)}</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="s2">&quot;version&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="s2">&quot;numPaletteEntries&quot;</span><span class="p">,</span>
+				 <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">numPaletteEntries</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">palette</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">palettes</span><span class="p">):</span>
+			<span class="n">attrs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;index&quot;</span><span class="p">:</span> <span class="n">index</span><span class="p">}</span>
+			<span class="n">paletteType</span> <span class="o">=</span> <span class="n">paletteTypes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+			<span class="n">paletteLabel</span> <span class="o">=</span> <span class="n">paletteLabels</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">paletteLabel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">paletteLabel</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">paletteType</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">paletteType</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">begintag</span><span class="p">(</span><span class="s2">&quot;palette&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">attrs</span><span class="p">)</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+			<span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">paletteLabel</span> <span class="ow">and</span>
+			    <span class="n">ttFont</span> <span class="ow">and</span> <span class="s2">&quot;name&quot;</span> <span class="ow">in</span> <span class="n">ttFont</span><span class="p">):</span>
+				<span class="n">name</span> <span class="o">=</span> <span class="n">ttFont</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">getDebugName</span><span class="p">(</span><span class="n">paletteLabel</span><span class="p">)</span>
+				<span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+					<span class="n">writer</span><span class="o">.</span><span class="n">comment</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+					<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+			<span class="k">assert</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">palette</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">numPaletteEntries</span><span class="p">)</span>
+			<span class="k">for</span> <span class="n">cindex</span><span class="p">,</span> <span class="n">color</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">palette</span><span class="p">):</span>
+				<span class="n">color</span><span class="o">.</span><span class="n">toXML</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">,</span> <span class="n">cindex</span><span class="p">)</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">endtag</span><span class="p">(</span><span class="s2">&quot;palette&quot;</span><span class="p">)</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">paletteEntryLabels</span><span class="p">):</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">begintag</span><span class="p">(</span><span class="s2">&quot;paletteEntryLabels&quot;</span><span class="p">)</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+			<span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">paletteEntryLabels</span><span class="p">):</span>
+				<span class="k">if</span> <span class="n">label</span><span class="p">:</span>
+					<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+					<span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">label</span> <span class="ow">and</span> <span class="n">ttFont</span> <span class="ow">and</span> <span class="s2">&quot;name&quot;</span> <span class="ow">in</span> <span class="n">ttFont</span><span class="p">):</span>
+						<span class="n">name</span> <span class="o">=</span> <span class="n">ttFont</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">getDebugName</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+						<span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+							<span class="n">writer</span><span class="o">.</span><span class="n">comment</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+					<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">endtag</span><span class="p">(</span><span class="s2">&quot;paletteEntryLabels&quot;</span><span class="p">)</span>
+			<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="table_C_P_A_L_.fromXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.C_P_A_L_.table_C_P_A_L_.fromXML">[docs]</a>	<span class="k">def</span> <span class="nf">fromXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;palette&quot;</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">paletteLabels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">)))</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">paletteTypes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">)))</span>
+			<span class="n">palette</span> <span class="o">=</span> <span class="p">[]</span>
+			<span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+				<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">basestring</span><span class="p">):</span>
+					<span class="k">continue</span>
+				<span class="n">color</span> <span class="o">=</span> <span class="n">Color</span><span class="p">()</span>
+				<span class="n">color</span><span class="o">.</span><span class="n">fromXML</span><span class="p">(</span><span class="n">element</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">element</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">element</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">ttFont</span><span class="p">)</span>
+				<span class="n">palette</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">palettes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">palette</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;paletteEntryLabels&quot;</span><span class="p">:</span>
+			<span class="n">colorLabels</span> <span class="o">=</span> <span class="p">{}</span>
+			<span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+				<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">basestring</span><span class="p">):</span>
+					<span class="k">continue</span>
+				<span class="n">elementName</span><span class="p">,</span> <span class="n">elementAttr</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">element</span>
+				<span class="k">if</span> <span class="n">elementName</span> <span class="o">==</span> <span class="s2">&quot;label&quot;</span><span class="p">:</span>
+					<span class="n">labelIndex</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">elementAttr</span><span class="p">[</span><span class="s2">&quot;index&quot;</span><span class="p">])</span>
+					<span class="n">nameID</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">elementAttr</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">])</span>
+					<span class="n">colorLabels</span><span class="p">[</span><span class="n">labelIndex</span><span class="p">]</span> <span class="o">=</span> <span class="n">nameID</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">paletteEntryLabels</span> <span class="o">=</span> <span class="p">[</span>
+				<span class="n">colorLabels</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+				<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numPaletteEntries</span><span class="p">)]</span>
+		<span class="k">elif</span> <span class="s2">&quot;value&quot;</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">:</span>
+			<span class="n">value</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">])</span>
+			<span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;numPaletteEntries&quot;</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">paletteEntryLabels</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">numPaletteEntries</span></div></div>
+
+
+<div class="viewcode-block" id="Color"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.C_P_A_L_.Color">[docs]</a><span class="k">class</span> <span class="nc">Color</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">blue</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">green</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">red</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">blue</span> <span class="o">=</span> <span class="n">blue</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">green</span> <span class="o">=</span> <span class="n">green</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">red</span> <span class="o">=</span> <span class="n">red</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha</span>
+
+<div class="viewcode-block" id="Color.hex"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.C_P_A_L_.Color.hex">[docs]</a>	<span class="k">def</span> <span class="nf">hex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="s2">&quot;#</span><span class="si">%02X%02X%02X%02X</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">red</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">green</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">blue</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">)</span></div>
+
+	<span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Color.toXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.C_P_A_L_.Color.toXML">[docs]</a>	<span class="k">def</span> <span class="nf">toXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="s2">&quot;color&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hex</span><span class="p">(),</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Color.fromXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.C_P_A_L_.Color.fromXML">[docs]</a>	<span class="k">def</span> <span class="nf">fromXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eltname</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">value</span> <span class="o">=</span> <span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+		<span class="k">if</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;#&#39;</span><span class="p">:</span>
+			<span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">red</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">],</span> <span class="mi">16</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">green</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">],</span> <span class="mi">16</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">blue</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">6</span><span class="p">],</span> <span class="mi">16</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">6</span><span class="p">:</span><span class="mi">8</span><span class="p">],</span> <span class="mi">16</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span> <span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">8</span> <span class="k">else</span> <span class="mh">0xFF</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../ttLib.html" >fontTools.ttLib</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

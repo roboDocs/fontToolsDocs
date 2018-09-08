@@ -1,0 +1,220 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>recordingPen &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="teePen" href="teePen.html" />
+    <link rel="prev" title="statisticsPen" href="statisticsPen.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="teePen.html" title="teePen"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="statisticsPen.html" title="statisticsPen"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">pens</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-fontTools.pens.recordingPen">
+<span id="recordingpen"></span><h1>recordingPen<a class="headerlink" href="#module-fontTools.pens.recordingPen" title="Permalink to this headline">¶</a></h1>
+<p>Pen recording operations that can be accessed or replayed.</p>
+<dl class="function">
+<dt id="fontTools.pens.recordingPen.replayRecording">
+<code class="descclassname">fontTools.pens.recordingPen.</code><code class="descname">replayRecording</code><span class="sig-paren">(</span><em>recording</em>, <em>pen</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/recordingPen.html#replayRecording"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.recordingPen.replayRecording" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replay a recording, as produced by RecordingPen or DecomposingRecordingPen,
+to a pen.</p>
+<p>Note that recording does not have to be produced by those pens.
+It can be any iterable of tuples of method name and tuple-of-arguments.
+Likewise, pen can be any objects receiving those method calls.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.pens.recordingPen.RecordingPen">
+<em class="property">class </em><code class="descclassname">fontTools.pens.recordingPen.</code><code class="descname">RecordingPen</code><a class="reference internal" href="../_modules/fontTools/pens/recordingPen.html#RecordingPen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.recordingPen.RecordingPen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pen recording operations that can be accessed or replayed.</p>
+<p>The recording can be accessed as pen.value; or replayed using
+pen.replay(otherPen).</p>
+<p>from fontTools.ttLib import TTFont
+from fontTools.pens.recordingPen import RecordingPen</p>
+<p>glyph_name = &#8216;dollar&#8217;
+font_path = &#8216;MyFont.otf&#8217;</p>
+<p>font = TTFont(font_path)
+glyphset = font.getGlyphSet()
+glyph = glyphset[glyph_name]</p>
+<p>pen = RecordingPen()
+glyph.draw(pen)
+print(pen.value)</p>
+<dl class="method">
+<dt id="fontTools.pens.recordingPen.RecordingPen.addComponent">
+<code class="descname">addComponent</code><span class="sig-paren">(</span><em>glyphName</em>, <em>transformation</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/recordingPen.html#RecordingPen.addComponent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.recordingPen.RecordingPen.addComponent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.pens.recordingPen.RecordingPen.closePath">
+<code class="descname">closePath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/recordingPen.html#RecordingPen.closePath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.recordingPen.RecordingPen.closePath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.pens.recordingPen.RecordingPen.curveTo">
+<code class="descname">curveTo</code><span class="sig-paren">(</span><em>*points</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/recordingPen.html#RecordingPen.curveTo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.recordingPen.RecordingPen.curveTo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.pens.recordingPen.RecordingPen.endPath">
+<code class="descname">endPath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/recordingPen.html#RecordingPen.endPath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.recordingPen.RecordingPen.endPath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.pens.recordingPen.RecordingPen.lineTo">
+<code class="descname">lineTo</code><span class="sig-paren">(</span><em>p1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/recordingPen.html#RecordingPen.lineTo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.recordingPen.RecordingPen.lineTo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.pens.recordingPen.RecordingPen.moveTo">
+<code class="descname">moveTo</code><span class="sig-paren">(</span><em>p0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/recordingPen.html#RecordingPen.moveTo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.recordingPen.RecordingPen.moveTo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.pens.recordingPen.RecordingPen.qCurveTo">
+<code class="descname">qCurveTo</code><span class="sig-paren">(</span><em>*points</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/recordingPen.html#RecordingPen.qCurveTo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.recordingPen.RecordingPen.qCurveTo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fontTools.pens.recordingPen.RecordingPen.replay">
+<code class="descname">replay</code><span class="sig-paren">(</span><em>pen</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/recordingPen.html#RecordingPen.replay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.recordingPen.RecordingPen.replay" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fontTools.pens.recordingPen.DecomposingRecordingPen">
+<em class="property">class </em><code class="descclassname">fontTools.pens.recordingPen.</code><code class="descname">DecomposingRecordingPen</code><span class="sig-paren">(</span><em>glyphSet</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fontTools/pens/recordingPen.html#DecomposingRecordingPen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fontTools.pens.recordingPen.DecomposingRecordingPen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Same as RecordingPen, except that it doesn&#8217;t keep components
+as references, but draws them decomposed as regular contours.</p>
+<p>The constructor takes a single &#8216;glyphSet&#8217; positional argument,
+a dictionary of glyph objects (i.e. with a &#8216;draw&#8217; method) keyed
+by thir name.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">SimpleGlyph</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">draw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pen</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="n">pen</span><span class="o">.</span><span class="n">moveTo</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+<span class="gp">... </span>        <span class="n">pen</span><span class="o">.</span><span class="n">curveTo</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="gp">... </span>        <span class="n">pen</span><span class="o">.</span><span class="n">closePath</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">CompositeGlyph</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">draw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pen</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="n">pen</span><span class="o">.</span><span class="n">addComponent</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">glyphSet</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;a&#39;</span><span class="p">:</span> <span class="n">SimpleGlyph</span><span class="p">(),</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="n">CompositeGlyph</span><span class="p">()}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">glyph</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">glyphSet</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+<span class="gp">... </span>    <span class="n">pen</span> <span class="o">=</span> <span class="n">DecomposingRecordingPen</span><span class="p">(</span><span class="n">glyphSet</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">glyph</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">pen</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">pen</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+<span class="go">a: [(&#39;moveTo&#39;, ((0, 0),)), (&#39;curveTo&#39;, ((1, 1), (2, 2), (3, 3))), (&#39;closePath&#39;, ())]</span>
+<span class="go">b: [(&#39;moveTo&#39;, ((-1, 1),)), (&#39;curveTo&#39;, ((0, 2), (1, 3), (2, 4))), (&#39;closePath&#39;, ())]</span>
+</pre></div>
+</div>
+<dl class="attribute">
+<dt id="fontTools.pens.recordingPen.DecomposingRecordingPen.skipMissingComponents">
+<code class="descname">skipMissingComponents</code><em class="property"> = False</em><a class="headerlink" href="#fontTools.pens.recordingPen.DecomposingRecordingPen.skipMissingComponents" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="statisticsPen.html"
+                        title="previous chapter">statisticsPen</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="teePen.html"
+                        title="next chapter">teePen</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/pens/recordingPen.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="teePen.html" title="teePen"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="statisticsPen.html" title="statisticsPen"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >pens</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>

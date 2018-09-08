@@ -1,0 +1,223 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fontTools.ttLib.tables.D_S_I_G_ &#8212; fontTools 3.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '3.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../ttLib.html" accesskey="U">fontTools.ttLib</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fontTools.ttLib.tables.D_S_I_G_</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.py23</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc.textTools</span> <span class="k">import</span> <span class="n">safeEval</span>
+<span class="kn">from</span> <span class="nn">fontTools.misc</span> <span class="k">import</span> <span class="n">sstruct</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">DefaultTable</span>
+<span class="kn">import</span> <span class="nn">base64</span>
+
+<span class="n">DSIG_HeaderFormat</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">	&gt; # big endian</span>
+<span class="s2">	ulVersion:      L</span>
+<span class="s2">	usNumSigs:      H</span>
+<span class="s2">	usFlag:         H</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="c1"># followed by an array of usNumSigs DSIG_Signature records</span>
+<span class="n">DSIG_SignatureFormat</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">	&gt; # big endian</span>
+<span class="s2">	ulFormat:       L</span>
+<span class="s2">	ulLength:       L # length includes DSIG_SignatureBlock header</span>
+<span class="s2">	ulOffset:       L</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="c1"># followed by an array of usNumSigs DSIG_SignatureBlock records,</span>
+<span class="c1"># each followed immediately by the pkcs7 bytes</span>
+<span class="n">DSIG_SignatureBlockFormat</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">	&gt; # big endian</span>
+<span class="s2">	usReserved1:    H</span>
+<span class="s2">	usReserved2:    H</span>
+<span class="s2">	cbSignature:    l # length of following raw pkcs7 data</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="c1">#</span>
+<span class="c1"># NOTE</span>
+<span class="c1"># the DSIG table format allows for SignatureBlocks residing</span>
+<span class="c1"># anywhere in the table and possibly in a different order as</span>
+<span class="c1"># listed in the array after the first table header</span>
+<span class="c1">#</span>
+<span class="c1"># this implementation does not keep track of any gaps and/or data</span>
+<span class="c1"># before or after the actual signature blocks while decompiling,</span>
+<span class="c1"># and puts them in the same physical order as listed in the header</span>
+<span class="c1"># on compilation with no padding whatsoever.</span>
+<span class="c1">#</span>
+
+<div class="viewcode-block" id="table_D_S_I_G_"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.D_S_I_G_.table_D_S_I_G_">[docs]</a><span class="k">class</span> <span class="nc">table_D_S_I_G_</span><span class="p">(</span><span class="n">DefaultTable</span><span class="o">.</span><span class="n">DefaultTable</span><span class="p">):</span>
+
+<div class="viewcode-block" id="table_D_S_I_G_.decompile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.D_S_I_G_.table_D_S_I_G_.decompile">[docs]</a>	<span class="k">def</span> <span class="nf">decompile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">dummy</span><span class="p">,</span> <span class="n">newData</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">unpack2</span><span class="p">(</span><span class="n">DSIG_HeaderFormat</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+		<span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">ulVersion</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;DSIG ulVersion must be 1&quot;</span>
+		<span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">usFlag</span> <span class="o">&amp;</span> <span class="o">~</span><span class="mi">1</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;DSIG usFlag must be 0x1 or 0x0&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">signatureRecords</span> <span class="o">=</span> <span class="n">sigrecs</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">usNumSigs</span><span class="p">):</span>
+			<span class="n">sigrec</span><span class="p">,</span> <span class="n">newData</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">unpack2</span><span class="p">(</span><span class="n">DSIG_SignatureFormat</span><span class="p">,</span> <span class="n">newData</span><span class="p">,</span> <span class="n">SignatureRecord</span><span class="p">())</span>
+			<span class="k">assert</span> <span class="n">sigrec</span><span class="o">.</span><span class="n">ulFormat</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;DSIG signature record #</span><span class="si">%d</span><span class="s2"> ulFormat must be 1&quot;</span> <span class="o">%</span> <span class="n">n</span>
+			<span class="n">sigrecs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sigrec</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">sigrec</span> <span class="ow">in</span> <span class="n">sigrecs</span><span class="p">:</span>
+			<span class="n">dummy</span><span class="p">,</span> <span class="n">newData</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">unpack2</span><span class="p">(</span><span class="n">DSIG_SignatureBlockFormat</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">sigrec</span><span class="o">.</span><span class="n">ulOffset</span><span class="p">:],</span> <span class="n">sigrec</span><span class="p">)</span>
+			<span class="k">assert</span> <span class="n">sigrec</span><span class="o">.</span><span class="n">usReserved1</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;DSIG signature record #</span><span class="si">%d</span><span class="s2"> usReserverd1 must be 0&quot;</span> <span class="o">%</span> <span class="n">n</span>
+			<span class="k">assert</span> <span class="n">sigrec</span><span class="o">.</span><span class="n">usReserved2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;DSIG signature record #</span><span class="si">%d</span><span class="s2"> usReserverd2 must be 0&quot;</span> <span class="o">%</span> <span class="n">n</span>
+			<span class="n">sigrec</span><span class="o">.</span><span class="n">pkcs7</span> <span class="o">=</span> <span class="n">newData</span><span class="p">[:</span><span class="n">sigrec</span><span class="o">.</span><span class="n">cbSignature</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="table_D_S_I_G_.compile"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.D_S_I_G_.table_D_S_I_G_.compile">[docs]</a>	<span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">packed</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">DSIG_HeaderFormat</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+		<span class="n">headers</span> <span class="o">=</span> <span class="p">[</span><span class="n">packed</span><span class="p">]</span>
+		<span class="n">offset</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">packed</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">usNumSigs</span> <span class="o">*</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">DSIG_SignatureFormat</span><span class="p">)</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">sigrec</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">signatureRecords</span><span class="p">:</span>
+			<span class="c1"># first pack signature block</span>
+			<span class="n">sigrec</span><span class="o">.</span><span class="n">cbSignature</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sigrec</span><span class="o">.</span><span class="n">pkcs7</span><span class="p">)</span>
+			<span class="n">packed</span> <span class="o">=</span> <span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">DSIG_SignatureBlockFormat</span><span class="p">,</span> <span class="n">sigrec</span><span class="p">)</span> <span class="o">+</span> <span class="n">sigrec</span><span class="o">.</span><span class="n">pkcs7</span>
+			<span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">packed</span><span class="p">)</span>
+			<span class="c1"># update redundant length field</span>
+			<span class="n">sigrec</span><span class="o">.</span><span class="n">ulLength</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">packed</span><span class="p">)</span>
+			<span class="c1"># update running table offset</span>
+			<span class="n">sigrec</span><span class="o">.</span><span class="n">ulOffset</span> <span class="o">=</span> <span class="n">offset</span>
+			<span class="n">headers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sstruct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">DSIG_SignatureFormat</span><span class="p">,</span> <span class="n">sigrec</span><span class="p">))</span>
+			<span class="n">offset</span> <span class="o">+=</span> <span class="n">sigrec</span><span class="o">.</span><span class="n">ulLength</span>
+		<span class="k">if</span> <span class="n">offset</span> <span class="o">%</span> <span class="mi">2</span><span class="p">:</span>
+			<span class="c1"># Pad to even bytes</span>
+			<span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;</span><span class="se">\0</span><span class="s1">&#39;</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">bytesjoin</span><span class="p">(</span><span class="n">headers</span><span class="o">+</span><span class="n">data</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="table_D_S_I_G_.toXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.D_S_I_G_.table_D_S_I_G_.toXML">[docs]</a>	<span class="k">def</span> <span class="nf">toXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xmlWriter</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">xmlWriter</span><span class="o">.</span><span class="n">comment</span><span class="p">(</span><span class="s2">&quot;note that the Digital Signature will be invalid after recompilation!&quot;</span><span class="p">)</span>
+		<span class="n">xmlWriter</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">xmlWriter</span><span class="o">.</span><span class="n">simpletag</span><span class="p">(</span><span class="s2">&quot;tableHeader&quot;</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ulVersion</span><span class="p">,</span> <span class="n">numSigs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">usNumSigs</span><span class="p">,</span> <span class="n">flag</span><span class="o">=</span><span class="s2">&quot;0x</span><span class="si">%X</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">usFlag</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">sigrec</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">signatureRecords</span><span class="p">:</span>
+			<span class="n">xmlWriter</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+			<span class="n">sigrec</span><span class="o">.</span><span class="n">toXML</span><span class="p">(</span><span class="n">xmlWriter</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span>
+		<span class="n">xmlWriter</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="table_D_S_I_G_.fromXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.D_S_I_G_.table_D_S_I_G_.fromXML">[docs]</a>	<span class="k">def</span> <span class="nf">fromXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;tableHeader&quot;</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">signatureRecords</span> <span class="o">=</span> <span class="p">[]</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">ulVersion</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">])</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">usNumSigs</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;numSigs&quot;</span><span class="p">])</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">usFlag</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;flag&quot;</span><span class="p">])</span>
+			<span class="k">return</span>
+		<span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;SignatureRecord&quot;</span><span class="p">:</span>
+			<span class="n">sigrec</span> <span class="o">=</span> <span class="n">SignatureRecord</span><span class="p">()</span>
+			<span class="n">sigrec</span><span class="o">.</span><span class="n">fromXML</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">signatureRecords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sigrec</span><span class="p">)</span></div></div>
+
+<span class="n">pem_spam</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">l</span><span class="p">,</span> <span class="n">spam</span> <span class="o">=</span> <span class="p">{</span>
+	<span class="s2">&quot;-----BEGIN PKCS7-----&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;-----END PKCS7-----&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">:</span> <span class="kc">True</span>
+<span class="p">}:</span> <span class="ow">not</span> <span class="n">spam</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+
+<div class="viewcode-block" id="b64encode"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.D_S_I_G_.b64encode">[docs]</a><span class="k">def</span> <span class="nf">b64encode</span><span class="p">(</span><span class="n">b</span><span class="p">):</span>
+	<span class="n">s</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+	<span class="c1"># Line-break at 76 chars.</span>
+	<span class="n">items</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="k">while</span> <span class="n">s</span><span class="p">:</span>
+		<span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tostr</span><span class="p">(</span><span class="n">s</span><span class="p">[:</span><span class="mi">76</span><span class="p">]))</span>
+		<span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+		<span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="mi">76</span><span class="p">:]</span>
+	<span class="k">return</span> <span class="n">strjoin</span><span class="p">(</span><span class="n">items</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SignatureRecord"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.D_S_I_G_.SignatureRecord">[docs]</a><span class="k">class</span> <span class="nc">SignatureRecord</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+	<span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="s2">&quot;&lt;</span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SignatureRecord.toXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.D_S_I_G_.SignatureRecord.toXML">[docs]</a>	<span class="k">def</span> <span class="nf">toXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">begintag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ulFormat</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">newline</span><span class="p">()</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">write_noindent</span><span class="p">(</span><span class="s2">&quot;-----BEGIN PKCS7-----</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">write_noindent</span><span class="p">(</span><span class="n">b64encode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pkcs7</span><span class="p">))</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">write_noindent</span><span class="p">(</span><span class="s2">&quot;-----END PKCS7-----</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+		<span class="n">writer</span><span class="o">.</span><span class="n">endtag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SignatureRecord.fromXML"><a class="viewcode-back" href="../../../../ttLib/tables.html#fontTools.ttLib.tables.D_S_I_G_.SignatureRecord.fromXML">[docs]</a>	<span class="k">def</span> <span class="nf">fromXML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">ttFont</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">ulFormat</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;format&quot;</span><span class="p">])</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">usReserved1</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;reserved1&quot;</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">))</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">usReserved2</span> <span class="o">=</span> <span class="n">safeEval</span><span class="p">(</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;reserved2&quot;</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">))</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">pkcs7</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">tobytes</span><span class="p">(</span><span class="n">strjoin</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="n">pem_spam</span><span class="p">,</span> <span class="n">content</span><span class="p">))))</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">fontTools 3.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../ttLib.html" >fontTools.ttLib</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Just van Rossum, Behdad Esfahbod et al..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.2.
+    </div>
+  </body>
+</html>
