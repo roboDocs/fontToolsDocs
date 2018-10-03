@@ -1,60 +1,30 @@
 import os
 import shutil
-from mojo.extensions import ExtensionBundle
-
-baseFolder = os.path.dirname(__file__)
-libFolder = os.path.join(baseFolder, 'lib')
-extensionFile = "fontTools.roboFontExt"
-extensionPath = os.path.join(baseFolder, extensionFile)
-htmlFolder = os.path.join(baseFolder, 'html')
-
-#-------------
-# update docs
-#-------------
 
 # update fontTools
 # > git pull fontTools
 
-# build docs
+# build fontTools docs
 # > cd Doc
 # > make html
+
+baseFolder = os.path.dirname(__file__)
+extensionFile = "fontToolsDocs.roboFontExt"
+extensionPath = os.path.join(baseFolder, extensionFile)
+resourcesFolder = os.path.join(extensionPath, 'resources')
+htmlFolder = os.path.join(resourcesFolder, 'htmlDocs')
 
 # hardwired to the local path on my machine
 fontToolsHtml = '/_code/fonttools/Doc/build/html/'
 
+print('updating FontTools documentation...\n')
+
 if os.path.exists(htmlFolder):
-    print("\tremoving old HTML files...")
+    print("\tremoving old files...")
     shutil.rmtree(htmlFolder)
 
+print("\tfetching the latest version...")
 shutil.copytree(fontToolsHtml, htmlFolder)
 
-#-----------------
-# build extension
-#-----------------
+print('\n...done.\n')
 
-print("building FontTools Docs extension...\n")
-
-if os.path.exists(extensionPath):
-    print("\tremoving old RoboFont extension...")
-    shutil.rmtree(extensionPath)
-
-print("\trebuilding the RoboFont extension...")
-B = ExtensionBundle()
-B.name = "FontTools Docs"
-B.developer = "RoboDocs"
-B.developerURL = "http://github.com/robodocs"
-B.version = "0.1"
-B.mainScript = ""
-B.launchAtStartUp = 0
-B.addToMenu = [{
-    "path" : "docs.py",
-    "preferredName" : "FontTools Docs",
-    "shortKey" : "",
-}]
-B.requiresVersionMajor = "1"
-B.requiresVersionMinor = "5"
-B.infoDictionary["html"] = 0
-B.save(extensionPath, libPath=libFolder, resourcesPath=None, pycOnly=False)
-
-print()
-print('...done.\n')

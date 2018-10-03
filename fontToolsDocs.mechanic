@@ -1,0 +1,8 @@
+description: The FontTools documentation as a RoboFont extension.
+developer: RoboDocs
+developerURL: http://github.com/roboDocs
+extensionName: FontTools Docs
+extensionPath: fontToolsDocs.roboFontExt
+repository: http://github.com/roboDocs/fontToolsDocs
+icon: http://github.com/roboDocs/fontToolsDocs/raw/master/fontToolsDocsMechanicIcon.png
+tags: [documentation, scripting, mastering, TrueType, OpenType features]
