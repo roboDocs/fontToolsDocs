@@ -14,9 +14,9 @@
 		</dict>
 	</array>
 	<key>developer</key>
-	<string>RoboDocs</string>
+	<string>FontTools Developers</string>
 	<key>developerURL</key>
-	<string>http://github.com/robodocs</string>
+	<string>http://github.com/fonttools/fonttools</string>
 	<key>html</key>
 	<integer>0</integer>
 	<key>launchAtStartUp</key>
@@ -32,6 +32,6 @@
 	<key>timeStamp</key>
 	<real>1536395547.6099288</real>
 	<key>version</key>
-	<string>0.1</string>
+	<string>0.0.1</string>
 </dict>
 </plist>
